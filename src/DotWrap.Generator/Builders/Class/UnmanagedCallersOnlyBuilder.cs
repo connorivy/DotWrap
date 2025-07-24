@@ -1,0 +1,158 @@
+using System.Text;
+using System.Text.Json;
+using DotWrap.Generator.Builders.Method;
+using Microsoft.CodeAnalysis;
+using static DotWrap.Internal.Constants;
+
+namespace DotWrap.Generator.Builders.Class;
+
+public class EntryPointStaticClassBuilder(ClassBuilderContext context)
+{
+    public string GenerateClassFile(INamedTypeSymbol classSymbol)
+    {
+        var methodsSource = BuildClassBody(context);
+
+        var sourceText =
+            $@"
+using System;
+using System.Runtime.InteropServices;
+
+namespace {context.Namespace}
+{{
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
+    [global::System.CodeDom.Compiler.GeneratedCode(""DotWrap"", ""1.0.0"")]
+    [global::{nameof(DotWrap)}.{nameof(DotWrap.DotWrapGeneratedAttribute).Replace("Attribute", "")}]
+    public static class {context.WrapperName}
+    {{
+{methodsSource.ToString().TrimEnd()}
+        public static global::System.Type {OriginalType} => typeof({classSymbol.ToDisplayString()});
+    }}
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+}}
+";
+
+        return sourceText;
+    }
+
+    private StringBuilder BuildClassBody(ClassBuilderContext context)
+    {
+        var className = context.ClassName;
+        var entryPrefix = context.EntryPrefix;
+
+        var methodsSource = new StringBuilder();
+        methodsSource.AppendLine(
+            $"        private static readonly System.Collections.Concurrent.ConcurrentDictionary<int, {className}> _instances = new();"
+        );
+        methodsSource.AppendLine($"        private static int _nextId = 1;");
+        methodsSource.AppendLine();
+
+        // Create method
+        methodsSource.AppendLine(
+            $"        [UnmanagedCallersOnly(EntryPoint = \"{entryPrefix}{Create}\")]"
+        );
+        methodsSource.AppendLine($"        public static int {Create}()");
+        methodsSource.AppendLine("        {");
+        methodsSource.AppendLine($"            var obj = new {className}();");
+        methodsSource.AppendLine(
+            $"            int id = System.Threading.Interlocked.Increment(ref _nextId);"
+        );
+        methodsSource.AppendLine($"            _instances[id] = obj;");
+        methodsSource.AppendLine($"            return id;");
+        methodsSource.AppendLine("        }");
+        methodsSource.AppendLine();
+
+        // Destroy method
+        methodsSource.AppendLine(
+            $"        [UnmanagedCallersOnly(EntryPoint = \"{entryPrefix}{Destroy}\")]"
+        );
+        methodsSource.AppendLine($"        public static void {Destroy}(int {SelfPointerName})");
+        methodsSource.AppendLine("        {");
+        methodsSource.AppendLine($"            _instances.TryRemove({SelfPointerName}, out _);");
+        methodsSource.AppendLine("        }");
+        methodsSource.AppendLine();
+
+        ClassMetadataBuilder classMetadataBuilder = new ClassMetadataBuilder(context);
+        InstanceMethodBuilder instanceMethodBuilder = new(methodsSource, classMetadataBuilder);
+        instanceMethodBuilder.GenerateAllMethods(context);
+
+        var classSymbol = context.ClassSymbol;
+        // Public property getters/setters
+        foreach (
+            var prop in classSymbol
+                .GetMembers()
+                .OfType<IPropertySymbol>()
+                .Where(p => p.DeclaredAccessibility == Accessibility.Public && !p.IsStatic)
+        )
+        {
+            var propType = prop.Type.ToDisplayString();
+            var propName = prop.Name;
+            // Getter
+            if (
+                prop.GetMethod != null
+                && prop.GetMethod.DeclaredAccessibility == Accessibility.Public
+            )
+            {
+                methodsSource.AppendLine(
+                    $"        [UnmanagedCallersOnly(EntryPoint = \"{entryPrefix}get_{propName}\")]"
+                );
+                methodsSource.AppendLine(
+                    $"        public static {propType} get_{propName}(int {SelfPointerName})"
+                );
+                methodsSource.AppendLine("        {");
+                methodsSource.AppendLine(
+                    $"            if (!_instances.TryGetValue({SelfPointerName}, out var obj))"
+                );
+                methodsSource.AppendLine(
+                    $"                throw new System.ArgumentException(\"Invalid instance handle: {SelfPointerName}\");"
+                );
+                methodsSource.AppendLine($"            return obj.{propName};");
+                methodsSource.AppendLine("        }");
+                methodsSource.AppendLine();
+            }
+            // Setter
+            if (
+                prop.SetMethod != null
+                && prop.SetMethod.DeclaredAccessibility == Accessibility.Public
+            )
+            {
+                methodsSource.AppendLine(
+                    $"        [UnmanagedCallersOnly(EntryPoint = \"{entryPrefix}set_{propName}\")]"
+                );
+                methodsSource.AppendLine(
+                    $"        public static void set_{propName}(int {SelfPointerName}, {propType} value)"
+                );
+                methodsSource.AppendLine("        {");
+                methodsSource.AppendLine(
+                    $"            if (_instances.TryGetValue({SelfPointerName}, out var obj))"
+                );
+                methodsSource.AppendLine("            {");
+                methodsSource.AppendLine($"                obj.{propName} = value;");
+                methodsSource.AppendLine("            }");
+                methodsSource.AppendLine("        }");
+                methodsSource.AppendLine();
+            }
+        }
+
+        var jsonMeta =
+            @$"
+            private static readonly string {ClassMetadata} =  
+            """"""
+            { JsonSerializer.Serialize(
+                classMetadataBuilder.ClassInfo,
+                DotWrapSerializerOptions.Default
+            )}
+            """""";";
+        methodsSource.Append(jsonMeta);
+
+        return methodsSource;
+    }
+}
+
+public record ClassBuilderContext(INamedTypeSymbol ClassSymbol)
+{
+    public string ClassName => ClassSymbol.Name;
+    public string Namespace => ClassSymbol.ContainingNamespace.ToDisplayString();
+    public string WrapperName => ClassName + "Wrapper";
+    public string EntryPrefix => $"{Namespace.Replace(".", "_")}_{ClassName}_";
+}

@@ -1,0 +1,25 @@
+<Project>
+  <PropertyGroup>
+    <DotWrapRoot Condition="'$(DotWrapRoot)' == ''">$(MSBuildThisFileDirectory)..\..</DotWrapRoot>
+    <DotWrapToolsPath Condition="'$(DotWrapToolsPath)' == ''">$(DotWrapRoot)\tools</DotWrapToolsPath>
+  </PropertyGroup>
+
+  <!-- <Target Name="RunWrapperGen" BeforeTargets="Publish"> -->
+  <Target Name="RunWrapperGen" AfterTargets="Build">
+    <Exec Command="&quot;$(DotWrapToolsPath)\DotWrap.MSBuild.exe&quot; $(TargetPath) build" />
+  </Target>
+
+  <Target Name="CopyNativeLibs" AfterTargets="Publish">
+    <Exec Command="&quot;$(DotWrapToolsPath)\DotWrap.MSBuild.exe&quot; $(TargetPath) publish" />
+  </Target>
+
+  <!-- <Target Name="CopyNativeLibs" AfterTargets="Publish">
+    <ItemGroup>
+      <NativeLibs Include="$(OutputPath)\*.dll" />
+      <NativeLibs Include="$(OutputPath)\*.lib" />
+      <NativeLibs Include="$(OutputPath)\*.so" />
+      <NativeLibs Include="$(OutputPath)\*.dylib" />
+    </ItemGroup>
+    <Copy SourceFiles="@(NativeLibs)" DestinationFolder="$(DotWrapRoot)\python\DotWrap_SampleAotLib" />
+  </Target> -->
+</Project>

@@ -1,0 +1,43 @@
+using System;
+using System.IO;
+using DotWrap.MSBuild;
+
+#if DEBUG
+System.Diagnostics.Debugger.Launch();
+#endif
+
+string dllPath = args[0];
+string dllDirectory =
+    Path.GetDirectoryName(dllPath) ?? throw new ArgumentException("Invalid DLL path.");
+
+string logPath = Path.Combine(dllDirectory, $"DotWrapOutput.log");
+
+var logger = new Logger();
+
+try
+{
+    switch (args[1])
+    {
+        case MagicStrings.BuildOperation:
+            var wrapperGenerator = new WrapperGenerator(logger);
+            wrapperGenerator.GenerateWrapper(dllPath);
+            break;
+        case MagicStrings.PublishOperation:
+            var nativeLibCopier = new NativeLibCopier(logger);
+            nativeLibCopier.CopyNativeLibs(dllPath);
+            break;
+        default:
+            throw new ArgumentException(
+                $"Operation {args[1]} does not match any known operations."
+            );
+    }
+}
+catch (Exception ex)
+{
+    logger.LogError(ex.ToString());
+    throw;
+}
+finally
+{
+    logger.SaveToFile(logPath);
+}
