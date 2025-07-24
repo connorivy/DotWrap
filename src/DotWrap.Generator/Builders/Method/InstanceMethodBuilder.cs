@@ -1,6 +1,7 @@
 using System.Reflection.Metadata;
 using System.Text;
 using DotWrap.Generator.Builders.Class;
+using DotWrap.Generator.Extensions;
 using DotWrap.MSBuild;
 using Microsoft.CodeAnalysis;
 using static DotWrap.Internal.Constants;
@@ -217,9 +218,13 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
         return MethodSymbol
             .Parameters.Select(p => new ParameterDetails(
                 p.Name,
-                InstanceMethodBuilder.GetExposedReturnTypeFromOriginal(p.Type),
-                p.Type as INamedTypeSymbol
-                    ?? throw new NotSupportedException($"Unsupported parameter type: {p.Type}")
+                p.Type.GetExposedCType(out var isOriginalType),
+                isOriginalType
+                    ? null
+                    : (
+                        p.Type as INamedTypeSymbol
+                        ?? throw new NotSupportedException($"Unsupported parameter type: {p.Type}")
+                    )
             ))
             .ToList();
     }
@@ -243,14 +248,14 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
         bool hasConverted = false;
         foreach (var param in GetParameterDetails())
         {
-            if (param.OriginalType is null)
+            if (param.OriginalTypeIfDifferent is null)
             {
                 continue;
             }
             hasConverted = true;
-            var classContext = new ClassBuilderContext(param.OriginalType);
+            var classContext = new ClassBuilderContext(param.OriginalTypeIfDifferent);
             sb.Append(
-                $"            var {param.Name}Typed = {classContext.WrapperName}.{Get}({param.Name});"
+                $"            var {param.Name}{Typed} = {classContext.WrapperName}.{Get}({param.Name});"
             );
         }
 
@@ -262,9 +267,13 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
         return string.Join(
             ", ",
             GetParameterDetails()
-                .Select(p => $"{(p.OriginalType is null ? p.Name : $"{p.Name}Typed")}")
+                .Select(p => $"{(p.OriginalTypeIfDifferent is null ? p.Name : $"{p.Name}{Typed}")}")
         );
     }
 };
 
-public record ParameterDetails(string Name, string ExposedType, INamedTypeSymbol? OriginalType);
+public record ParameterDetails(
+    string Name,
+    string ExposedType,
+    INamedTypeSymbol? OriginalTypeIfDifferent
+);

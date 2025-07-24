@@ -157,13 +157,15 @@ namespace {context.Namespace}
 
         var jsonMeta =
             @$"
+#pragma warning disable CS0414 // field is assigned but its value is never used
         private static readonly string {ClassMetadata} =  
         """"""
         { JsonSerializer.Serialize(
             classMetadataBuilder.ClassInfo,
             DotWrapSerializerOptions.Default
         )}
-        """""";";
+        """""";
+#pragma warning restore CS0414 // field is assigned but its value is never used";
         methodsSource.Append(jsonMeta);
 
         return methodsSource;
