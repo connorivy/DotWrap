@@ -18,7 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DotWrap\DotWrap.csproj" GeneratePathProperty="true" PrivateAssets="all"/>
+    <ProjectReference Include="..\DotWrap\DotWrap.csproj" GeneratePathProperty="true" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Extensions\" />
   </ItemGroup>
 
   <PropertyGroup>

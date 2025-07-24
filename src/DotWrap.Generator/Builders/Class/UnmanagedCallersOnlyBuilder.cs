@@ -26,7 +26,6 @@ namespace {context.Namespace}
     public static class {context.WrapperName}
     {{
 {methodsSource.ToString().TrimEnd()}
-        public static global::System.Type {OriginalType} => typeof({classSymbol.ToDisplayString()});
     }}
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }}
@@ -53,12 +52,34 @@ namespace {context.Namespace}
         );
         methodsSource.AppendLine($"        public static int {Create}()");
         methodsSource.AppendLine("        {");
-        methodsSource.AppendLine($"            var obj = new {className}();");
+        methodsSource.AppendLine($"            var {Obj} = new {className}();");
         methodsSource.AppendLine(
             $"            int id = System.Threading.Interlocked.Increment(ref _nextId);"
         );
-        methodsSource.AppendLine($"            _instances[id] = obj;");
+        methodsSource.AppendLine($"            _instances[id] = {Obj};");
         methodsSource.AppendLine($"            return id;");
+        methodsSource.AppendLine("        }");
+        methodsSource.AppendLine();
+
+        // internal create method
+        methodsSource.AppendLine($"        internal static int {Create}({className} {Obj})");
+        methodsSource.AppendLine("        {");
+        methodsSource.AppendLine(
+            $"            int id = System.Threading.Interlocked.Increment(ref _nextId);"
+        );
+        methodsSource.AppendLine($"            _instances[id] = {Obj};");
+        methodsSource.AppendLine($"            return id;");
+        methodsSource.AppendLine("        }");
+        methodsSource.AppendLine();
+
+        // internal get method
+        methodsSource.AppendLine($"        internal static {className} {Get}(int id)");
+        methodsSource.AppendLine("        {");
+        methodsSource.AppendLine($"            if (!_instances.TryGetValue(id, out var {Obj}))");
+        methodsSource.AppendLine(
+            $"                throw new System.ArgumentException(\"Invalid instance handle: {SelfPointerName}\");"
+        );
+        methodsSource.AppendLine($"            return {Obj};");
         methodsSource.AppendLine("        }");
         methodsSource.AppendLine();
 
@@ -101,12 +122,12 @@ namespace {context.Namespace}
                 );
                 methodsSource.AppendLine("        {");
                 methodsSource.AppendLine(
-                    $"            if (!_instances.TryGetValue({SelfPointerName}, out var obj))"
+                    $"            if (!_instances.TryGetValue({SelfPointerName}, out var {Obj}))"
                 );
                 methodsSource.AppendLine(
                     $"                throw new System.ArgumentException(\"Invalid instance handle: {SelfPointerName}\");"
                 );
-                methodsSource.AppendLine($"            return obj.{propName};");
+                methodsSource.AppendLine($"            return {Obj}.{propName};");
                 methodsSource.AppendLine("        }");
                 methodsSource.AppendLine();
             }
@@ -124,10 +145,10 @@ namespace {context.Namespace}
                 );
                 methodsSource.AppendLine("        {");
                 methodsSource.AppendLine(
-                    $"            if (_instances.TryGetValue({SelfPointerName}, out var obj))"
+                    $"            if (_instances.TryGetValue({SelfPointerName}, out var {Obj}))"
                 );
                 methodsSource.AppendLine("            {");
-                methodsSource.AppendLine($"                obj.{propName} = value;");
+                methodsSource.AppendLine($"                {Obj}.{propName} = value;");
                 methodsSource.AppendLine("            }");
                 methodsSource.AppendLine("        }");
                 methodsSource.AppendLine();
@@ -136,13 +157,13 @@ namespace {context.Namespace}
 
         var jsonMeta =
             @$"
-            private static readonly string {ClassMetadata} =  
-            """"""
-            { JsonSerializer.Serialize(
-                classMetadataBuilder.ClassInfo,
-                DotWrapSerializerOptions.Default
-            )}
-            """""";";
+        private static readonly string {ClassMetadata} =  
+        """"""
+        { JsonSerializer.Serialize(
+            classMetadataBuilder.ClassInfo,
+            DotWrapSerializerOptions.Default
+        )}
+        """""";";
         methodsSource.Append(jsonMeta);
 
         return methodsSource;
@@ -154,5 +175,6 @@ public record ClassBuilderContext(INamedTypeSymbol ClassSymbol)
     public string ClassName => ClassSymbol.Name;
     public string Namespace => ClassSymbol.ContainingNamespace.ToDisplayString();
     public string WrapperName => ClassName + "Wrapper";
+    public string FullyQualifiedWrapperName => $"{Namespace}.{WrapperName}";
     public string EntryPrefix => $"{Namespace.Replace(".", "_")}_{ClassName}_";
 }

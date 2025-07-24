@@ -11,12 +11,10 @@ internal partial class DotWrapSerializerContext : JsonSerializerContext { }
 
 public static class DotWrapSerializerOptions
 {
-    internal static JsonSerializerOptions Default
+    static DotWrapSerializerOptions()
     {
-        get
-        {
-            field ??= new() { TypeInfoResolver = DotWrapSerializerContext.Default };
-            return field;
-        }
+        Default = new JsonSerializerOptions { TypeInfoResolver = DotWrapSerializerContext.Default };
     }
+
+    internal static JsonSerializerOptions Default { get; }
 }
