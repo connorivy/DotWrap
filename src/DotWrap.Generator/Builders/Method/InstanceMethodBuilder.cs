@@ -1,4 +1,3 @@
-using System.Reflection.Metadata;
 using System.Text;
 using DotWrap.Generator.Builders.Class;
 using DotWrap.Generator.Extensions;
@@ -36,148 +35,101 @@ public class InstanceMethodBuilder(StringBuilder sb, ClassMetadataBuilder classM
                     new ExportedParameterInfo
                     {
                         Name = param.Name,
-                        Type = param.Type.ToDisplayString(),
+                        OriginalType = param.Type.ToDisplayString(),
+                        ExposedType = param.Type.GetExposedCType(out _),
                         Comment = XmlParser.ParseParamComment(methodXml, param.Name),
                     }
                 );
             }
             classMetadataBuilder.AddMethod(exportedMethodInfo);
 
-            var returnType = GetExposedReturnTypeFromOriginal(context);
-            switch (method.ReturnType.SpecialType)
+            switch (method.ReturnType)
             {
-                case SpecialType.System_Boolean:
-                case SpecialType.System_Double:
-                case SpecialType.System_Single:
-                case SpecialType.System_Byte:
-                case SpecialType.System_SByte:
-                case SpecialType.System_Int16:
-                case SpecialType.System_Int32:
-                case SpecialType.System_Int64:
-                case SpecialType.System_UInt16:
-                case SpecialType.System_UInt32:
-                case SpecialType.System_UInt64:
-                case SpecialType.System_Void:
-                    GenerateSingleMethod(context);
+                case { SpecialType: var st } when st.IsBlittable():
+                    GenerateSingleMethod(context, null, null);
                     break;
-                case SpecialType.System_String:
-                    GenerateSingleMethodThatReturnsString(context);
+                case { SpecialType: SpecialType.System_String }:
+                    GenerateSingleMethod(context, "global::DotWrap.BuiltIn.CString.Create(", ")");
+                    break;
+                case { SpecialType: SpecialType.System_Boolean }:
+                    GenerateSingleMethod(context, "", " ? 1 : 0");
                     break;
                 default:
-                    GenerateSingleMethodThatReturnsReferenceType(context);
+                    GenerateSingleMethod(
+                        context,
+                        $"{GetWrapperName(method.ReturnType)}.{Create}(",
+                        ")"
+                    );
+
                     break;
             }
         }
     }
 
-    public void GenerateSingleMethod(MethodBuilderContext methodContext)
+    public void GenerateSingleMethod(
+        MethodBuilderContext methodContext,
+        string? resultToExportTypePrefix,
+        string? resultToExportTypeSuffix
+    )
     {
         var entryPrefix = methodContext.ClassContext.EntryPrefix;
         var methodName = methodContext.MethodName;
-        var returnType = GetExposedReturnTypeFromOriginal(methodContext);
+        var returnType = methodContext.MethodSymbol.ReturnType.GetExposedCType(out _);
         var methodSignature = methodContext.GetExposedMethodSignatureString();
         var internalMethodCallArgs = methodContext.GetInternalMethodCallArgumentsString();
         var convertParamsToInternal =
             methodContext.ConvertExposedParametersToInternalParametersTypes();
 
-        var returnCall = methodContext.MethodSymbol.ReturnsVoid ? string.Empty : "return ";
         sb.AppendLine(
             $"        [UnmanagedCallersOnly(EntryPoint = \"{entryPrefix}{methodName}\")]"
         );
         sb.AppendLine($"        public static {returnType} {methodName}({methodSignature})");
         sb.AppendLine("        {");
-        sb.AppendLine($"            var {Obj} = {Get}({SelfPointerName});");
+
+        string obj;
+        if (methodContext.MethodSymbol.IsStatic)
+        {
+            obj = methodContext.ClassContext.ClassName;
+        }
+        else
+        {
+            obj = Obj;
+            sb.AppendLine($"            var {obj} = {Get}({SelfPointerName});");
+        }
+
         if (convertParamsToInternal is not null)
         {
             sb.AppendLine(convertParamsToInternal);
         }
-        sb.AppendLine($"            {returnCall}{Obj}.{methodName}({internalMethodCallArgs});");
-        sb.AppendLine("        }");
-        sb.AppendLine();
-    }
 
-    protected string GenerateSingleMethodThatReturnsString(MethodBuilderContext context)
-    {
-        var entryPrefix = context.ClassContext.EntryPrefix;
-        var methodName = context.MethodName;
-        var parameters = GetExposedParametersString(context);
-        var args = string.Join(", ", context.MethodSymbol.Parameters.Select(p => p.Name));
+        // var resultAssignment = methodContext.MethodSymbol.ReturnsVoid
+        //     ? string.Empty
+        //     : $"var {Result} = ";
+        var returnCall = methodContext.MethodSymbol.ReturnsVoid ? string.Empty : "return ";
+        // sb.AppendLine(
+        //     $"            {resultAssignment}{obj}.{methodName}({internalMethodCallArgs});"
+        // );
 
         sb.AppendLine(
-            $"        [UnmanagedCallersOnly(EntryPoint = \"{entryPrefix}{methodName}\")]"
+            $"            {returnCall}{resultToExportTypePrefix}{obj}.{methodName}({internalMethodCallArgs}){resultToExportTypeSuffix};"
         );
-        sb.AppendLine($"        public static IntPtr {methodName}({parameters})");
-        sb.AppendLine("        {");
-        sb.AppendLine($"            var {Obj} = {Get}({SelfPointerName});");
-        sb.AppendLine(
-            $"            return global::DotWrap.BuiltIn.CString.Create({Obj}.{methodName}({args}));"
-        );
+
+        // string result;
+        // if (resultToExportTypePrefix is not null && resultToExportTypeSuffix is not null)
+        // {
+        //     result = $"{Result}Exported";
+        //     sb.AppendLine(
+        //         $"            var {Result}Exported = {resultToExportTypePrefix}{Result}{resultToExportTypeSuffix};"
+        //     );
+        // }
+        // else
+        // {
+        //     result = Result;
+        // }
+
+        // sb.AppendLine($"            {returnCall}{obj}.{methodName}({internalMethodCallArgs});");
         sb.AppendLine("        }");
         sb.AppendLine();
-
-        return sb.ToString();
-    }
-
-    protected string GenerateSingleMethodThatReturnsReferenceType(MethodBuilderContext context)
-    {
-        var entryPrefix = context.ClassContext.EntryPrefix;
-        var returnType = context.MethodSymbol.ReturnType;
-        var methodName = context.MethodName;
-        var parameters = GetExposedParametersString(context);
-        var args = string.Join(", ", context.MethodSymbol.Parameters.Select(p => p.Name));
-
-        sb.AppendLine(
-            $"        [UnmanagedCallersOnly(EntryPoint = \"{entryPrefix}{methodName}\")]"
-        );
-        sb.AppendLine($"        public static int {methodName}({parameters})");
-        sb.AppendLine("        {");
-        sb.AppendLine($"            var {Obj} = {Get}({SelfPointerName});");
-        sb.AppendLine($"            var result = {Obj}.{methodName}({args});");
-        sb.AppendLine($"            return {GetWrapperName(returnType)}.{Create}(result);");
-        sb.AppendLine("        }");
-        sb.AppendLine();
-
-        return sb.ToString();
-    }
-
-    protected string GetExposedParametersString(MethodBuilderContext methodBuilderContext)
-    {
-        var parameters = string.Join(
-            ", ",
-            methodBuilderContext.MethodSymbol.Parameters.Select(p =>
-                $"{GetExposedReturnTypeFromOriginal(p.Type)} {p.Name}"
-            )
-        );
-        return $"int {SelfPointerName}{(parameters.Length > 0 ? ", " : "")}{parameters}";
-    }
-
-    protected static string GetExposedReturnTypeFromOriginal(MethodBuilderContext methodContext)
-    {
-        return GetExposedReturnTypeFromOriginal(methodContext.MethodSymbol.ReturnType);
-    }
-
-    public static string GetExposedReturnTypeFromOriginal(ITypeSymbol returnType)
-    {
-        return returnType switch
-        {
-            // SpecialType.System_String => "global::DotWrap.System.CString",
-            { SpecialType: SpecialType.System_String } => "IntPtr",
-            { SpecialType: SpecialType.System_Boolean } => "bool",
-            { SpecialType: SpecialType.System_Double } => "double",
-            { SpecialType: SpecialType.System_Single } => "float",
-            {
-                SpecialType: SpecialType.System_Byte
-                    or SpecialType.System_SByte
-                    or SpecialType.System_UInt16
-                    or SpecialType.System_UInt32
-                    or SpecialType.System_UInt64
-                    or SpecialType.System_Int16
-                    or SpecialType.System_Int32
-                    or SpecialType.System_Int64
-            } => "int",
-            { SpecialType: SpecialType.System_Void } => "void",
-            _ => "int", // everything else gets mapped to an int id
-        };
     }
 
     protected static string GetWrapperName(ITypeSymbol returnType)
@@ -207,7 +159,8 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
         return new ExportedMethodInfo
         {
             Name = MethodName,
-            ReturnType = MethodSymbol.ReturnType.ToDisplayString(),
+            OriginalReturnType = MethodSymbol.ReturnType.ToDisplayString(),
+            ExposedReturnType = MethodSymbol.ReturnType.GetExposedCType(out _),
             SummaryComment = XmlParser.ParseSummary(xmlDoc),
             ReturnsComment = XmlParser.ParseReturns(xmlDoc),
         };
@@ -223,7 +176,9 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
                     ? null
                     : (
                         p.Type as INamedTypeSymbol
-                        ?? throw new NotSupportedException($"Unsupported parameter type: {p.Type}")
+                        ?? throw new NotSupportedException(
+                            $"Unsupported parameter type: {p.Type} on method {MethodSymbol.Name} in class {ClassContext.ClassSymbol.Name}"
+                        )
                     )
             ))
             .ToList();

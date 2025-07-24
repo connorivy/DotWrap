@@ -44,10 +44,10 @@ public static class ITypedSymbolExtensions
 
         switch (symbol)
         {
+            case { SpecialType: SpecialType.System_IntPtr }:
+                return "IntPtr";
             case { SpecialType: SpecialType.System_String }:
                 return "IntPtr"; // CString
-            case { SpecialType: SpecialType.System_Boolean }:
-                return "bool";
             case { SpecialType: SpecialType.System_Double }:
                 return "double";
             case { SpecialType: SpecialType.System_Single }:
@@ -61,6 +61,7 @@ public static class ITypedSymbolExtensions
                     or SpecialType.System_Int16
                     or SpecialType.System_Int32
                     or SpecialType.System_Int64
+                    or SpecialType.System_Boolean
             }:
                 return "int";
             case { SpecialType: SpecialType.System_Void }:

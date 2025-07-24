@@ -1,5 +1,7 @@
 using System.Text;
 using DotWrap.Generator.Builders.Class;
+using DotWrap.Generator.Builders.Method;
+using DotWrap.Generator.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -29,21 +31,43 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
             {
                 // System.Diagnostics.Debugger.Launch();
                 var (compilation, classes) = source;
+                HashSet<INamedTypeSymbol> explicitTypesToWrap = [];
+                HashSet<INamedTypeSymbol> inferedTypedToWrap = [];
                 foreach (var classDecl in classes)
                 {
                     var semanticModel = compilation.GetSemanticModel(classDecl.SyntaxTree);
                     var classSymbol =
                         semanticModel.GetDeclaredSymbol(classDecl) as INamedTypeSymbol;
                     if (classSymbol == null)
+                    {
                         continue;
-                    var hasAttribute = classSymbol
-                        .GetAttributes()
-                        .Any(a => a.AttributeClass?.Name == nameof(DotWrapExposeAttribute));
-                    if (!hasAttribute)
-                        continue;
+                    }
 
+                    if (!classSymbol.IsMarkedForWrapperGeneration())
+                    {
+                        continue;
+                    }
+                    explicitTypesToWrap.Add(classSymbol);
+                    inferedTypedToWrap.UnionWith(GetInferredTypesToWrap(classSymbol));
+                }
+
+                foreach (var classSymbol in explicitTypesToWrap)
+                {
                     var context = new ClassBuilderContext(classSymbol);
-                    string sourceText = new EntryPointStaticClassBuilder(context).GenerateClassFile(
+                    string sourceText = new ExplicitWrapperBuilder(context).GenerateClassFile(
+                        classSymbol
+                    );
+
+                    spc.AddSource(
+                        $"{context.WrapperName}.g.cs",
+                        SourceText.From(sourceText, Encoding.UTF8)
+                    );
+                }
+
+                foreach (var classSymbol in inferedTypedToWrap)
+                {
+                    var context = new ClassBuilderContext(classSymbol);
+                    string sourceText = new ImplicitWrapperBuilder(context).GenerateClassFile(
                         classSymbol
                     );
 
@@ -96,5 +120,57 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
             );
             spc.AddSource("DotWrap.BuiltIn.CString.g.cs", sourceText);
         });
+    }
+
+    public static IEnumerable<INamedTypeSymbol> GetInferredTypesToWrap(INamedTypeSymbol classSymbol)
+    {
+        var classContext = new ClassBuilderContext(classSymbol);
+        foreach (var method in classSymbol.GetMembers().OfType<IMethodSymbol>())
+        {
+            if (SkipMethod(method))
+            {
+                continue;
+            }
+
+            var methodContext = new MethodBuilderContext(method, classContext);
+            foreach (
+                var namedTypeSymbol in methodContext
+                    .GetParameterDetails()
+                    .Select(p => p.OriginalTypeIfDifferent)
+                    .Concat([methodContext.MethodSymbol.ReturnType as INamedTypeSymbol])
+                    .OfType<INamedTypeSymbol>()
+            )
+            {
+                if (SkipWrapperGeneration(namedTypeSymbol))
+                {
+                    continue;
+                }
+
+                if (namedTypeSymbol.IsMarkedForWrapperGeneration())
+                {
+                    // if a type is marked for wrapper gen, then it will be handled by it's own source generator runs
+                    continue;
+                }
+
+                yield return namedTypeSymbol;
+            }
+        }
+    }
+
+    private static bool SkipWrapperGeneration(INamedTypeSymbol classSymbol)
+    {
+        return classSymbol switch
+        {
+            _ when classSymbol.IsBlittable() => true,
+            { SpecialType: SpecialType.System_String } => true,
+            _ => false,
+        };
+    }
+
+    private static bool SkipMethod(IMethodSymbol methodSymbol)
+    {
+        return methodSymbol.DeclaredAccessibility != Accessibility.Public
+            || !methodSymbol.IsDefinition
+            || methodSymbol.IsExtensionMethod;
     }
 }

@@ -34,10 +34,10 @@ public static class PythonWrapperCffiAbiGenerator
             {
                 var paramList = string.Join(
                     ", ",
-                    method.Parameters.Select(p => $"{MapTypeToC(p.Type)} {p.Name}")
+                    method.Parameters.Select(p => $"{MapTypeToC(p.OriginalType)} {p.Name}")
                 );
                 var cDef =
-                    $"{MapTypeToC(method.ReturnType)} {cls.EntryPrefix}{method.Name}(int ptr{(paramList.Length > 0 ? ", " : "")}{paramList});";
+                    $"{MapTypeToC(method.OriginalReturnType)} {cls.EntryPrefix}{method.Name}(int ptr{(paramList.Length > 0 ? ", " : "")}{paramList});";
                 sb.AppendLine(cDef);
             }
             foreach (var prop in cls.Properties)
@@ -45,13 +45,13 @@ public static class PythonWrapperCffiAbiGenerator
                 if (prop.HasGetter)
                 {
                     var cDef =
-                        $"{MapTypeToC(prop.Type)} {cls.EntryPrefix}get_{prop.Name}(int ptr);";
+                        $"{MapTypeToC(prop.OriginalType)} {cls.EntryPrefix}get_{prop.Name}(int ptr);";
                     sb.AppendLine(cDef);
                 }
                 if (prop.HasSetter)
                 {
                     var cDef =
-                        $"void {cls.EntryPrefix}set_{prop.Name}(int ptr, {MapTypeToC(prop.Type)} value);";
+                        $"void {cls.EntryPrefix}set_{prop.Name}(int ptr, {MapTypeToC(prop.OriginalType)} value);";
                     sb.AppendLine(cDef);
                 }
             }
@@ -84,10 +84,12 @@ with importlib.resources.path(""{projectName}"", lib_name) as lib_path:
             {
                 var paramListWithHints = string.Join(
                     ", ",
-                    method.Parameters.Select(p => $"{p.Name}: {MapTypeToPython(p.Type) ?? "Any"}")
+                    method.Parameters.Select(p =>
+                        $"{p.Name}: {MapTypeToPython(p.OriginalType) ?? "Any"}"
+                    )
                 );
                 var paramNames = string.Join(", ", method.Parameters.Select(p => p.Name));
-                var pyReturnType = MapTypeToPython(method.ReturnType);
+                var pyReturnType = MapTypeToPython(method.OriginalReturnType);
                 sb.AppendLine(
                     $"    def {method.Name}(self{(paramListWithHints.Length > 0 ? ", " : "")}{paramListWithHints}){(pyReturnType != null ? $" -> {pyReturnType}" : "")}:"
                 );
@@ -100,7 +102,7 @@ with importlib.resources.path(""{projectName}"", lib_name) as lib_path:
             {
                 if (prop.HasGetter)
                 {
-                    var pyPropType = MapTypeToPython(prop.Type);
+                    var pyPropType = MapTypeToPython(prop.OriginalType);
                     sb.AppendLine($"    @property");
                     sb.AppendLine(
                         $"    def {prop.Name}(self){(pyPropType != null ? $" -> {pyPropType}" : "")}:"
@@ -113,7 +115,7 @@ with importlib.resources.path(""{projectName}"", lib_name) as lib_path:
                 {
                     sb.AppendLine($"    @{prop.Name}.setter");
                     sb.AppendLine(
-                        $"    def {prop.Name}(self, value: {MapTypeToPython(prop.Type) ?? "Any"}):"
+                        $"    def {prop.Name}(self, value: {MapTypeToPython(prop.OriginalType) ?? "Any"}):"
                     );
                     sb.AppendLine(
                         $"        lib.{cls.EntryPrefix}set_{prop.Name}(self._ptr, value)"
