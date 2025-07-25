@@ -93,12 +93,14 @@ setup(
             headerContent.AppendLine(destroyMethod);
             foreach (var method in cls.Methods)
             {
-                var paramList = string.Join(
-                    ", ",
-                    method.Parameters.Select(p => $"{p.MapExposedTypeToC()} {p.Name}")
-                );
+                var parameters = method.Parameters.Select(p => $"{p.MapExposedTypeToC()} {p.Name}");
+                if (!method.IsStatic)
+                {
+                    parameters = parameters.Prepend($"int ptr");
+                }
+                var paramList = string.Join(", ", parameters);
                 var cDef =
-                    $"{method.MapExposedTypeToC()} {cls.EntryPrefix}{method.Name}(int ptr{(paramList.Length > 0 ? ", " : "")}{paramList});";
+                    $"{method.MapExposedTypeToC()} {cls.EntryPrefix}{method.Name}({paramList});";
                 build.AppendLine(cDef);
                 headerContent.AppendLine(cDef);
             }

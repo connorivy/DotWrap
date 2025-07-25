@@ -28,11 +28,10 @@ public class ExportedMethodInfo : IHasOriginalAndExposedTypes
     /// If the original type is the same as the exposed type, this will be null.
     /// </summary>
     public required string? ExposedTypeIfDifferent { get; set; }
+    public required bool IsStatic { get; set; }
     public string? SummaryComment { get; set; }
     public string? ReturnsComment { get; set; }
     public List<ExportedParameterInfo> Parameters { get; set; } = new();
-
-    public bool IsStatic => this.Parameters.FirstOrDefault()?.Name == SelfPointerName;
 }
 
 public class ExportedParameterInfo : IHasOriginalAndExposedTypes

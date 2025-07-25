@@ -56,6 +56,11 @@ public class SampleClass
         return value;
     }
 
+    public static int StaticTakesInt(int value)
+    {
+        return value;
+    }
+
     /// <summary>
     /// Instance property int value
     /// </summary>

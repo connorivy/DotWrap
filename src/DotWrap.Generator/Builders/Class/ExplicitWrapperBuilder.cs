@@ -20,7 +20,7 @@ public class ExplicitWrapperBuilder(ClassBuilderContext context)
     {
         var className = Context.ClassName;
         var entryPrefix = Context.EntryPrefix;
-        InstanceMethodBuilder instanceMethodBuilder = new(sb, classMetadataBuilder);
+        MethodBuilder instanceMethodBuilder = new(sb, classMetadataBuilder);
         instanceMethodBuilder.GenerateAllMethods(Context);
 
         var classSymbol = Context.ClassSymbol;

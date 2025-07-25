@@ -10,14 +10,6 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
     public void AddClassToMainAndInitPy(ExportedMethodInfo method)
     {
         var context = new MethodBuilderContext(classContext, method);
-        // var pyReturnType = method.MapOriginalTypeToPython();
-
-        // var (returnWrapPrefix, returnWrapSuffix) = pyReturnType switch
-        // {
-        //     "CString" => ("CString(", ")"),
-        //     "bool" => ("bool(", ")"),
-        //     _ => ("", ""),
-        // };
         var (returnWrapPrefix, returnWrapSuffix) = method switch
         {
             { OriginalType: "string" } => ($"str(CString(", "))"),
@@ -51,7 +43,7 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
         string selfMethodParameter;
         if (methodInfo.IsStatic)
         {
-            mainPy.AppendLine($"        @staticmethod");
+            mainPy.AppendLine($"    @staticmethod");
             selfMethodParameter = string.Empty;
         }
         else

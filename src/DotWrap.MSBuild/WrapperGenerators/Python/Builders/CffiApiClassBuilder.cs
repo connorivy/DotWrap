@@ -33,10 +33,6 @@ public class CffiApiClassBuilder(
     """""""
             );
         }
-        // mainPy.AppendLine($"    def __new__(cls):");
-        // mainPy.AppendLine($"        instance = object.__new__(cls)");
-        // mainPy.AppendLine($"        instance.{Ptr} = {Lib}.{classInfo.EntryPrefix}{Create}()");
-        // mainPy.AppendLine($"        return instance");
 
         mainPy.AppendLine($"    def __init__(self):");
         mainPy.AppendLine($"        self.{Ptr} = {Lib}.{classInfo.EntryPrefix}{Create}()");

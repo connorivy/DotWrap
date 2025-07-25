@@ -18,7 +18,7 @@ public static class DotWrapObjectExtensions
                 "float" or "double" => "float",
                 "boolean" or "bool" => "bool",
                 "void" => "None",
-                "string" => "CString", // use CString wrapper for strings
+                "string" => "str",
                 _ => $"\"{typeInfo.OriginalType.Split('.').Last()}\"",
             };
         }
