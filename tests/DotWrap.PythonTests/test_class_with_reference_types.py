@@ -17,7 +17,7 @@ def test_return_sample_class():
     sample_class_instance = class_instance.CreateSampleClass()
     assert sample_class_instance is not None
     assert sample_class_instance.InstanceReturn42() == 42
-    assert sample_class_instance.InstanceReturnPi() == 3.141592653589793
+    assert sample_class_instance.InstancePi() == 3.141592653589793
 
 
 test_class_with_reference_types()

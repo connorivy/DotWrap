@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using DotWrap.MSBuild.WrapperGenerators.Python.Extensions;
@@ -7,6 +8,8 @@ namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 
 public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilder mainPy)
 {
+    private readonly HashSet<string> methodNames = [];
+
     public void AddClassToMainAndInitPy(ExportedMethodInfo method)
     {
         var context = new MethodBuilderContext(classContext, method);
@@ -40,8 +43,26 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
         var paramNames = string.Join(", ", methodInfo.Parameters.Select(p => p.Name));
         var pyReturnType = methodInfo.MapOriginalTypeToPython();
 
+        int numTries = 0;
+        string methodName = methodInfo.OriginalName;
+        while (!this.methodNames.Add(methodName))
+        {
+            numTries++;
+            methodName = $"{methodInfo.OriginalName}_{numTries}";
+        }
+
+        var returnCall = "return ";
+        if (methodName == "Constructor")
+        {
+            methodName = "__init__";
+            pyReturnType = "None";
+            resultToExportTypePrefix = $"self.{Ptr} = ";
+            resultToExportTypeSuffix = string.Empty;
+            returnCall = string.Empty;
+        }
+
         string selfMethodParameter;
-        if (methodInfo.IsStatic)
+        if (methodInfo.IsStatic && methodName != "__init__")
         {
             mainPy.AppendLine($"    @staticmethod");
             selfMethodParameter = string.Empty;
@@ -50,8 +71,9 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
         {
             selfMethodParameter = $"self{(methodInfo.Parameters.Count > 0 ? ", " : "")}";
         }
+
         mainPy.AppendLine(
-            $"    def {methodInfo.Name}({selfMethodParameter}{paramListWithHints}){$" -> {pyReturnType}"}:"
+            $"    def {methodName}({selfMethodParameter}{paramListWithHints}){$" -> {pyReturnType}"}:"
         );
 
         var docComment = methodInfo.GetMethodComment("        ");
@@ -60,9 +82,8 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
             mainPy.AppendLine(docComment);
         }
 
-        var returnCall = "return ";
         mainPy.AppendLine(
-            $"        {returnCall}{resultToExportTypePrefix}{Lib}.{context.ClassContext.ClassInfo.EntryPrefix}{methodInfo.Name}({cLibMethodArgs}){resultToExportTypeSuffix}"
+            $"        {returnCall}{resultToExportTypePrefix}{Lib}.{context.ClassContext.ClassInfo.EntryPrefix}{methodInfo.StampedName}({cLibMethodArgs}){resultToExportTypeSuffix}"
         );
 
         mainPy.AppendLine();

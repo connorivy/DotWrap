@@ -49,22 +49,7 @@ namespace {Context.Namespace}
         methodsSource.AppendLine(
             $"        private static readonly System.Collections.Concurrent.ConcurrentDictionary<int, {className}> _instances = new();"
         );
-        methodsSource.AppendLine($"        private static int _nextId = 1;");
-        methodsSource.AppendLine();
-
-        // Create method
-        methodsSource.AppendLine(
-            $"        [UnmanagedCallersOnly(EntryPoint = \"{entryPrefix}{Create}\")]"
-        );
-        methodsSource.AppendLine($"        public static int {Create}()");
-        methodsSource.AppendLine("        {");
-        methodsSource.AppendLine($"            var {Obj} = new {className}();");
-        methodsSource.AppendLine(
-            $"            int id = System.Threading.Interlocked.Increment(ref _nextId);"
-        );
-        methodsSource.AppendLine($"            _instances[id] = {Obj};");
-        methodsSource.AppendLine($"            return id;");
-        methodsSource.AppendLine("        }");
+        methodsSource.AppendLine($"        private static int _nextId = int.MinValue;");
         methodsSource.AppendLine();
 
         // internal create method

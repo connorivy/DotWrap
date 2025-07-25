@@ -84,10 +84,6 @@ setup(
         headerContent.AppendLine(freeString);
         foreach (var cls in classes)
         {
-            var createMethod = $"int {cls.EntryPrefix}{Create}();";
-            build.AppendLine(createMethod);
-            headerContent.AppendLine(createMethod);
-
             var destroyMethod = $"void {cls.EntryPrefix}{Destroy}(int ptr);";
             build.AppendLine(destroyMethod);
             headerContent.AppendLine(destroyMethod);
@@ -100,7 +96,7 @@ setup(
                 }
                 var paramList = string.Join(", ", parameters);
                 var cDef =
-                    $"{method.MapExposedTypeToC()} {cls.EntryPrefix}{method.Name}({paramList});";
+                    $"{method.MapExposedTypeToC()} {cls.EntryPrefix}{method.StampedName}({paramList});";
                 build.AppendLine(cDef);
                 headerContent.AppendLine(cDef);
             }

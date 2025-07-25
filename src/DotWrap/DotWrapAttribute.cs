@@ -2,17 +2,17 @@ using System;
 
 namespace DotWrap;
 
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public class DotWrapExposeAttribute : Attribute { }
 
-[AttributeUsage(AttributeTargets.Method)]
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 public class DotWrapIgnoreAttribute : Attribute { }
 
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public class DotWrapGeneratedAttribute : Attribute { }
 
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 public class DotWrapMetaAttribute(string? alias = null) : Attribute
 {
-    public string? Alias { get; } = alias;
+    public string? alias { get; } = alias;
 }

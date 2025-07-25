@@ -34,10 +34,6 @@ public class CffiApiClassBuilder(
             );
         }
 
-        mainPy.AppendLine($"    def __init__(self):");
-        mainPy.AppendLine($"        self.{Ptr} = {Lib}.{classInfo.EntryPrefix}{Create}()");
-        mainPy.AppendLine();
-
         mainPy.AppendLine($"    @classmethod");
         mainPy.AppendLine($"    def {FromPtr}(cls, ptr: int):");
         mainPy.AppendLine($"        instance = object.__new__(cls)");

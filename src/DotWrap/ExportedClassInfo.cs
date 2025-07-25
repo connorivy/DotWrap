@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using static DotWrap.Internal.Constants;
@@ -16,7 +17,10 @@ public class ExportedClassInfo
 
 public class ExportedMethodInfo : IHasOriginalAndExposedTypes
 {
-    public required string Name { get; set; }
+    public required string OriginalName { get; set; }
+
+    private string? stampedName;
+    public string StampedName => stampedName ??= this.OriginalName + this.GetParameterStamp();
 
     /// <summary>
     /// The original type of the method's return value.
@@ -31,7 +35,32 @@ public class ExportedMethodInfo : IHasOriginalAndExposedTypes
     public required bool IsStatic { get; set; }
     public string? SummaryComment { get; set; }
     public string? ReturnsComment { get; set; }
-    public List<ExportedParameterInfo> Parameters { get; set; } = new();
+    public required List<ExportedParameterInfo> Parameters { get; set; } = new();
+
+    /// <summary>
+    /// Generates a unique stamp for the method based on the original type of it's parameters.
+    /// </summary>
+    /// <returns></returns>
+    public string GetParameterStamp()
+    {
+        if (Parameters.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        string Key = string.Join("", Parameters.Select(p => p.OriginalType));
+        unchecked
+        {
+            const int seed = 0x811C9DC;
+            const int prime = 16777619;
+            int hash = seed;
+
+            foreach (char c in Key)
+                hash = (hash ^ c) * prime;
+
+            return $"_{Math.Abs(hash):X8}";
+        }
+    }
 }
 
 public class ExportedParameterInfo : IHasOriginalAndExposedTypes

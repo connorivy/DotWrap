@@ -21,6 +21,7 @@ public class SampleClass
     /// <returns>
     /// Returns the value of Pi.
     /// </returns>
+    [DotWrapMeta(alias: "InstancePi")]
     public double InstanceReturnPi() => Math.PI;
 
     /// <summary>
@@ -29,6 +30,7 @@ public class SampleClass
     /// <returns>
     /// Returns the value of Pi.
     /// </returns>
+    [DotWrapMeta("Pi")]
     public static double StaticReturnPi() => Math.PI;
 
     /// <summary>

@@ -11,15 +11,13 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
 {
     public void GenerateAllMethods(ClassBuilderContext classContext)
     {
-        // Public instance methods
         foreach (
             var method in classContext
                 .ClassSymbol.GetMembers()
                 .OfType<IMethodSymbol>()
                 .Where(m =>
                     m.DeclaredAccessibility == Accessibility.Public
-                    // && !m.IsStatic
-                    && m.MethodKind == MethodKind.Ordinary
+                    && (m.MethodKind is MethodKind.Ordinary or MethodKind.Constructor)
                     && !m.GetAttributes()
                         .Any(a => a.AttributeClass?.Name == nameof(DotWrapIgnoreAttribute))
                 )
@@ -27,12 +25,12 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
         {
             var context = new MethodBuilderContext(method, classContext);
             var methodXml = method.GetDocumentationCommentXml();
-            var exportedMethodInfo = context.GetExportedMethodInfo(methodXml);
 
+            List<ExportedParameterInfo> parameters = new(method.Parameters.Length);
             foreach (var param in method.Parameters)
             {
                 var exposedCType = param.Type.GetExposedCType(out var isOriginalType);
-                exportedMethodInfo.Parameters.Add(
+                parameters.Add(
                     new ExportedParameterInfo
                     {
                         Name = param.Name,
@@ -42,23 +40,30 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
                     }
                 );
             }
+            var exportedMethodInfo = context.GetExportedMethodInfo(methodXml, parameters);
             classMetadataBuilder.AddMethod(exportedMethodInfo);
 
-            switch (method.ReturnType)
+            switch (context.ReturnType)
             {
                 case { SpecialType: var st } when st.IsBlittable():
-                    GenerateSingleMethod(context, null, null);
+                    GenerateSingleMethod(context, exportedMethodInfo, null, null);
                     break;
                 case { SpecialType: SpecialType.System_String }:
-                    GenerateSingleMethod(context, "global::DotWrap.BuiltIn.CString.Create(", ")");
+                    GenerateSingleMethod(
+                        context,
+                        exportedMethodInfo,
+                        "global::DotWrap.BuiltIn.CString.Create(",
+                        ")"
+                    );
                     break;
                 case { SpecialType: SpecialType.System_Boolean }:
-                    GenerateSingleMethod(context, "", " ? 1 : 0");
+                    GenerateSingleMethod(context, exportedMethodInfo, "", " ? 1 : 0");
                     break;
                 default:
                     GenerateSingleMethod(
                         context,
-                        $"{GetWrapperName(method.ReturnType)}.{Create}(",
+                        exportedMethodInfo,
+                        $"{GetWrapperName(context.ReturnType)}.{Create}(",
                         ")"
                     );
 
@@ -69,13 +74,15 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
 
     public void GenerateSingleMethod(
         MethodBuilderContext methodContext,
+        ExportedMethodInfo exportedMethodInfo,
         string? resultToExportTypePrefix,
         string? resultToExportTypeSuffix
     )
     {
         var entryPrefix = methodContext.ClassContext.EntryPrefix;
-        var methodName = methodContext.MethodName;
-        var returnType = methodContext.MethodSymbol.ReturnType.GetExposedCType(out _);
+        var methodName = exportedMethodInfo.StampedName;
+        var OriginalMethodName = methodContext.OriginalMethodName;
+        var returnType = methodContext.ReturnType.GetExposedCType(out _);
         var methodSignature = methodContext.GetExposedMethodSignatureString();
         var internalMethodCallArgs = methodContext.GetInternalMethodCallArgumentsString();
         var convertParamsToInternal =
@@ -88,7 +95,7 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
         sb.AppendLine("        {");
 
         string obj;
-        if (methodContext.MethodSymbol.IsStatic)
+        if (methodContext.IsStatic)
         {
             obj = methodContext.ClassContext.ClassName;
         }
@@ -103,10 +110,18 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
             sb.AppendLine(convertParamsToInternal);
         }
 
-        var returnCall = methodContext.MethodSymbol.ReturnsVoid ? string.Empty : "return ";
+        var returnCall =
+            methodContext.ReturnType.SpecialType == SpecialType.System_Void
+                ? string.Empty
+                : "return ";
+
+        var methodCall =
+            methodContext.MethodSymbol.MethodKind is MethodKind.Constructor
+                ? $"new {obj}"
+                : $"{obj}.{OriginalMethodName}";
 
         sb.AppendLine(
-            $"            {returnCall}{resultToExportTypePrefix}{obj}.{methodName}({internalMethodCallArgs}){resultToExportTypeSuffix};"
+            $"            {returnCall}{resultToExportTypePrefix}{methodCall}({internalMethodCallArgs}){resultToExportTypeSuffix};"
         );
 
         sb.AppendLine("        }");
@@ -124,98 +139,3 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
         return context.FullyQualifiedWrapperName;
     }
 }
-
-public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderContext ClassContext)
-{
-    public string MethodName => MethodSymbol.Name;
-
-    public ExportedMethodInfo GetExportedMethodInfo()
-    {
-        var xmlDoc = MethodSymbol.GetDocumentationCommentXml();
-        return GetExportedMethodInfo(xmlDoc);
-    }
-
-    public ExportedMethodInfo GetExportedMethodInfo(string? xmlDoc)
-    {
-        var exposedCType = MethodSymbol.ReturnType.GetExposedCType(out var isOriginalType);
-        return new ExportedMethodInfo
-        {
-            Name = MethodName,
-            OriginalType = isOriginalType
-                ? exposedCType
-                : MethodSymbol.ReturnType.ToDisplayString(),
-            IsStatic = MethodSymbol.IsStatic,
-            ExposedTypeIfDifferent = isOriginalType ? null : exposedCType,
-            SummaryComment = XmlParser.ParseSummary(xmlDoc),
-            ReturnsComment = XmlParser.ParseReturns(xmlDoc),
-        };
-    }
-
-    public List<ParameterDetails> GetParameterDetails()
-    {
-        return MethodSymbol
-            .Parameters.Select(p => new ParameterDetails(
-                p.Name,
-                p.Type.GetExposedCType(out var isOriginalType),
-                isOriginalType
-                    ? null
-                    : (
-                        p.Type as INamedTypeSymbol
-                        ?? throw new NotSupportedException(
-                            $"Unsupported parameter type: {p.Type} on method {MethodSymbol.Name} in class {ClassContext.ClassSymbol.Name}"
-                        )
-                    )
-            ))
-            .ToList();
-    }
-
-    public string GetExposedMethodSignatureString()
-    {
-        var parameters = GetParameterDetails().Select(p => $"{p.ExposedType} {p.Name}");
-        if (!MethodSymbol.IsStatic)
-        {
-            parameters = parameters.Prepend($"int {SelfPointerName}");
-        }
-
-        return string.Join(", ", parameters);
-    }
-
-    public string? ConvertExposedParametersToInternalParametersTypes()
-    {
-        var parameters = string.Join(
-            ", ",
-            GetParameterDetails().Select(p => $"{p.ExposedType} {p.Name}")
-        );
-        StringBuilder sb = new();
-        bool hasConverted = false;
-        foreach (var param in GetParameterDetails())
-        {
-            if (param.OriginalTypeIfDifferent is null)
-            {
-                continue;
-            }
-            hasConverted = true;
-            var classContext = new ClassBuilderContext(param.OriginalTypeIfDifferent);
-            sb.Append(
-                $"            var {param.Name}{Typed} = {classContext.WrapperName}.{Get}({param.Name});"
-            );
-        }
-
-        return hasConverted ? sb.ToString() : null;
-    }
-
-    public string GetInternalMethodCallArgumentsString()
-    {
-        return string.Join(
-            ", ",
-            GetParameterDetails()
-                .Select(p => $"{(p.OriginalTypeIfDifferent is null ? p.Name : $"{p.Name}{Typed}")}")
-        );
-    }
-};
-
-public record ParameterDetails(
-    string Name,
-    string ExposedType,
-    INamedTypeSymbol? OriginalTypeIfDifferent
-);

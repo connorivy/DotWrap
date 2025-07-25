@@ -9,12 +9,12 @@ def test_instance_returns_42():
 
 def test_instance_returns_pi():
     instance = test_lib.SampleClass()
-    result = instance.InstanceReturnPi()
+    result = instance.InstancePi()
     assert abs(result - 3.141592653589793) < 1e-9
 
 
 def test_static_returns_pi():
-    result = test_lib.SampleClass.StaticReturnPi()
+    result = test_lib.SampleClass.Pi()
     assert abs(result - 3.141592653589793) < 1e-9
 
 
