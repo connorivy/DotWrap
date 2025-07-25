@@ -24,7 +24,7 @@ class CustomBuild(build):
     def run(self):
         # Run lib_build.py before building
         lib_build_path = os.path.join(
-            os.path.dirname(__file__), ""{projectName}"", ""lib_build.py""
+            os.path.dirname(__file__), ""{projectName}"", ""{PythonProjectInfo.DotWrapGeneratedDir}"", ""lib_build.py""
         )
         if os.path.exists(lib_build_path):
             subprocess.check_call([sys.executable, lib_build_path])
@@ -44,7 +44,7 @@ setup(
     zip_safe=False,
     setup_requires=[""cffi""],
     package_data={{
-        ""{projectName}"": [
+        ""{projectName}.{PythonProjectInfo.DotWrapGeneratedDir}"": [
             ""*.dll"",
             ""*.so"",
             ""*.dylib"",

@@ -12,6 +12,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" />
     <PackageVersion Include="PolySharp" Version="1.15.0" />
     <PackageVersion Include="System.Text.Json" Version="9.0.7" />
+    <PackageVersion Include="TUnit" Version="0.25.21" />
     <!-- Testing -->
     <PackageVersion Include="xunit" Version="2.9.2" />
     <PackageVersion Include="xunit.extensibility.core" Version="2.6.2" />

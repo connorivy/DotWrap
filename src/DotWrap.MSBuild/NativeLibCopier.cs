@@ -14,9 +14,9 @@ public class NativeLibCopier(Logger logger)
         PythonProjectInfo pythonProjectInfo = new(projectInfo);
 
         var libDirectory = projectInfo.NativeLibsDirectory;
-        var pythonProjectRoot = pythonProjectInfo.PythonProjectRoot;
+        var dotWrapGeneratedRoot = pythonProjectInfo.DotWrapGeneratedRoot;
 
-        logger.LogInfo($"Copying native libraries from {libDirectory} to {pythonProjectRoot}");
+        logger.LogInfo($"Copying native libraries from {libDirectory} to {dotWrapGeneratedRoot}");
 
         // copy all files in the native libs directory to the python package root
         foreach (var file in Directory.GetFiles(libDirectory))
@@ -26,9 +26,9 @@ public class NativeLibCopier(Logger logger)
                 logger.LogInfo($"Skipping PDB file: {file}");
                 continue; // skip PDB files
             }
-            logger.LogInfo($"Copying {file} to {pythonProjectRoot}");
+            logger.LogInfo($"Copying {file} to {dotWrapGeneratedRoot}");
 
-            var destFile = Path.Combine(pythonProjectRoot, Path.GetFileName(file));
+            var destFile = Path.Combine(dotWrapGeneratedRoot, Path.GetFileName(file));
             File.Copy(file, destFile, overwrite: true);
         }
     }

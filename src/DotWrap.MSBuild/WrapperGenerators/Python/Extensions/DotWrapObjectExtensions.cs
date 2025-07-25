@@ -14,7 +14,7 @@ public static class DotWrapObjectExtensions
             var t = typeInfo.OriginalType.ToLowerInvariant().Replace("system.", "");
             return t switch
             {
-                "int32" or "int" => "int",
+                "int32" or "int" or "int64" or "long" => "int",
                 "float" or "double" => "float",
                 "boolean" or "bool" => "bool",
                 "void" => "None",
@@ -53,6 +53,7 @@ public static class DotWrapObjectExtensions
                 "double" => "double",
                 "boolean" or "bool" => "bool",
                 "intptr" => "void*",
+                "long" => "int64_t",
                 // _ => "void*", // fallback for unsupported types
                 _ => throw new NotSupportedException($"Unsupported type: {t}"),
             };

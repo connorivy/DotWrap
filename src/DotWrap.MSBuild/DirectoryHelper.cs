@@ -5,21 +5,24 @@ namespace DotWrap.MSBuild;
 
 public record PythonProjectInfo
 {
+    private const string ProjectRootDir = "python_project_root";
+    public const string DotWrapGeneratedDir = "dotwrap_generated";
+
     public PythonProjectInfo(CSharpProjectInfo cSharpProjectInfo)
     {
         CSharpProjectInfo = cSharpProjectInfo;
         ProjectName = CSharpProjectInfo.LibName.Replace(".", "_");
 
-        var projectDir = CSharpProjectInfo.ProjectRoot;
-        // get directory before the /bin dir
-        Directory.CreateDirectory(Path.Combine(projectDir, "python"));
-        Directory.CreateDirectory(Path.Combine(projectDir, "python", ProjectName));
+        Directory.CreateDirectory(PythonProjectRoot);
+        Directory.CreateDirectory(PythonPackageRoot);
+        Directory.CreateDirectory(DotWrapGeneratedRoot);
     }
 
     public CSharpProjectInfo CSharpProjectInfo { get; init; }
     public string ProjectName { get; init; }
-    public string PythonPackageRoot => Path.Combine(CSharpProjectInfo.ProjectRoot, "python");
-    public string PythonProjectRoot => Path.Combine(PythonPackageRoot, ProjectName);
+    public string PythonProjectRoot => Path.Combine(CSharpProjectInfo.ProjectRoot, ProjectRootDir);
+    public string PythonPackageRoot => Path.Combine(PythonProjectRoot, ProjectName);
+    public string DotWrapGeneratedRoot => Path.Combine(PythonPackageRoot, DotWrapGeneratedDir);
 }
 
 public record CSharpProjectInfo

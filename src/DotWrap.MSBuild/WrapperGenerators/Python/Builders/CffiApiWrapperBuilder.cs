@@ -13,29 +13,35 @@ public class CffiApiWrapperBuilder(CSharpProjectInfo projectInfo)
         PythonProjectInfo pythonProjectInfo = new(projectInfo);
 
         CffiApiInteropBuilder interopBuilder = new(pythonProjectInfo);
+        var setupPyContent = interopBuilder.CreateSetupPy();
+        var pythonPackageRoot = pythonProjectInfo.PythonPackageRoot;
+        var pythonProjectRoot = pythonProjectInfo.PythonProjectRoot;
+
+        File.WriteAllText(Path.Combine(pythonProjectRoot, "setup.py"), setupPyContent);
+
+        // Create the __init__.py file if it doesn't exist
+        if (!File.Exists(Path.Combine(pythonPackageRoot, "__init__.py")))
+        {
+            File.WriteAllText(
+                Path.Combine(pythonPackageRoot, "__init__.py"),
+                "from .dotwrap_generated import *"
+            );
+        }
+
+        var dotWrapRoot = pythonProjectInfo.DotWrapGeneratedRoot;
+        var libName = pythonProjectInfo.CSharpProjectInfo.LibName;
+
         var (buildPyContent, headerContent) = interopBuilder.CreateBuildPyAndHeader(classes);
+        File.WriteAllText(Path.Combine(dotWrapRoot, $"{libName}.h"), headerContent.ToString());
+        File.WriteAllText(Path.Combine(dotWrapRoot, "lib_build.py"), buildPyContent.ToString());
 
         StringBuilder mainPy = CreateMainPy(pythonProjectInfo);
-
         var initPy = new StringBuilder();
-
         CffiApiClassBuilder classBuilder = new(pythonProjectInfo, mainPy, initPy);
         classBuilder.AddClassesToMainAndInitPy(classes);
 
-        var pythonProjectDir = pythonProjectInfo.PythonProjectRoot;
-        var libName = pythonProjectInfo.CSharpProjectInfo.LibName;
-
-        File.WriteAllText(Path.Combine(pythonProjectDir, "main.py"), mainPy.ToString());
-        File.WriteAllText(Path.Combine(pythonProjectDir, "__init__.py"), initPy.ToString());
-        File.WriteAllText(Path.Combine(pythonProjectDir, $"{libName}.h"), headerContent.ToString());
-        File.WriteAllText(
-            Path.Combine(pythonProjectDir, "lib_build.py"),
-            buildPyContent.ToString()
-        );
-
-        var setupPyContent = interopBuilder.CreateSetupPy();
-        var pythonPackageDir = pythonProjectInfo.PythonPackageRoot;
-        File.WriteAllText(Path.Combine(pythonPackageDir, "setup.py"), setupPyContent);
+        File.WriteAllText(Path.Combine(dotWrapRoot, "main.py"), mainPy.ToString());
+        File.WriteAllText(Path.Combine(dotWrapRoot, "__init__.py"), initPy.ToString());
     }
 
     private static StringBuilder CreateMainPy(PythonProjectInfo pythonProjectInfo)

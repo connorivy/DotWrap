@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+  <PropertyGroup>
+    <ContinuousIntegrationEnv Condition="'$(ContinuousIntegrationEnv)' == ''"
+      >false</ContinuousIntegrationEnv
+    >
+    <DotWrapNugetPackageVersion
+      Condition="'$(DotWrapNugetPackageVersion)' == ''"
+    ></DotWrapNugetPackageVersion>
+  </PropertyGroup>
+  <!-- Use project references locally, but use nuget package in CI -->
+  <ItemGroup Condition="'$(ContinuousIntegrationEnv)' == 'false'">
+    <ProjectReference
+      Include="..\..\src\DotWrap.Generator\DotWrap.Generator.csproj"
+      OutputItemType="Analyzer"
+      ReferenceOutputAssembly="false"
+    />
+    <ProjectReference Include="..\..\src\DotWrap\DotWrap.csproj" />
+    <ProjectReference Include="..\..\src\DotWrap.MSBuild\DotWrap.MSBuild.csproj" />
+  </ItemGroup>
+  <Import
+    Condition="'$(ContinuousIntegrationEnv)' == 'false'"
+    Project="..\src\DotWrap\Build\DotWrap.targets"
+  />
+  <Import
+    Condition="'$(ContinuousIntegrationEnv)' == 'false'"
+    Project="..\src\DotWrap\Build\DotWrap.props"
+  />
+  <ItemGroup Condition="'$(ContinuousIntegrationEnv)' != 'false'">
+    <PackageReference
+      Include="DotWrap"
+      Version="$(DotWrapNugetPackageVersion)"
+      Condition="'$(ContinuousIntegrationEnv)' != 'false'"
+    />
+  </ItemGroup>
+</Project>

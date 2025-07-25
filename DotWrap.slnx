@@ -7,5 +7,8 @@
     <Project Path="src/DotWrap.MSBuild/DotWrap.MSBuild.csproj" />
     <Project Path="src/DotWrap/DotWrap.csproj" />
   </Folder>
-  <Folder Name="/tests/" />
+  <Folder Name="/tests/">
+    <Project Path="tests/DotWrap.TestLib/DotWrap.TestLib.csproj" />
+    <Project Path="tests/DotWrap.Tests/DotWrap.Tests.csproj" />
+  </Folder>
 </Solution>
