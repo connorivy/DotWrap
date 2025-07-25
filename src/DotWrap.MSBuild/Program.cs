@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using DotWrap.MSBuild;
+using DotWrap.MSBuild.WrapperGenerators;
 
 #if DEBUG
 System.Diagnostics.Debugger.Launch();

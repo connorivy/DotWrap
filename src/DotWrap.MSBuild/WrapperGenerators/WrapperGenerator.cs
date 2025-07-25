@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
+using DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 using static DotWrap.Internal.Constants;
 
-namespace DotWrap.MSBuild;
+namespace DotWrap.MSBuild.WrapperGenerators;
 
 public class WrapperGenerator(Logger logger)
 {
@@ -45,6 +46,7 @@ public class WrapperGenerator(Logger logger)
             exportedClasses.Add(classInfo);
         }
 
-        PythonWrapperCffiApiGenerator.GeneratePythonWrapper(projectInfo, exportedClasses);
+        CffiApiWrapperBuilder pythonWrapperBuilder = new(projectInfo);
+        pythonWrapperBuilder.BuildWrapper(exportedClasses);
     }
 }

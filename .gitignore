@@ -55,7 +55,6 @@ nunit-*.xml
 
 .vs/
 venv/
-python/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -103,32 +103,12 @@ public class InstanceMethodBuilder(StringBuilder sb, ClassMetadataBuilder classM
             sb.AppendLine(convertParamsToInternal);
         }
 
-        // var resultAssignment = methodContext.MethodSymbol.ReturnsVoid
-        //     ? string.Empty
-        //     : $"var {Result} = ";
         var returnCall = methodContext.MethodSymbol.ReturnsVoid ? string.Empty : "return ";
-        // sb.AppendLine(
-        //     $"            {resultAssignment}{obj}.{methodName}({internalMethodCallArgs});"
-        // );
 
         sb.AppendLine(
             $"            {returnCall}{resultToExportTypePrefix}{obj}.{methodName}({internalMethodCallArgs}){resultToExportTypeSuffix};"
         );
 
-        // string result;
-        // if (resultToExportTypePrefix is not null && resultToExportTypeSuffix is not null)
-        // {
-        //     result = $"{Result}Exported";
-        //     sb.AppendLine(
-        //         $"            var {Result}Exported = {resultToExportTypePrefix}{Result}{resultToExportTypeSuffix};"
-        //     );
-        // }
-        // else
-        // {
-        //     result = Result;
-        // }
-
-        // sb.AppendLine($"            {returnCall}{obj}.{methodName}({internalMethodCallArgs});");
         sb.AppendLine("        }");
         sb.AppendLine();
     }

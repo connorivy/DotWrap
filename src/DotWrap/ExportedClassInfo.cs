@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using static DotWrap.Internal.Constants;
 
 namespace DotWrap.MSBuild;
 
@@ -29,6 +31,8 @@ public class ExportedMethodInfo : IHasOriginalAndExposedTypes
     public string? SummaryComment { get; set; }
     public string? ReturnsComment { get; set; }
     public List<ExportedParameterInfo> Parameters { get; set; } = new();
+
+    public bool IsStatic => this.Parameters.FirstOrDefault()?.Name == SelfPointerName;
 }
 
 public class ExportedParameterInfo : IHasOriginalAndExposedTypes
