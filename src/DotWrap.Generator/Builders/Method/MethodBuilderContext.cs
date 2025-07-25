@@ -42,7 +42,7 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
         List<ExportedParameterInfo> parameters
     )
     {
-        var exposedCType = this.ReturnType.GetExposedCType(out var isOriginalType);
+        var exposedCType = this.ReturnType.GetExposedType(out var isOriginalType);
         return new ExportedMethodInfo
         {
             OriginalName = MethodName,
@@ -60,7 +60,7 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
         return MethodSymbol
             .Parameters.Select(p => new ParameterDetails(
                 p.Name,
-                p.Type.GetExposedCType(out var isOriginalType),
+                p.Type.GetExposedType(out var isOriginalType),
                 isOriginalType
                     ? null
                     : (

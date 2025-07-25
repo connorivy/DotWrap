@@ -29,7 +29,7 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
             List<ExportedParameterInfo> parameters = new(method.Parameters.Length);
             foreach (var param in method.Parameters)
             {
-                var exposedCType = param.Type.GetExposedCType(out var isOriginalType);
+                var exposedCType = param.Type.GetExposedType(out var isOriginalType);
                 parameters.Add(
                     new ExportedParameterInfo
                     {
@@ -82,7 +82,7 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
         var entryPrefix = methodContext.ClassContext.EntryPrefix;
         var methodName = exportedMethodInfo.StampedName;
         var OriginalMethodName = methodContext.OriginalMethodName;
-        var returnType = methodContext.ReturnType.GetExposedCType(out _);
+        var returnType = methodContext.ReturnType.GetExposedType(out _);
         var methodSignature = methodContext.GetExposedMethodSignatureString();
         var internalMethodCallArgs = methodContext.GetInternalMethodCallArgumentsString();
         var convertParamsToInternal =

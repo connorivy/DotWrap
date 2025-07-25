@@ -1,5 +1,8 @@
 <Project>
-    <PropertyGroup>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    </PropertyGroup>
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>
+      CS1591 <!-- Missing XML comment for publicly visible type or member -->
+    </NoWarn>
+  </PropertyGroup>
 </Project>

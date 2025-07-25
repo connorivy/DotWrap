@@ -47,14 +47,20 @@ public static class DotWrapObjectExtensions
 
             return t switch
             {
-                "int32" or "int" => "int",
+                "byte" => "uint8_t",
+                "sbyte" => "int8_t",
+                "short" => "int16_t",
+                "ushort" => "uint16_t",
+                "int32" or "int" => "int32_t",
+                "uint32" or "uint" => "uint32_t",
+                "int64" or "long" => "int64_t",
+                "uint64" or "ulong" => "uint64_t",
+                "char" => "char",
                 "void" => "void",
+                "half" => "float",
                 "float" => "float",
                 "double" => "double",
-                "boolean" or "bool" => "bool",
                 "intptr" => "void*",
-                "long" => "int64_t",
-                // _ => "void*", // fallback for unsupported types
                 _ => throw new NotSupportedException($"Unsupported type: {t}"),
             };
         }

@@ -6,41 +6,47 @@ public static class ITypedSymbolExtensions
 {
     extension(ITypeSymbol symbol)
     {
-        public string GetExposedCType(out bool isOriginalType)
+        public string GetExposedType(out bool isOriginalType)
         {
             isOriginalType = true;
 
             switch (symbol)
             {
-                case { SpecialType: SpecialType.System_IntPtr }:
-                    return "IntPtr";
-                case { SpecialType: SpecialType.System_Double }:
-                    return "double";
-                case { SpecialType: SpecialType.System_Single }:
-                    return "float";
+                case { SpecialType: SpecialType.System_SByte }:
+                    return "sbyte";
+                case { SpecialType: SpecialType.System_Byte }:
+                    return "byte";
                 case { SpecialType: SpecialType.System_Int16 }:
                     return "short";
+                case { SpecialType: SpecialType.System_UInt16 }:
+                    return "ushort";
                 case { SpecialType: SpecialType.System_Int32 }:
                     return "int";
+                case { SpecialType: SpecialType.System_UInt32 }:
+                    return "uint";
                 case { SpecialType: SpecialType.System_Int64 }:
-                    return "long";
+                    return "long"; 
+                case { SpecialType: SpecialType.System_UInt64 }:
+                    return "ulong"; 
+                case { SpecialType: SpecialType.System_Single }:
+                    return "float";
+                case { SpecialType: SpecialType.System_Double }:
+                    return "double";
+                
+                case { SpecialType: SpecialType.System_IntPtr }:
+                    return "IntPtr";
                 case { SpecialType: SpecialType.System_Void }:
                     return "void";
+                case { SpecialType: SpecialType.System_Char }:
+                    return "char";
 
                 // Begin types that don't match original type
-                case {
-                    SpecialType: SpecialType.System_Byte
-                        or SpecialType.System_SByte
-                        or SpecialType.System_UInt16
-                        or SpecialType.System_UInt32
-                        or SpecialType.System_UInt64
-                        or SpecialType.System_Boolean
-                }:
+                case { SpecialType: SpecialType.System_Boolean }:
                     isOriginalType = false;
                     return "int";
                 case { SpecialType: SpecialType.System_String }:
                     isOriginalType = false;
-                    return "IntPtr"; // CString
+                    return "IntPtr";
                 default:
                     isOriginalType = false;
                     return "int"; // Default to int for unsupported types
