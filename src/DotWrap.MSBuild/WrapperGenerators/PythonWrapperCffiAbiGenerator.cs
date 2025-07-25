@@ -37,7 +37,7 @@ public static class PythonWrapperCffiAbiGenerator
                     method.Parameters.Select(p => $"{MapTypeToC(p.OriginalType)} {p.Name}")
                 );
                 var cDef =
-                    $"{MapTypeToC(method.OriginalReturnType)} {cls.EntryPrefix}{method.Name}(int ptr{(paramList.Length > 0 ? ", " : "")}{paramList});";
+                    $"{MapTypeToC(method.OriginalType)} {cls.EntryPrefix}{method.Name}(int ptr{(paramList.Length > 0 ? ", " : "")}{paramList});";
                 sb.AppendLine(cDef);
             }
             foreach (var prop in cls.Properties)
@@ -89,7 +89,7 @@ with importlib.resources.path(""{projectName}"", lib_name) as lib_path:
                     )
                 );
                 var paramNames = string.Join(", ", method.Parameters.Select(p => p.Name));
-                var pyReturnType = MapTypeToPython(method.OriginalReturnType);
+                var pyReturnType = MapTypeToPython(method.OriginalType);
                 sb.AppendLine(
                     $"    def {method.Name}(self{(paramListWithHints.Length > 0 ? ", " : "")}{paramListWithHints}){(pyReturnType != null ? $" -> {pyReturnType}" : "")}:"
                 );

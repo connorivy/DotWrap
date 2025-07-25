@@ -31,12 +31,13 @@ public class InstanceMethodBuilder(StringBuilder sb, ClassMetadataBuilder classM
 
             foreach (var param in method.Parameters)
             {
+                var exposedCType = param.Type.GetExposedCType(out var isOriginalType);
                 exportedMethodInfo.Parameters.Add(
                     new ExportedParameterInfo
                     {
                         Name = param.Name,
-                        OriginalType = param.Type.ToDisplayString(),
-                        ExposedType = param.Type.GetExposedCType(out _),
+                        OriginalType = isOriginalType ? exposedCType : param.Type.ToDisplayString(),
+                        ExposedTypeIfDifferent = isOriginalType ? null : exposedCType,
                         Comment = XmlParser.ParseParamComment(methodXml, param.Name),
                     }
                 );
@@ -156,11 +157,14 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
 
     public ExportedMethodInfo GetExportedMethodInfo(string? xmlDoc)
     {
+        var exposedCType = MethodSymbol.ReturnType.GetExposedCType(out var isOriginalType);
         return new ExportedMethodInfo
         {
             Name = MethodName,
-            OriginalReturnType = MethodSymbol.ReturnType.ToDisplayString(),
-            ExposedReturnType = MethodSymbol.ReturnType.GetExposedCType(out _),
+            OriginalType = isOriginalType
+                ? exposedCType
+                : MethodSymbol.ReturnType.ToDisplayString(),
+            ExposedTypeIfDifferent = isOriginalType ? null : exposedCType,
             SummaryComment = XmlParser.ParseSummary(xmlDoc),
             ReturnsComment = XmlParser.ParseReturns(xmlDoc),
         };

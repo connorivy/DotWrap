@@ -12,30 +12,45 @@ public class ExportedClassInfo
     public List<ExportedPropertyInfo> Properties { get; set; } = new();
 }
 
-public class ExportedMethodInfo
+public class ExportedMethodInfo : IHasOriginalAndExposedTypes
 {
     public required string Name { get; set; }
-    public required string OriginalReturnType { get; set; }
-    public required string ExposedReturnType { get; set; }
+
+    /// <summary>
+    /// The original type of the method's return value.
+    /// </summary>
+    public required string OriginalType { get; set; }
+
+    /// <summary>
+    /// The return type exposed by the C API.
+    /// If the original type is the same as the exposed type, this will be null.
+    /// </summary>
+    public required string? ExposedTypeIfDifferent { get; set; }
     public string? SummaryComment { get; set; }
     public string? ReturnsComment { get; set; }
     public List<ExportedParameterInfo> Parameters { get; set; } = new();
 }
 
-public class ExportedParameterInfo
+public class ExportedParameterInfo : IHasOriginalAndExposedTypes
 {
     public required string Name { get; set; }
     public required string OriginalType { get; set; }
-    public required string ExposedType { get; set; }
+    public required string? ExposedTypeIfDifferent { get; set; }
     public string? Comment { get; set; }
 }
 
-public class ExportedPropertyInfo
+public class ExportedPropertyInfo : IHasOriginalAndExposedTypes
 {
     public required string Name { get; set; }
     public required string OriginalType { get; set; }
-    public required string ExposedType { get; set; }
+    public required string? ExposedTypeIfDifferent { get; set; }
     public required bool HasGetter { get; set; }
     public required bool HasSetter { get; set; }
     public string? Comment { get; set; }
+}
+
+public interface IHasOriginalAndExposedTypes
+{
+    public string OriginalType { get; }
+    public string? ExposedTypeIfDifferent { get; }
 }

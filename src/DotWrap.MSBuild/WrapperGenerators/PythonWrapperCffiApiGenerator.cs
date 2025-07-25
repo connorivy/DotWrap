@@ -142,12 +142,10 @@ class CString:
             {
                 var paramListWithHints = string.Join(
                     ", ",
-                    method.Parameters.Select(p =>
-                        $"{p.Name}: {MapTypeToPython(p.OriginalType) ?? "Any"}"
-                    )
+                    method.Parameters.Select(p => $"{p.Name}: {MapTypeToPython(p) ?? "Any"}")
                 );
                 var paramNames = string.Join(", ", method.Parameters.Select(p => p.Name));
-                var pyReturnType = MapTypeToPython(method.OriginalReturnType);
+                var pyReturnType = MapTypeToPython(method);
                 string returnWrapPrefix = "";
                 string returnWrapSuffix = "";
                 if (pyReturnType == "CString")
@@ -175,7 +173,7 @@ class CString:
             {
                 if (prop.HasGetter)
                 {
-                    var pyPropType = MapTypeToPython(prop.OriginalType);
+                    var pyPropType = MapTypeToPython(prop);
                     mainPy.AppendLine($"    @property");
                     mainPy.AppendLine(
                         $"    def {prop.Name}(self){(pyPropType != null ? $" -> {pyPropType}" : "")}:"
@@ -201,7 +199,7 @@ class CString:
                 {
                     mainPy.AppendLine($"    @{prop.Name}.setter");
                     mainPy.AppendLine(
-                        $"    def {prop.Name}(self, value: {MapTypeToPython(prop.OriginalType) ?? "Any"}):"
+                        $"    def {prop.Name}(self, value: {MapTypeToPython(prop) ?? "Any"}):"
                     );
                     if (!string.IsNullOrWhiteSpace(prop.Comment))
                     {
@@ -262,10 +260,10 @@ class CString:
             {
                 var paramList = string.Join(
                     ", ",
-                    method.Parameters.Select(p => $"{MapTypeToC(p.ExposedType)} {p.Name}")
+                    method.Parameters.Select(p => $"{MapTypeToC(p)} {p.Name}")
                 );
                 var cDef =
-                    $"{MapTypeToC(method.ExposedReturnType)} {cls.EntryPrefix}{method.Name}(int ptr{(paramList.Length > 0 ? ", " : "")}{paramList});";
+                    $"{MapTypeToC(method)} {cls.EntryPrefix}{method.Name}(int ptr{(paramList.Length > 0 ? ", " : "")}{paramList});";
                 build.AppendLine(cDef);
                 headerContent.AppendLine(cDef);
             }
@@ -273,15 +271,14 @@ class CString:
             {
                 if (prop.HasGetter)
                 {
-                    var cDef =
-                        $@"{MapTypeToC(prop.ExposedType)} {cls.EntryPrefix}get_{prop.Name}(int ptr);";
+                    var cDef = $@"{MapTypeToC(prop)} {cls.EntryPrefix}get_{prop.Name}(int ptr);";
                     build.AppendLine(cDef);
                     headerContent.AppendLine(cDef);
                 }
                 if (prop.HasSetter)
                 {
                     var cDef =
-                        $@"void {cls.EntryPrefix}set_{prop.Name}(int ptr, {MapTypeToC(prop.ExposedType)} value);";
+                        $@"void {cls.EntryPrefix}set_{prop.Name}(int ptr, {MapTypeToC(prop)} value);";
                     build.AppendLine(cDef);
                     headerContent.AppendLine(cDef);
                 }
@@ -311,6 +308,26 @@ if __name__ == '__main__':
         return (build, headerContent);
     }
 
+    public static string MapTypeToPython(IHasOriginalAndExposedTypes typeInfo)
+    {
+        var t = typeInfo.OriginalType.ToLowerInvariant().Replace("system.", "");
+        return t switch
+        {
+            "int32" or "int" => "int",
+            "float" or "double" => "float",
+            "boolean" or "bool" => "bool",
+            "void" => "None",
+            "string" => "CString", // use CString wrapper for strings
+            // _ => throw new NotSupportedException($"Unsupported type: {type}"),
+            _ => $"\"{typeInfo.OriginalType.Split('.').Last()}\"", // return null for unsupported types
+        };
+    }
+
+    public static string MapTypeToC(IHasOriginalAndExposedTypes typeInfo)
+    {
+        return MapTypeToC(typeInfo.ExposedTypeIfDifferent ?? typeInfo.OriginalType);
+    }
+
     private static string MapTypeToC(string type)
     {
         var t = type.ToLowerInvariant().Replace("system.", "");
@@ -324,21 +341,6 @@ if __name__ == '__main__':
             "intptr" => "void*",
             // _ => "void*", // fallback for unsupported types
             _ => throw new NotSupportedException($"Unsupported type: {type}"),
-        };
-    }
-
-    private static string? MapTypeToPython(string type)
-    {
-        var t = type.ToLowerInvariant().Replace("system.", "");
-        return t switch
-        {
-            "int32" or "int" => "int",
-            "float" or "double" => "float",
-            "boolean" or "bool" => "bool",
-            "void" => "None",
-            "string" => "CString", // use CString wrapper for strings
-            // _ => throw new NotSupportedException($"Unsupported type: {type}"),
-            _ => "Any", // return null for unsupported types
         };
     }
 }

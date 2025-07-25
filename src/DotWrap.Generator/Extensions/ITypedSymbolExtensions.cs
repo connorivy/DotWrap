@@ -46,26 +46,33 @@ public static class ITypedSymbolExtensions
         {
             case { SpecialType: SpecialType.System_IntPtr }:
                 return "IntPtr";
-            case { SpecialType: SpecialType.System_String }:
-                return "IntPtr"; // CString
             case { SpecialType: SpecialType.System_Double }:
                 return "double";
             case { SpecialType: SpecialType.System_Single }:
                 return "float";
+            case { SpecialType: SpecialType.System_Int16 }:
+                return "short";
+            case { SpecialType: SpecialType.System_Int32 }:
+                return "int";
+            case { SpecialType: SpecialType.System_Int64 }:
+                return "long";
+            case { SpecialType: SpecialType.System_Void }:
+                return "void";
+
+            // Begin types that don't match original type
             case {
                 SpecialType: SpecialType.System_Byte
                     or SpecialType.System_SByte
                     or SpecialType.System_UInt16
                     or SpecialType.System_UInt32
                     or SpecialType.System_UInt64
-                    or SpecialType.System_Int16
-                    or SpecialType.System_Int32
-                    or SpecialType.System_Int64
                     or SpecialType.System_Boolean
             }:
+                isOriginalType = false;
                 return "int";
-            case { SpecialType: SpecialType.System_Void }:
-                return "void";
+            case { SpecialType: SpecialType.System_String }:
+                isOriginalType = false;
+                return "IntPtr"; // CString
             default:
                 isOriginalType = false;
                 return "int"; // Default to int for unsupported types
