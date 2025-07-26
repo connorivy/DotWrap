@@ -43,32 +43,42 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
             var exportedMethodInfo = context.GetExportedMethodInfo(methodXml, parameters);
             classMetadataBuilder.AddMethod(exportedMethodInfo);
 
-            switch (context.ReturnType)
+            string? resultToExportTypePrefix;
+            string? resultToExportTypeSuffix;
+            if (context.ReturnType.SpecialType.IsBlittable())
             {
-                case { SpecialType: var st } when st.IsBlittable():
-                    GenerateSingleMethod(context, exportedMethodInfo, null, null);
-                    break;
-                case { SpecialType: SpecialType.System_String }:
-                    GenerateSingleMethod(
-                        context,
-                        exportedMethodInfo,
-                        "global::DotWrap.BuiltIn.CString.Create(",
-                        ")"
-                    );
-                    break;
-                case { SpecialType: SpecialType.System_Boolean }:
-                    GenerateSingleMethod(context, exportedMethodInfo, "", " ? 1 : 0");
-                    break;
-                default:
-                    GenerateSingleMethod(
-                        context,
-                        exportedMethodInfo,
-                        $"{GetWrapperName(context.ReturnType)}.{Create}(",
-                        ")"
-                    );
-
-                    break;
+                resultToExportTypePrefix = null;
+                resultToExportTypeSuffix = null;
             }
+            else if (
+                context.ReturnType.Name == "Half"
+                && context.ReturnType.ContainingNamespace?.ToString() == "System"
+            )
+            {
+                resultToExportTypePrefix = "(float)";
+                resultToExportTypeSuffix = null;
+            }
+            else if (context.ReturnType.SpecialType == SpecialType.System_String)
+            {
+                resultToExportTypePrefix = "global::DotWrap.BuiltIn.CString.Create(";
+                resultToExportTypeSuffix = ")";
+            }
+            else if (context.ReturnType.SpecialType == SpecialType.System_Boolean)
+            {
+                resultToExportTypePrefix = null;
+                resultToExportTypeSuffix = " ? 1 : 0";
+            }
+            else
+            {
+                resultToExportTypePrefix = $"{GetWrapperName(context.ReturnType)}.{Create}(";
+                resultToExportTypeSuffix = ")";
+            }
+            GenerateSingleMethod(
+                context,
+                exportedMethodInfo,
+                resultToExportTypePrefix,
+                resultToExportTypeSuffix
+            );
         }
     }
 

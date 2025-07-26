@@ -14,7 +14,14 @@ public static class DotWrapObjectExtensions
             var t = typeInfo.OriginalType.ToLowerInvariant().Replace("system.", "");
             return t switch
             {
-                "int32" or "int" or "int64" or "long" => "int",
+                "sbyte" or
+                "byte" or
+                "short" or
+                "ushort" or
+                "int32" or "int" or
+                "uint32" or "uint" or
+                "int64" or "long" or
+                "uint64" or "ulong" => "int",
                 "float" or "double" => "float",
                 "boolean" or "bool" => "bool",
                 "void" => "None",

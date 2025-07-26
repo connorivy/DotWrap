@@ -69,7 +69,4 @@ public class ReturnTypes
 
     // Void type
     public static void DoNothing() { }
-
-    // Pointer type
-    public static IntPtr GetNullPointer() => IntPtr.Zero;
 }
