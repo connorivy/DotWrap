@@ -20,7 +20,7 @@ try
     switch (args[1])
     {
         case MagicStrings.BuildOperation:
-            var wrapperGenerator = new WrapperGenerator(logger);
+            var wrapperGenerator = new WrapperGeneratorFromEmbeddedMetadata(logger);
             wrapperGenerator.GenerateWrapper(dllPath);
             break;
         case MagicStrings.PublishOperation:

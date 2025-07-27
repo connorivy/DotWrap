@@ -36,8 +36,7 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                 foreach (var classDecl in classes)
                 {
                     var semanticModel = compilation.GetSemanticModel(classDecl.SyntaxTree);
-                    var classSymbol =
-                        semanticModel.GetDeclaredSymbol(classDecl) as INamedTypeSymbol;
+                    var classSymbol = semanticModel.GetDeclaredSymbol(classDecl);
                     if (classSymbol == null)
                     {
                         continue;

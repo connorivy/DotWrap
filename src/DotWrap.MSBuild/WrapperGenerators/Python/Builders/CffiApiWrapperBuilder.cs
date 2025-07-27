@@ -69,7 +69,48 @@ class CString:
 
     def __del__(self):
         {Lib}.DotWrap_BuiltIn_CString_Free(self.{Ptr})
+    
+class ArrayWrapper:
+    """"""
+    ArrayWrapper is a thin wrapper around an array pointer returned by the C# library.
+    It provides access to the array elements and length.
+    """"""
+    def __init__(self, ptr, length):
+        self.{Ptr} = ptr
+        self.Length = length
 
+    def __getitem__(self, index: int) -> Any:
+        if index < 0 or index >= self.Length:
+            raise IndexError(f""Index out of range: {{index}}"")
+        return {Ffi}.cast(""void *"", self.{Ptr})[index]
+
+    def __len__(self):
+        return self.Length
+
+class ArrayInfoWrapper:
+    """"""
+    ArrayInfoWrapper is a thin wrapper around an ArrayInfo pointer returned by the C# library.
+    It provides access to the array data, length, and pointer.
+    """"""
+    def __init__(self, ArrayInfo):
+        self.ArrayInfo = ArrayInfo
+
+    def to_numpy(self, dtype):
+        """"""
+        Converts the array data to a NumPy array of the specified dtype.
+        """"""
+        length = self.ArrayInfo.Length
+        arr = np.empty(length, dtype=np.int32)
+
+        # get stable pointer to the array data
+        arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
+        _dotwrap_lib.DotWrap_TestLib_Hello_CopyArrayInfoToNumpyArray_27FFF55C(
+            self.ArrayInfo, arr_ptr
+        )
+        return arr
+
+    def __del__(self):
+        {Lib}.DotWrap_BuiltIn_CString_Free(self.ArrayInfo.Ptr)
 "
         );
         return mainPy;

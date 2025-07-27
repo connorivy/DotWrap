@@ -82,11 +82,23 @@ setup(
         var freeString = "void DotWrap_BuiltIn_CString_Free(void* ptr);";
         build.AppendLine(freeString);
         headerContent.AppendLine(freeString);
+
+        var arrayType =
+            @"
+typedef struct {
+    void* Ptr;
+    int Length;
+} ArrayInfo;";
+        build.AppendLine(arrayType);
+        headerContent.AppendLine(arrayType);
         foreach (var cls in classes)
         {
-            var destroyMethod = $"void {cls.EntryPrefix}{Destroy}(int ptr);";
-            build.AppendLine(destroyMethod);
-            headerContent.AppendLine(destroyMethod);
+            if (!cls.IsStatic)
+            {
+                var destroyMethod = $"void {cls.EntryPrefix}{Destroy}(int ptr);";
+                build.AppendLine(destroyMethod);
+                headerContent.AppendLine(destroyMethod);
+            }
             foreach (var method in cls.Methods)
             {
                 var parameters = method.Parameters.Select(p => $"{p.MapExposedTypeToC()} {p.Name}");

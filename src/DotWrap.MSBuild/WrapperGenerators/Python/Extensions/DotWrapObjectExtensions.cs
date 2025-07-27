@@ -26,6 +26,7 @@ public static class DotWrapObjectExtensions
                 "boolean" or "bool" => "bool",
                 "void" => "None",
                 "string" => "str",
+                "int[]" => "list[int]",
                 _ => $"\"{typeInfo.OriginalType.Split('.').Last()}\"",
             };
         }
@@ -42,6 +43,7 @@ public static class DotWrapObjectExtensions
                 "boolean" or "bool" => "bool",
                 "void" => "None",
                 "string" => "CString", // use CString wrapper for strings
+                "arrayinfo" => "ArrayWrapper", 
                 _ => $"\"{typeInfo.OriginalType.Split('.').Last()}\"",
             };
         }
@@ -68,6 +70,7 @@ public static class DotWrapObjectExtensions
                 "float" => "float",
                 "double" => "double",
                 "intptr" => "void*",
+                "arrayinfo" => "ArrayInfo",
                 _ => throw new NotSupportedException($"Unsupported type: {t}"),
             };
         }

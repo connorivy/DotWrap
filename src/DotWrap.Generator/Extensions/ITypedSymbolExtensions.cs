@@ -40,6 +40,9 @@ public static class ITypedSymbolExtensions
                 case { SpecialType: SpecialType.System_Char }:
                     return "char";
 
+                case ITypeSymbol when symbol.Name == "ArrayInfo" && symbol.ContainingNamespace?.ToString() == "DotWrap.TestLib":
+                    return "ArrayInfo";
+
                 // Begin types that don't match original type, but are close enough to not need a wrapper
                 case ITypeSymbol when symbol.Name == "Half" && symbol.ContainingNamespace?.ToString() == "System":
                     return "float";
@@ -48,7 +51,7 @@ public static class ITypedSymbolExtensions
                 // Begin types that don't match original type
                 case IArrayTypeSymbol:
                     isOriginalType = false;
-                    return $"IntPtr";
+                    return $"ArrayInfo";
                 case { SpecialType: SpecialType.System_Boolean }:
                     isOriginalType = false;
                     return "int";

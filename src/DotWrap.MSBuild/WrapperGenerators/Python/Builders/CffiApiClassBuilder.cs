@@ -34,12 +34,15 @@ public class CffiApiClassBuilder(
             );
         }
 
-        mainPy.AppendLine($"    @classmethod");
-        mainPy.AppendLine($"    def {FromPtr}(cls, ptr: int):");
-        mainPy.AppendLine($"        instance = object.__new__(cls)");
-        mainPy.AppendLine($"        instance.{Ptr} = ptr");
-        mainPy.AppendLine($"        return instance");
-        mainPy.AppendLine();
+        if (!classInfo.IsStatic)
+        {
+            mainPy.AppendLine($"    @classmethod");
+            mainPy.AppendLine($"    def {FromPtr}(cls, ptr: int):");
+            mainPy.AppendLine($"        instance = object.__new__(cls)");
+            mainPy.AppendLine($"        instance.{Ptr} = ptr");
+            mainPy.AppendLine($"        return instance");
+            mainPy.AppendLine();
+        }
 
         var classContext = new ClassBuilderContext(pythonProjectInfo, classInfo);
         foreach (var method in classInfo.Methods)
@@ -48,8 +51,11 @@ public class CffiApiClassBuilder(
             methodBuilder.AddClassToMainAndInitPy(method);
         }
 
-        mainPy.AppendLine("    def __del__(self):");
-        mainPy.AppendLine($"        {Lib}.{classInfo.EntryPrefix}{Destroy}(self.{Ptr})");
-        mainPy.AppendLine();
+        if (!classInfo.IsStatic)
+        {
+            mainPy.AppendLine("    def __del__(self):");
+            mainPy.AppendLine($"        {Lib}.{classInfo.EntryPrefix}{Destroy}(self.{Ptr})");
+            mainPy.AppendLine();
+        }
     }
 }

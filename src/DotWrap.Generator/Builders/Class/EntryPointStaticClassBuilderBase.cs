@@ -12,7 +12,11 @@ public abstract class EntryPointStaticClassBuilderBase(ClassBuilderContext conte
     public string GenerateClassFile(INamedTypeSymbol classSymbol)
     {
         StringBuilder classBody = new();
-        this.AddMemoryManagmentMethods(classBody);
+
+        if (!context.IsStatic)
+        {
+            this.AddMemoryManagmentMethods(classBody);
+        }
 
         var classMetadataBuilder = new ClassMetadataBuilder(Context);
         this.CreateClassBody(classBody, classMetadataBuilder);

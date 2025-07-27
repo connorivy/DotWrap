@@ -10,6 +10,7 @@ public class ExportedClassInfo
     public required string Namespace { get; set; }
     public required string ClassName { get; set; }
     public required string EntryPrefix { get; set; }
+    public required bool IsStatic { get; set; }
     public string? SummaryComment { get; set; }
     public List<ExportedMethodInfo> Methods { get; set; } = new();
     public List<ExportedPropertyInfo> Properties { get; set; } = new();

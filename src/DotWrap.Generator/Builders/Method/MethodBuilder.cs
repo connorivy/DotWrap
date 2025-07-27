@@ -73,8 +73,13 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
             {
                 exportedResultAssignment =
                     @$"
-            var {ExportedResult} = System.Runtime.InteropServices.Marshal.AllocHGlobal(sizeof({arrayTypeSymbol.ElementType.ToDisplayString()}) * {InternalResult}.Length);
-            System.Runtime.InteropServices.Marshal.Copy({InternalResult}, 0, {ExportedResult}, {InternalResult}.Length);
+            var {InternalPrefix}Arr = System.Runtime.InteropServices.Marshal.AllocHGlobal(sizeof({arrayTypeSymbol.ElementType.ToDisplayString()}) * {InternalResult}.Length);
+            System.Runtime.InteropServices.Marshal.Copy({InternalResult}, 0, {InternalPrefix}Arr, {InternalResult}.Length);
+            var {ExportedResult} = new ArrayInfo
+            {{
+                Ptr = {InternalPrefix}Arr,
+                Length = {InternalResult}.Length
+            }};
         ";
             }
             else

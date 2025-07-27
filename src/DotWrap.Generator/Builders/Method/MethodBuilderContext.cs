@@ -86,10 +86,6 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
 
     public string? ConvertExposedParametersToInternalParametersTypes()
     {
-        var parameters = string.Join(
-            ", ",
-            GetParameterDetails().Select(p => $"{p.ExposedType} {p.Name}")
-        );
         StringBuilder sb = new();
         bool hasConverted = false;
         foreach (var param in GetParameterDetails())

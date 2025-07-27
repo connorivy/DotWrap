@@ -88,6 +88,7 @@ public record ClassBuilderContext(INamedTypeSymbol ClassSymbol)
     public string ClassName => ClassSymbol.Name;
     public string Namespace => ClassSymbol.ContainingNamespace.ToDisplayString();
     public string WrapperName => ClassName + "Wrapper";
+    public bool IsStatic => ClassSymbol.IsStatic;
     public string FullyQualifiedWrapperName => $"{Namespace}.{WrapperName}";
     public string EntryPrefix => $"{Namespace.Replace(".", "_")}_{ClassName}_";
 }
