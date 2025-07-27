@@ -17,6 +17,7 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
         {
             { OriginalType: "string" } => ($"str(CString(", "))"),
             { OriginalType: "bool" } => ($"bool(", ")"),
+            { OriginalType: "int[]" } => ($"Collection[int](", ")"),
             { ExposedTypeIfDifferent: not null } => (
                 $"{method.OriginalTypeSimple}.{FromPtr}(",
                 ")"
