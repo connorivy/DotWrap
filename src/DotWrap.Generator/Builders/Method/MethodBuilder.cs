@@ -43,50 +43,54 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
             var exportedMethodInfo = context.GetExportedMethodInfo(methodXml, parameters);
             classMetadataBuilder.AddMethod(exportedMethodInfo);
 
-            string? resultToExportTypePrefix;
-            string? resultToExportTypeSuffix;
+            string? exportedResultAssignment;
             if (context.ReturnType.SpecialType.IsBlittable())
             {
-                resultToExportTypePrefix = null;
-                resultToExportTypeSuffix = null;
+                exportedResultAssignment = null;
             }
             else if (
                 context.ReturnType.Name == "Half"
                 && context.ReturnType.ContainingNamespace?.ToString() == "System"
             )
             {
-                resultToExportTypePrefix = "(float)";
-                resultToExportTypeSuffix = null;
+                exportedResultAssignment =
+                    @$"
+            var {ExportedResult} = (float){InternalResult};";
             }
             else if (context.ReturnType.SpecialType == SpecialType.System_String)
             {
-                resultToExportTypePrefix = "global::DotWrap.BuiltIn.CString.Create(";
-                resultToExportTypeSuffix = ")";
+                exportedResultAssignment =
+                    @$"
+            var {ExportedResult} = global::DotWrap.BuiltIn.CString.Create({InternalResult});";
             }
             else if (context.ReturnType.SpecialType == SpecialType.System_Boolean)
             {
-                resultToExportTypePrefix = null;
-                resultToExportTypeSuffix = " ? 1 : 0";
+                exportedResultAssignment =
+                    @$"
+            var {ExportedResult} = {InternalResult} ? 1 : 0;";
+            }
+            else if (context.ReturnType is IArrayTypeSymbol arrayTypeSymbol)
+            {
+                exportedResultAssignment =
+                    @$"
+            var {ExportedResult} = System.Runtime.InteropServices.Marshal.AllocHGlobal(sizeof({arrayTypeSymbol.ElementType.ToDisplayString()}) * {InternalResult}.Length);
+            System.Runtime.InteropServices.Marshal.Copy({InternalResult}, 0, {ExportedResult}, {InternalResult}.Length);
+        ";
             }
             else
             {
-                resultToExportTypePrefix = $"{GetWrapperName(context.ReturnType)}.{Create}(";
-                resultToExportTypeSuffix = ")";
+                exportedResultAssignment =
+                    @$"
+            var {ExportedResult} = {GetWrapperName(context.ReturnType)}.{Create}({InternalResult});";
             }
-            GenerateSingleMethod(
-                context,
-                exportedMethodInfo,
-                resultToExportTypePrefix,
-                resultToExportTypeSuffix
-            );
+            GenerateSingleMethod(context, exportedMethodInfo, exportedResultAssignment);
         }
     }
 
     public void GenerateSingleMethod(
         MethodBuilderContext methodContext,
         ExportedMethodInfo exportedMethodInfo,
-        string? resultToExportTypePrefix,
-        string? resultToExportTypeSuffix
+        string? exportedResultAssignment
     )
     {
         var entryPrefix = methodContext.ClassContext.EntryPrefix;
@@ -120,10 +124,13 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
             sb.AppendLine(convertParamsToInternal);
         }
 
-        var returnCall =
-            methodContext.ReturnType.SpecialType == SpecialType.System_Void
-                ? string.Empty
-                : "return ";
+        if (methodContext.ReturnType.SpecialType == SpecialType.System_Void)
+        {
+            sb.AppendLine($"            {obj}.{OriginalMethodName}({internalMethodCallArgs});");
+            sb.AppendLine("        }");
+            sb.AppendLine();
+            return;
+        }
 
         var methodCall =
             methodContext.MethodSymbol.MethodKind is MethodKind.Constructor
@@ -131,8 +138,18 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
                 : $"{obj}.{OriginalMethodName}";
 
         sb.AppendLine(
-            $"            {returnCall}{resultToExportTypePrefix}{methodCall}({internalMethodCallArgs}){resultToExportTypeSuffix};"
+            $"            var {InternalResult} = {methodCall}({internalMethodCallArgs});"
         );
+
+        if (exportedResultAssignment is not null)
+        {
+            sb.AppendLine(exportedResultAssignment);
+            sb.AppendLine($"            return {ExportedResult};");
+        }
+        else
+        {
+            sb.AppendLine($"            return {InternalResult};");
+        }
 
         sb.AppendLine("        }");
         sb.AppendLine();

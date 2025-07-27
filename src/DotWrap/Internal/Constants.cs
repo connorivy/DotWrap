@@ -10,5 +10,6 @@ internal static class Constants
     public const string ClassMetadata = InternalPrefix + "Metadata";
     public const string Obj = InternalPrefix + "Obj";
     public const string Typed = InternalPrefix + "Typed";
-    public const string Result = InternalPrefix + "Result";
+    public const string InternalResult = InternalPrefix + "Result";
+    public const string ExportedResult = InternalPrefix + "ExResult";
 }

@@ -1,9 +1,10 @@
 using System;
+using System.Runtime.InteropServices;
 
 namespace DotWrap.TestLib;
 
 [DotWrapExpose]
-public class ReturnTypes
+public class ReturnTypesSimple
 {
     public static sbyte MaxSByte() => sbyte.MaxValue;
 

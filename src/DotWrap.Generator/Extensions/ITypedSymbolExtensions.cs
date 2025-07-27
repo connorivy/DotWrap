@@ -46,6 +46,9 @@ public static class ITypedSymbolExtensions
 
 
                 // Begin types that don't match original type
+                case IArrayTypeSymbol:
+                    isOriginalType = false;
+                    return $"IntPtr";
                 case { SpecialType: SpecialType.System_Boolean }:
                     isOriginalType = false;
                     return "int";
