@@ -1,6 +1,11 @@
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using DotWrap;
 using DotWrap.MSBuild;
+
+[assembly: DotWrapExternalExpose(typeof(IList<>))]
+[assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<>.Add), alias: "CustomAddName")]
 
 namespace DotWrap.TestLib;
 
@@ -16,6 +21,9 @@ public class ReturnTypesSimpleCollection
     // public static ushort[] GetUInt16Array() => new[] { ushort.MaxValue, ushort.MinValue };
 
     public static int[] GetInt32Array() => new[] { int.MaxValue, int.MinValue };
+
+    [DotWrapMeta(alias: "Int32List")]
+    public static List<int> GetInt32List() => new() { int.MaxValue, int.MinValue };
 
     // public static uint[] GetUInt32Array() => new[] { uint.MaxValue, uint.MinValue };
 

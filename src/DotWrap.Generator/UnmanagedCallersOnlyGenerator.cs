@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text;
 using DotWrap.Generator.Builders.Class;
 using DotWrap.Generator.Builders.Method;
@@ -29,7 +30,6 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
             compilationAndClasses,
             static (spc, source) =>
             {
-                // System.Diagnostics.Debugger.Launch();
                 var (compilation, classes) = source;
                 HashSet<INamedTypeSymbol> explicitTypesToWrap = [];
                 HashSet<INamedTypeSymbol> inferedTypedToWrap = [];
@@ -50,6 +50,12 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                     inferedTypedToWrap.UnionWith(GetInferredTypesToWrap(classSymbol));
                 }
 
+                if (explicitTypesToWrap.Count == 0 && inferedTypedToWrap.Count == 0)
+                {
+                    return; // no types to wrap, nothing to do
+                }
+                System.Diagnostics.Debugger.Launch();
+
                 foreach (var classSymbol in explicitTypesToWrap)
                 {
                     var context = new ClassBuilderContext(classSymbol);
@@ -58,20 +64,41 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                     );
 
                     spc.AddSource(
-                        $"{context.WrapperName}.g.cs",
+                        $"{context.WrapperName.Replace("<", "_").Replace(">", "_")}.g.cs",
                         SourceText.From(sourceText, Encoding.UTF8)
                     );
                 }
 
+                // collect all assembly attributes that are marked for external exposure
+                var assemblyAttrs = compilation.Assembly.GetAttributes();
+
+                var externalExposes = assemblyAttrs
+                    .Where(a => a.AttributeClass?.Name == nameof(DotWrapExternalExposeAttribute))
+                    .Select(a =>
+                        a.ConstructorArguments[0].Value as INamedTypeSymbol
+                        ?? a.NamedArguments.FirstOrDefault(n =>
+                            n.Key == nameof(DotWrapExternalExposeAttribute.typeToWrap)
+                        ).Value.Value as INamedTypeSymbol
+                    )
+                    .OfType<INamedTypeSymbol>()
+                    .ToList();
+
+                var externalMethodExposes = assemblyAttrs
+                    .Where(a => a.AttributeClass?.Name == nameof(DotWrapExternalMethodMeta))
+                    .Select(a => DotWrapExternalMethodMeta.FromAttributeData(a))
+                    .ToList();
+
                 foreach (var classSymbol in inferedTypedToWrap)
                 {
                     var context = new ClassBuilderContext(classSymbol);
-                    string sourceText = new ImplicitWrapperBuilder(context).GenerateClassFile(
-                        classSymbol
-                    );
+                    string sourceText = new ImplicitWrapperBuilder(
+                        context,
+                        externalMethodExposes,
+                        compilation
+                    ).GenerateClassFile(classSymbol);
 
                     spc.AddSource(
-                        $"{context.WrapperName}.g.cs",
+                        $"{context.WrapperName.Replace("<", "_").Replace(">", "_")}.g.cs",
                         SourceText.From(sourceText, Encoding.UTF8)
                     );
                 }
@@ -171,5 +198,38 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
         return methodSymbol.DeclaredAccessibility != Accessibility.Public
             || !methodSymbol.IsDefinition
             || methodSymbol.IsExtensionMethod;
+    }
+}
+
+public record DotWrapExternalMethodMeta(
+    ITypeSymbol containingType,
+    string methodName,
+    ImmutableArray<TypedConstant>? parameters = null,
+    string? alias = null
+)
+{
+    public static DotWrapExternalMethodMeta FromAttributeData(AttributeData attribute)
+    {
+        // var classType = attribute.ConstructorArguments[0].Value as INamedTypeSymbol;
+        // var methodName = attribute.ConstructorArguments[1].Value as string;
+        // var parameters = attribute
+        //     .ConstructorArguments[2]
+        //     .Values.Select(v => v.Value as Type)
+        //     .ToArray();
+        // var alias = attribute.ConstructorArguments[3].Value as string;
+
+        // return new ExternalMethodExposeContext(classType, methodName, parameters, alias);
+        return new(
+            attribute.GetCtorArg<ITypeSymbol>(
+                0,
+                nameof(DotWrap.DotWrapExternalMethodMeta.containingType)
+            ),
+            attribute.GetCtorArg<string>(1, nameof(DotWrap.DotWrapExternalMethodMeta.methodName)),
+            attribute.GetCtorArgForCollection<ImmutableArray<TypedConstant>?>(
+                2,
+                nameof(DotWrap.DotWrapExternalMethodMeta.parameters)
+            ),
+            attribute.GetCtorArg<string>(3, nameof(DotWrap.DotWrapExternalMethodMeta.alias))
+        );
     }
 }

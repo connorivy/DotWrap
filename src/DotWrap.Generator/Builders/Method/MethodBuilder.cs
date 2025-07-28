@@ -23,56 +23,62 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
                 )
         )
         {
-            var context = new MethodBuilderContext(method, classContext);
-            var methodXml = method.GetDocumentationCommentXml();
+            GenerateSingleMethod(classContext, method);
+        }
+    }
 
-            List<ExportedParameterInfo> parameters = new(method.Parameters.Length);
-            foreach (var param in method.Parameters)
-            {
-                var exposedCType = param.Type.GetExposedType(out var isOriginalType);
-                parameters.Add(
-                    new ExportedParameterInfo
-                    {
-                        Name = param.Name,
-                        OriginalType = isOriginalType ? exposedCType : param.Type.ToDisplayString(),
-                        ExposedTypeIfDifferent = isOriginalType ? null : exposedCType,
-                        Comment = XmlParser.ParseParamComment(methodXml, param.Name),
-                    }
-                );
-            }
-            var exportedMethodInfo = context.GetExportedMethodInfo(methodXml, parameters);
-            classMetadataBuilder.AddMethod(exportedMethodInfo);
+    public void GenerateSingleMethod(ClassBuilderContext classContext, IMethodSymbol method)
+    {
+        var context = new MethodBuilderContext(method, classContext);
+        var methodXml = method.GetDocumentationCommentXml();
 
-            string? exportedResultAssignment;
-            if (context.ReturnType.SpecialType.IsBlittable())
-            {
-                exportedResultAssignment = null;
-            }
-            else if (
-                context.ReturnType.Name == "Half"
-                && context.ReturnType.ContainingNamespace?.ToString() == "System"
-            )
-            {
-                exportedResultAssignment =
-                    @$"
+        List<ExportedParameterInfo> parameters = new(method.Parameters.Length);
+        foreach (var param in method.Parameters)
+        {
+            var exposedCType = param.Type.GetExposedType(out var isOriginalType);
+            parameters.Add(
+                new ExportedParameterInfo
+                {
+                    Name = param.Name,
+                    OriginalType = isOriginalType ? exposedCType : param.Type.ToDisplayString(),
+                    ExposedTypeIfDifferent = isOriginalType ? null : exposedCType,
+                    Comment = XmlParser.ParseParamComment(methodXml, param.Name),
+                }
+            );
+        }
+        var exportedMethodInfo = context.GetExportedMethodInfo(methodXml, parameters);
+        classMetadataBuilder.AddMethod(exportedMethodInfo);
+
+        string? exportedResultAssignment;
+        if (context.ReturnType.SpecialType.IsBlittable())
+        {
+            exportedResultAssignment = null;
+        }
+        else if (
+            context.ReturnType.Name == "Half"
+            && context.ReturnType.ContainingNamespace?.ToString() == "System"
+        )
+        {
+            exportedResultAssignment =
+                @$"
             var {ExportedResult} = (float){InternalResult};";
-            }
-            else if (context.ReturnType.SpecialType == SpecialType.System_String)
-            {
-                exportedResultAssignment =
-                    @$"
+        }
+        else if (context.ReturnType.SpecialType == SpecialType.System_String)
+        {
+            exportedResultAssignment =
+                @$"
             var {ExportedResult} = global::DotWrap.BuiltIn.CString.Create({InternalResult});";
-            }
-            else if (context.ReturnType.SpecialType == SpecialType.System_Boolean)
-            {
-                exportedResultAssignment =
-                    @$"
+        }
+        else if (context.ReturnType.SpecialType == SpecialType.System_Boolean)
+        {
+            exportedResultAssignment =
+                @$"
             var {ExportedResult} = {InternalResult} ? 1 : 0;";
-            }
-            else if (context.ReturnType is IArrayTypeSymbol arrayTypeSymbol)
-            {
-                exportedResultAssignment =
-                    @$"
+        }
+        else if (context.ReturnType is IArrayTypeSymbol arrayTypeSymbol)
+        {
+            exportedResultAssignment =
+                @$"
             var {InternalPrefix}Arr = System.Runtime.InteropServices.Marshal.AllocHGlobal(sizeof({arrayTypeSymbol.ElementType.ToDisplayString()}) * {InternalResult}.Length);
             System.Runtime.InteropServices.Marshal.Copy({InternalResult}, 0, {InternalPrefix}Arr, {InternalResult}.Length);
             var {ExportedResult} = new ArrayInfo
@@ -81,18 +87,17 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
                 Length = {InternalResult}.Length
             }};
         ";
-            }
-            else
-            {
-                exportedResultAssignment =
-                    @$"
-            var {ExportedResult} = {GetWrapperName(context.ReturnType)}.{Create}({InternalResult});";
-            }
-            GenerateSingleMethod(context, exportedMethodInfo, exportedResultAssignment);
         }
+        else
+        {
+            exportedResultAssignment =
+                @$"
+            var {ExportedResult} = {GetWrapperName(context.ReturnType)}.{Create}({InternalResult});";
+        }
+        GenerateSingleMethod(context, exportedMethodInfo, exportedResultAssignment);
     }
 
-    public void GenerateSingleMethod(
+    private void GenerateSingleMethod(
         MethodBuilderContext methodContext,
         ExportedMethodInfo exportedMethodInfo,
         string? exportedResultAssignment

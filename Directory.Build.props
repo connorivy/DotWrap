@@ -2,11 +2,12 @@
 <Project>
   <PropertyGroup Label="General Config">
     <LangVersion>preview</LangVersion>
-    <ContinuousIntegrationEnv Condition="'$(ContinuousIntegrationEnv)' == ''">false</ContinuousIntegrationEnv>
+    <ContinuousIntegrationEnv Condition="'$(ContinuousIntegrationEnv)' == ''"
+      >false</ContinuousIntegrationEnv
+    >
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
     <IsPackable>false</IsPackable>
-    
     <!--<TUnitImplicitUsings>false</TUnitImplicitUsings>-->
     <!--<InvariantGlobalization>true</InvariantGlobalization>-->
     <NoWarn>
@@ -22,8 +23,8 @@
       IDE0051;
       IDE0100; <!-- IDE0100: Ignore redundant equality -->
       $(NoWarn)
-    </NoWarn>
-    
+    </NoWarn
+    >
     <WarningsAsErrors>
       <!--Net6 default enabled analysers-->
       CA1416; CA1417; CA1418; CA1831; CA2013; CA2014; CA2015; CA2017;

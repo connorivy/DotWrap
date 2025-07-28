@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace DotWrap;
 
@@ -15,4 +16,23 @@ public class DotWrapGeneratedAttribute : Attribute { }
 public class DotWrapMetaAttribute(string? alias = null) : Attribute
 {
     public string? alias { get; } = alias;
+}
+
+[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+public class DotWrapExternalExposeAttribute(Type typeToWrap) : Attribute
+{
+    public Type typeToWrap { get; } = typeToWrap;
+}
+
+[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+public class DotWrapExternalMethodMeta(
+    Type containingType,
+    string methodName,
+    Type[]? parameters = null,
+    string? alias = null
+) : DotWrapMetaAttribute(alias)
+{
+    public Type containingType { get; } = containingType;
+    public string methodName { get; } = methodName;
+    public Type[]? parameters { get; } = parameters;
 }

@@ -14,10 +14,9 @@ public class ClassMetadataBuilder
         ClassInfo = new ExportedClassInfo
         {
             Namespace = classContext.ClassSymbol.ContainingNamespace.ToDisplayString(),
-            ClassName = classContext.ClassSymbol.Name,
+            ClassName = classContext.ClassName,
             IsStatic = classContext.IsStatic,
-            EntryPrefix =
-                $"{classContext.ClassSymbol.ContainingNamespace.ToDisplayString().Replace('.', '_')}_{classContext.ClassSymbol.Name}_",
+            EntryPrefix = classContext.EntryPrefix,
             SummaryComment = XmlParser.ParseSummary(
                 classContext.ClassSymbol.GetDocumentationCommentXml()
             ),

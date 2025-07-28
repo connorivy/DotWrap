@@ -1,5 +1,6 @@
 using System.Text;
 using DotWrap.Generator.Builders.Method;
+using DotWrap.Generator.Extensions;
 using Microsoft.CodeAnalysis;
 using static DotWrap.Internal.Constants;
 
@@ -18,7 +19,6 @@ public class ExplicitWrapperBuilder(ClassBuilderContext context)
 
     protected void AddInstanceMethods(StringBuilder sb, ClassMetadataBuilder classMetadataBuilder)
     {
-        var className = Context.ClassName;
         var entryPrefix = Context.EntryPrefix;
         MethodBuilder instanceMethodBuilder = new(sb, classMetadataBuilder);
         instanceMethodBuilder.GenerateAllMethods(Context);
@@ -85,10 +85,19 @@ public class ExplicitWrapperBuilder(ClassBuilderContext context)
 
 public record ClassBuilderContext(INamedTypeSymbol ClassSymbol)
 {
-    public string ClassName => ClassSymbol.Name;
+    public string ClassNameWithoutGenerics => ClassSymbol.Name;
+    public string ClassName =>
+        ClassSymbol.Name
+        + string.Join(", ", ClassSymbol.TypeArguments.Select(t => t.ToDisplayString()))
+            .AddOnIfNotNullOrEmpty("<", ">");
     public string Namespace => ClassSymbol.ContainingNamespace.ToDisplayString();
-    public string WrapperName => ClassName + "Wrapper";
+    public string WrapperName =>
+        ClassNameWithoutGenerics
+        + "Wrapper"
+        + string.Join("_", ClassSymbol.TypeArguments.Select(t => t.ToDisplayString()))
+            .AddOnIfNotNullOrEmpty("_");
     public bool IsStatic => ClassSymbol.IsStatic;
     public string FullyQualifiedWrapperName => $"{Namespace}.{WrapperName}";
-    public string EntryPrefix => $"{Namespace.Replace(".", "_")}_{ClassName}_";
+    public string EntryPrefix =>
+        $"{Namespace.Replace(".", "_")}_{ClassName.Replace('<', '_').Replace('>', '_')}_";
 }

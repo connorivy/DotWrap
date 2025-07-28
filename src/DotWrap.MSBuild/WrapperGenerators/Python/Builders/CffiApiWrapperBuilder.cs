@@ -136,6 +136,11 @@ class Collection(Generic[T]):
             raise IndexError(f""Index out of range: {{index}}"")
         return {Ffi}.cast(""void *"", self.ArrayInfo.Ptr)[index]
 
+    def element_at(self, index: int) -> T:
+        if index < 0 or index >= self.ArrayInfo.Length:
+            raise IndexError(f""Index out of range: {{index}}"")
+        return _dotwrap_ffi.cast(""int *"", self.ArrayInfo.Ptr)[index]
+
     def to_list(self) -> list[T]:
         """"""
         Converts the collection to a Python list.
