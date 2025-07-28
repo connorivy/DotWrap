@@ -1,6 +1,5 @@
 using System.Text;
 using System.Text.Json;
-using Microsoft.CodeAnalysis;
 using static DotWrap.Internal.Constants;
 
 namespace DotWrap.Generator.Builders.Class;
@@ -9,7 +8,7 @@ public abstract class EntryPointStaticClassBuilderBase(ClassBuilderContext conte
 {
     protected ClassBuilderContext Context => context;
 
-    public string GenerateClassFile(INamedTypeSymbol classSymbol)
+    public string GenerateClassFile()
     {
         StringBuilder classBody = new();
 

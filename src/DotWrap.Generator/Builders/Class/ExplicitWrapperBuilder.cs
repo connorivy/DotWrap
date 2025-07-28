@@ -83,11 +83,11 @@ public class ExplicitWrapperBuilder(ClassBuilderContext context)
     }
 }
 
-public record ClassBuilderContext(INamedTypeSymbol ClassSymbol)
+public record ClassBuilderContext(INamedTypeSymbol ClassSymbol, string? Alias = null)
 {
-    public string ClassNameWithoutGenerics => ClassSymbol.Name;
+    public string ClassNameWithoutGenerics => Alias ?? ClassSymbol.Name;
     public string ClassName =>
-        ClassSymbol.Name
+        ClassNameWithoutGenerics
         + string.Join(", ", ClassSymbol.TypeArguments.Select(t => t.ToDisplayString()))
             .AddOnIfNotNullOrEmpty("<", ">");
     public string Namespace => ClassSymbol.ContainingNamespace.ToDisplayString();

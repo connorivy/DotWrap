@@ -15,7 +15,6 @@ public class ImplicitWrapperBuilder(
         ClassMetadataBuilder classMetadataBuilder
     )
     {
-        System.Diagnostics.Debugger.Launch();
         var classSymbol = Context.ClassSymbol;
 
         var applicableExposes = GetExternalMethodExposeContext(Context, externalMethodMeta)

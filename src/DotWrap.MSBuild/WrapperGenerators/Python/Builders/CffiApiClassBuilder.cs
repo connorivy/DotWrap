@@ -21,8 +21,9 @@ public class CffiApiClassBuilder(
 
     public void AddClassToMainAndInitPy(ExportedClassInfo classInfo)
     {
-        initPy.AppendLine($"from .main import {classInfo.ClassName}");
-        mainPy.AppendLine($"class {classInfo.ClassName}:");
+        string className = PythonUtils.PythonizeClassName(classInfo.ClassName);
+        initPy.AppendLine($"from .main import {className}");
+        mainPy.AppendLine($"class {className}:");
 
         if (!string.IsNullOrWhiteSpace(classInfo.SummaryComment))
         {

@@ -4,7 +4,10 @@ using System.Collections.Generic;
 namespace DotWrap;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public class DotWrapExposeAttribute : Attribute { }
+public class DotWrapExposeAttribute(string? alias = null) : Attribute
+{
+    internal string? alias { get; } = alias;
+}
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 public class DotWrapIgnoreAttribute : Attribute { }
@@ -19,9 +22,10 @@ public class DotWrapMetaAttribute(string? alias = null) : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-public class DotWrapExternalExposeAttribute(Type typeToWrap) : Attribute
+public class DotWrapExternalExposeAttribute(Type typeToWrap, string? alias = null) : Attribute
 {
     public Type typeToWrap { get; } = typeToWrap;
+    public string? alias { get; } = alias;
 }
 
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]

@@ -31,8 +31,21 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
             static (spc, source) =>
             {
                 var (compilation, classes) = source;
-                HashSet<INamedTypeSymbol> explicitTypesToWrap = [];
+                List<DotWrapExposeData> explicitTypesToWrap = [];
+
+                // todo: populate this
+                HashSet<INamedTypeSymbol> explicitExternalTypesToWrap = [];
                 HashSet<INamedTypeSymbol> inferedTypedToWrap = [];
+
+                // collect all assembly attributes that are marked for external exposure
+                var assemblyAttrs = compilation.Assembly.GetAttributes();
+
+                var externalExposes = assemblyAttrs
+                    .Where(a => a.AttributeClass?.Name == nameof(DotWrapExternalExposeAttribute))
+                    .Select(a => DotWrapExternalExposeAttribute.FromAttributeData(a))
+                    .Select(a => new DotWrapExposeData(a.typeToWrap, a.alias))
+                    .ToList();
+
                 foreach (var classDecl in classes)
                 {
                     var semanticModel = compilation.GetSemanticModel(classDecl.SyntaxTree);
@@ -42,46 +55,38 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                         continue;
                     }
 
-                    if (!classSymbol.IsMarkedForWrapperGeneration())
+                    if (classSymbol.GetDotWrapExposeAttribute() is not AttributeData exposeAttr)
                     {
+                        // if the class is not marked for wrapper generation, skip it
                         continue;
                     }
-                    explicitTypesToWrap.Add(classSymbol);
-                    inferedTypedToWrap.UnionWith(GetInferredTypesToWrap(classSymbol));
+                    explicitTypesToWrap.Add(
+                        DotWrapExposeData.FromAttributeData(classSymbol, exposeAttr)
+                    );
+                    inferedTypedToWrap.UnionWith(
+                        GetInferredTypesToWrap(classSymbol, explicitExternalTypesToWrap)
+                    );
                 }
 
                 if (explicitTypesToWrap.Count == 0 && inferedTypedToWrap.Count == 0)
                 {
                     return; // no types to wrap, nothing to do
                 }
-                System.Diagnostics.Debugger.Launch();
+                // System.Diagnostics.Debugger.Launch();
 
                 foreach (var classSymbol in explicitTypesToWrap)
                 {
-                    var context = new ClassBuilderContext(classSymbol);
-                    string sourceText = new ExplicitWrapperBuilder(context).GenerateClassFile(
-                        classSymbol
+                    var context = new ClassBuilderContext(
+                        classSymbol.typeSymbol,
+                        classSymbol.Alias
                     );
+                    string sourceText = new ExplicitWrapperBuilder(context).GenerateClassFile();
 
                     spc.AddSource(
                         $"{context.WrapperName.Replace("<", "_").Replace(">", "_")}.g.cs",
                         SourceText.From(sourceText, Encoding.UTF8)
                     );
                 }
-
-                // collect all assembly attributes that are marked for external exposure
-                var assemblyAttrs = compilation.Assembly.GetAttributes();
-
-                var externalExposes = assemblyAttrs
-                    .Where(a => a.AttributeClass?.Name == nameof(DotWrapExternalExposeAttribute))
-                    .Select(a =>
-                        a.ConstructorArguments[0].Value as INamedTypeSymbol
-                        ?? a.NamedArguments.FirstOrDefault(n =>
-                            n.Key == nameof(DotWrapExternalExposeAttribute.typeToWrap)
-                        ).Value.Value as INamedTypeSymbol
-                    )
-                    .OfType<INamedTypeSymbol>()
-                    .ToList();
 
                 var externalMethodExposes = assemblyAttrs
                     .Where(a => a.AttributeClass?.Name == nameof(DotWrapExternalMethodMeta))
@@ -95,7 +100,7 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                         context,
                         externalMethodExposes,
                         compilation
-                    ).GenerateClassFile(classSymbol);
+                    ).GenerateClassFile();
 
                     spc.AddSource(
                         $"{context.WrapperName.Replace("<", "_").Replace(">", "_")}.g.cs",
@@ -148,7 +153,10 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
         });
     }
 
-    public static IEnumerable<INamedTypeSymbol> GetInferredTypesToWrap(INamedTypeSymbol classSymbol)
+    public static IEnumerable<INamedTypeSymbol> GetInferredTypesToWrap(
+        INamedTypeSymbol classSymbol,
+        HashSet<INamedTypeSymbol> explicitExternalTypes
+    )
     {
         var classContext = new ClassBuilderContext(classSymbol);
         foreach (var method in classSymbol.GetMembers().OfType<IMethodSymbol>())
@@ -167,7 +175,10 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                     .OfType<INamedTypeSymbol>()
             )
             {
-                if (SkipWrapperGeneration(namedTypeSymbol))
+                if (
+                    SkipWrapperGeneration(namedTypeSymbol)
+                    || explicitExternalTypes.Contains(namedTypeSymbol)
+                )
                 {
                     continue;
                 }
@@ -201,6 +212,20 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
     }
 }
 
+public record DotWrapExposeData(INamedTypeSymbol typeSymbol, string? Alias = null)
+{
+    public static DotWrapExposeData FromAttributeData(
+        INamedTypeSymbol typeSymbol,
+        AttributeData attribute
+    )
+    {
+        return new(
+            typeSymbol,
+            attribute.GetCtorArg<string?>(0, nameof(DotWrap.DotWrapExposeAttribute.alias))
+        );
+    }
+}
+
 public record DotWrapExternalMethodMeta(
     ITypeSymbol containingType,
     string methodName,
@@ -210,15 +235,6 @@ public record DotWrapExternalMethodMeta(
 {
     public static DotWrapExternalMethodMeta FromAttributeData(AttributeData attribute)
     {
-        // var classType = attribute.ConstructorArguments[0].Value as INamedTypeSymbol;
-        // var methodName = attribute.ConstructorArguments[1].Value as string;
-        // var parameters = attribute
-        //     .ConstructorArguments[2]
-        //     .Values.Select(v => v.Value as Type)
-        //     .ToArray();
-        // var alias = attribute.ConstructorArguments[3].Value as string;
-
-        // return new ExternalMethodExposeContext(classType, methodName, parameters, alias);
         return new(
             attribute.GetCtorArg<ITypeSymbol>(
                 0,
@@ -230,6 +246,20 @@ public record DotWrapExternalMethodMeta(
                 nameof(DotWrap.DotWrapExternalMethodMeta.parameters)
             ),
             attribute.GetCtorArg<string>(3, nameof(DotWrap.DotWrapExternalMethodMeta.alias))
+        );
+    }
+}
+
+public record DotWrapExternalExposeAttribute(INamedTypeSymbol typeToWrap, string? alias = null)
+{
+    public static DotWrapExternalExposeAttribute FromAttributeData(AttributeData attribute)
+    {
+        return new(
+            attribute.GetCtorArg<INamedTypeSymbol>(
+                0,
+                nameof(DotWrap.DotWrapExternalExposeAttribute.typeToWrap)
+            ),
+            attribute.GetCtorArg<string?>(1, nameof(DotWrap.DotWrapExternalExposeAttribute.alias))
         );
     }
 }
