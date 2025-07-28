@@ -21,16 +21,16 @@ def sum_of_primes():
 
 def benchmark():
     print("Benchmarking Python sum_of_primes...")
-    start = time.time()
+    start = time.perf_counter()
     py_result = sum_of_primes()
-    py_time = time.time() - start
-    print(f"Python sum_of_primes: {py_result} (Time: {py_time:.2f}s)")
+    py_time = time.perf_counter() - start
+    print(f"Python sum_of_primes: {py_result} (Time: {py_time:.6f}s)")
 
     print("Benchmarking bench.SumOfPrimes...")
-    start = time.time()
+    start = time.perf_counter()
     bench_result = bench.SumOfPrimes()
-    bench_time = time.time() - start
-    print(f"bench.SumOfPrimes: {bench_result} (Time: {bench_time:.2f}s)")
+    bench_time = time.perf_counter() - start
+    print(f"bench.SumOfPrimes: {bench_result} (Time: {bench_time:.6f}s)")
 
 
 if __name__ == "__main__":
