@@ -42,7 +42,7 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
                     Name = param.Name,
                     OriginalType = isOriginalType ? exposedCType : param.Type.ToDisplayString(),
                     ExposedTypeIfDifferent = isOriginalType ? null : exposedCType,
-                    GenericTypeName = (param.Type as ITypeParameterSymbol)?.Name,
+                    GenericTypeName = (param.OriginalDefinition.Type as ITypeParameterSymbol)?.Name,
                     Comment = XmlParser.ParseParamComment(methodXml, param.Name),
                 }
             );

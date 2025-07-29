@@ -49,6 +49,9 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
             OriginalType = isOriginalType ? exposedCType : this.ReturnType.ToDisplayString(),
             IsStatic = this.IsStatic,
             ExposedTypeIfDifferent = isOriginalType ? null : exposedCType,
+            GenericTypeName = (
+                this.MethodSymbol.OriginalDefinition.ReturnType as ITypeParameterSymbol
+            )?.Name,
             SummaryComment = XmlParser.ParseSummary(xmlDoc),
             ReturnsComment = XmlParser.ParseReturns(xmlDoc),
             Parameters = parameters,

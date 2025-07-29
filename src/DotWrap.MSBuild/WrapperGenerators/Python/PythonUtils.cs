@@ -32,6 +32,29 @@ public static class PythonUtils
         return className;
     }
 
+    public static string PythonizeTypeName(string typeName)
+    {
+        while (typeName.Contains('<'))
+        {
+            // split on first < and last >
+            var startIndex = typeName.IndexOf('<');
+            var endIndex = typeName.LastIndexOf('>');
+            if (startIndex < 0 || endIndex < 0 || startIndex >= endIndex)
+            {
+                break; // no valid generic type found
+            }
+            var genericPart = MapTypeToPython(
+                typeName.Substring(startIndex + 1, endIndex - startIndex - 1)
+            );
+            typeName =
+                typeName.Substring(0, startIndex)
+                + $"[{genericPart}]"
+                + typeName.Substring(endIndex + 1);
+        }
+
+        return typeName;
+    }
+
     public static string? GetGenericBaseNameOrNull(string className)
     {
         // split on first < and last >
@@ -66,7 +89,31 @@ public static class PythonUtils
             "void" => "None",
             "string" => "str",
             "int[]" => "list[int]",
-            _ => $"\"{PythonUtils.PythonizeClassName(t.Split('.').Last())}\"",
+            _ => $"\"{PythonUtils.PythonizeTypeName(t.Split('.').Last())}\"",
+        };
+    }
+
+    public static string MapTypeToNumpy(string t)
+    {
+        t = t.ToLowerInvariant().Replace("system.", "");
+        return t switch
+        {
+            "byte" => "np.uint8",
+            "sbyte" => "np.int8",
+            "short" => "np.int16",
+            "ushort" => "np.uint16",
+            "int32" or "int" => "np.int32",
+            "uint32" or "uint" => "np.uint32",
+            "int64" or "long" => "np.int64",
+            "uint64" or "ulong" => "np.uint64",
+            "char" => "char",
+            "void" => "void",
+            "half" => "float",
+            "float" => "float",
+            "double" => "double",
+            "intptr" => "void*",
+            "arrayinfo" => "ArrayInfo",
+            _ => throw new NotSupportedException($"Unsupported type: {t}"),
         };
     }
 

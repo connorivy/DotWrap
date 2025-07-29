@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static DotWrap.Internal.Constants;
 
 namespace DotWrap.MSBuild;
 
@@ -11,6 +10,7 @@ public class ExportedClassInfo
     public required string ClassName { get; set; }
     public required string EntryPrefix { get; set; }
     public required bool IsStatic { get; set; }
+    public required Dictionary<string, string> GenericTypeParametersToArguments { get; set; }
     public required ClassSpecialCaseFlags SpecialCaseFlags { get; set; }
     public string? SummaryComment { get; set; }
     public List<ExportedMethodInfo> Methods { get; set; } = new();
@@ -34,6 +34,7 @@ public class ExportedMethodInfo : IHasOriginalAndExposedTypes
     /// If the original type is the same as the exposed type, this will be null.
     /// </summary>
     public required string? ExposedTypeIfDifferent { get; set; }
+    public required string? GenericTypeName { get; set; }
     public required bool IsStatic { get; set; }
     public string? SummaryComment { get; set; }
     public string? ReturnsComment { get; set; }

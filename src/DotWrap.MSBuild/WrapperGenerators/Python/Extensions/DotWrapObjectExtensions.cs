@@ -9,7 +9,7 @@ public static class DotWrapObjectExtensions
     {
         public string OriginalTypeSimple => typeInfo.OriginalType.Split('.').Last();
 
-        public string OriginalTypePythonized => PythonUtils.PythonizeClassName(typeInfo.OriginalType.Split('.').Last());
+        public string OriginalTypeWrapper => PythonUtils.PythonizeClassName(typeInfo.OriginalType.Split('.').Last());
 
         public string MapOriginalTypeToPython()
         {
@@ -29,7 +29,7 @@ public static class DotWrapObjectExtensions
                 "void" => "None",
                 "string" => "str",
                 "int[]" => "list[int]",
-                _ => $"\"{PythonUtils.PythonizeClassName(typeInfo.OriginalType.Split('.').Last())}\"",
+                _ => $"\"{PythonUtils.PythonizeTypeName(typeInfo.OriginalType.Split('.').Last())}\"",
             };
         }
 
@@ -46,7 +46,7 @@ public static class DotWrapObjectExtensions
                 "void" => "None",
                 "string" => "CString", // use CString wrapper for strings
                 "arrayinfo" => "ArrayWrapper", 
-                _ => $"\"{PythonUtils.PythonizeClassName(typeInfo.OriginalType.Split('.').Last())}\"",
+                _ => $"\"{PythonUtils.PythonizeTypeName(typeInfo.OriginalType.Split('.').Last())}\"",
             };
         }
 

@@ -19,9 +19,9 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
         {
             { OriginalType: "string" } => ($"str(CString(", "))"),
             { OriginalType: "bool" } => ($"bool(", ")"),
-            { OriginalType: "int[]" } => ($"Collection[int](", ")"),
+            // { OriginalType: "int[]" } => ($"Collection[int](", ")"),
             { ExposedTypeIfDifferent: not null } => (
-                $"{method.OriginalTypePythonized}.{FromPtr}(",
+                $"{method.OriginalTypeWrapper}.{FromPtr}(",
                 ")"
             ),
             _ => ("", ""),
@@ -41,7 +41,9 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
 
         var paramListWithHints = string.Join(
             ", ",
-            methodInfo.Parameters.Select(p => $"{p.Name}: {p.MapOriginalTypeToPython()}")
+            methodInfo.Parameters.Select(p =>
+                $"{p.Name}: {p.GenericTypeName ?? p.MapOriginalTypeToPython()}"
+            )
         );
         var paramNames = string.Join(", ", methodInfo.Parameters.Select(p => p.Name));
         var pyReturnType = methodInfo.MapOriginalTypeToPython();
@@ -126,10 +128,8 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
             + string.Join(
                 ", ",
                 this.MethodInfo.Parameters.Select(p =>
-                {
-                    return p.GenericTypeName
-                        ?? (p.ExposedTypeIfDifferent is null ? p.Name : $"{p.Name}.{Ptr}");
-                })
+                    p.ExposedTypeIfDifferent is null ? p.Name : $"{p.Name}.{Ptr}"
+                )
             );
     }
 };

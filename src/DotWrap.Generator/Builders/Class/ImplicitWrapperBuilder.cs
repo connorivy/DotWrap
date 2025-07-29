@@ -6,8 +6,7 @@ namespace DotWrap.Generator.Builders.Class;
 
 public class ImplicitWrapperBuilder(
     ClassBuilderContext context,
-    IList<DotWrapExternalMethodMeta> externalMethodMeta,
-    Compilation compilation
+    IList<DotWrapExternalMethodMeta> externalMethodMeta
 ) : EntryPointStaticClassBuilderBase(context)
 {
     public override void CreateClassBody(

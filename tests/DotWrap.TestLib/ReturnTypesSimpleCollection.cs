@@ -6,6 +6,8 @@ using DotWrap.MSBuild;
 
 [assembly: DotWrapExternalExpose(typeof(IList<>))]
 [assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<>.Add), alias: "CustomAddName")]
+[assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<>.Remove))]
+[assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<>.Count))]
 
 namespace DotWrap.TestLib;
 

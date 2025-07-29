@@ -53,7 +53,6 @@ public class CffiApiWrapperBuilder(CSharpProjectInfo projectInfo)
         mainPy.AppendLine("import numpy as np");
         mainPy.AppendLine($"from ._{projectName} import lib as {Lib}");
         mainPy.AppendLine($"from ._{projectName} import ffi as {Ffi}");
-        mainPy.AppendLine($"T = TypeVar('T')");
 
         mainPy.AppendLine(
             @$"
@@ -72,92 +71,6 @@ class CString:
     def __del__(self):
         {Lib}.DotWrap_BuiltIn_CString_Free(self.{Ptr})
 
-class ArrayInfo:
-    """"""
-    ArrayInfo is a thin wrapper around an ArrayInfo pointer returned by the C# library.
-    It provides access to the array pointer and length.
-    """"""
-    def __init__(self, ptr, length):
-        self.Ptr = ptr
-        self.Length = length
-    
-class ArrayWrapper:
-    """"""
-    ArrayWrapper is a thin wrapper around an array pointer returned by the C# library.
-    It provides access to the array elements and length.
-    """"""
-    def __init__(self, ptr, length):
-        self.{Ptr} = ptr
-        self.Length = length
-
-    def __getitem__(self, index: int) -> Any:
-        if index < 0 or index >= self.Length:
-            raise IndexError(f""Index out of range: {{index}}"")
-        return {Ffi}.cast(""void *"", self.{Ptr})[index]
-
-    def __len__(self):
-        return self.Length
-
-class ArrayInfoWrapper:
-    """"""
-    ArrayInfoWrapper is a thin wrapper around an ArrayInfo pointer returned by the C# library.
-    It provides access to the array data, length, and pointer.
-    """"""
-    def __init__(self, ArrayInfo):
-        self.ArrayInfo = ArrayInfo
-
-    def to_numpy(self, dtype):
-        """"""
-        Converts the array data to a NumPy array of the specified dtype.
-        """"""
-        length = self.ArrayInfo.Length
-        arr = np.empty(length, dtype=np.int32)
-
-        # get stable pointer to the array data
-        arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
-        _dotwrap_lib.DotWrap_TestLib_Hello_CopyArrayInfoToNumpyArray_27FFF55C(
-            self.ArrayInfo, arr_ptr
-        )
-        return arr
-
-    def __del__(self):
-        {Lib}.DotWrap_BuiltIn_CString_Free(self.ArrayInfo.Ptr)
-
-class Collection(Generic[T]):
-    """"""
-    Collection is a generic wrapper for collections returned by the C# library.
-    It provides access to the collection elements and length.
-    """"""
-    def __init__(self, array_info: ArrayInfo):
-        self.ArrayInfo = array_info
-
-    def __getitem__(self, index: int) -> T:
-        if index < 0 or index >= self.ArrayInfo.Length:
-            raise IndexError(f""Index out of range: {{index}}"")
-        return {Ffi}.cast(""void *"", self.ArrayInfo.Ptr)[index]
-
-    def element_at(self, index: int) -> T:
-        if index < 0 or index >= self.ArrayInfo.Length:
-            raise IndexError(f""Index out of range: {{index}}"")
-        return _dotwrap_ffi.cast(""int *"", self.ArrayInfo.Ptr)[index]
-
-    def to_list(self) -> list[T]:
-        """"""
-        Converts the collection to a Python list.
-        """"""
-        length = self.ArrayInfo.Length
-        arr = np.empty(length, dtype=np.int32)
-
-        # get stable pointer to the array data
-        arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
-        _dotwrap_lib.DotWrap_TestLib_Hello_CopyArrayInfoToNumpyArray_27FFF55C(
-            self.ArrayInfo, arr_ptr
-        )
-
-        return arr.tolist()
-
-    def __len__(self):
-        return self.Length
 "
         );
         return mainPy;

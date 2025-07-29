@@ -98,8 +98,7 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                     var context = new ClassBuilderContext(classSymbol);
                     string sourceText = new ImplicitWrapperBuilder(
                         context,
-                        externalMethodExposes,
-                        compilation
+                        externalMethodExposes
                     ).GenerateClassFile();
 
                     spc.AddSource(

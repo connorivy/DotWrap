@@ -48,7 +48,6 @@ public class CffiApiClassBuilder(
                 cls.ClassName.LastIndexOf('>') - cls.ClassName.IndexOf('<') - 1
             )
         );
-        initPy.AppendLine($"from .main import {className}");
 
         mainPy.AppendLine($"class {className}({genericClassName}[{genericArguments}]):");
         if (!string.IsNullOrWhiteSpace(cls.SummaryComment))
@@ -106,15 +105,20 @@ public class CffiApiClassBuilder(
         initPy.AppendLine($"from .main import {className}");
 
         var isGeneric = classInfo.ClassName.Contains('<');
+        foreach (var kvp in classInfo.GenericTypeParametersToArguments)
+        {
+            mainPy.AppendLine($"{kvp.Key} = TypeVar('{kvp.Key}')");
+        }
+        var genericDef = string.Join(
+            ", ",
+            classInfo.GenericTypeParametersToArguments.Select(kvp => kvp.Key)
+        );
+        if (!string.IsNullOrEmpty(genericDef))
+        {
+            genericDef = $"(Generic[{genericDef}])";
+        }
 
-        if (isGeneric)
-        {
-            mainPy.AppendLine($"class {className}(Generic[T]):");
-        }
-        else
-        {
-            mainPy.AppendLine($"class {className}:");
-        }
+        mainPy.AppendLine($"class {className}{genericDef}:");
 
         if (!string.IsNullOrWhiteSpace(classInfo.SummaryComment))
         {
