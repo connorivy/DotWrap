@@ -60,7 +60,7 @@ public static class ITypedSymbolExtensions
                     return "IntPtr";
                 default:
                     isOriginalType = false;
-                    return "int"; // Default to int for unsupported types
+                    return "IntPtr"; // Default to IntPtr for unsupported types
             }
         }
     }

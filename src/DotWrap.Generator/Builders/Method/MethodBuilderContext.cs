@@ -78,7 +78,7 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
         var parameters = GetParameterDetails().Select(p => $"{p.ExposedType} {p.Name}");
         if (!this.IsStatic)
         {
-            parameters = parameters.Prepend($"int {SelfPointerName}");
+            parameters = parameters.Prepend($"{SelfPtrType} {SelfPointerName}");
         }
 
         return string.Join(", ", parameters);

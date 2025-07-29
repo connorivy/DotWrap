@@ -22,8 +22,14 @@ public class ReturnTypesSimpleCollection
 
     public static int[] GetInt32Array() => new[] { int.MaxValue, int.MinValue };
 
-    [DotWrapMeta(alias: "Int32List")]
+    // [DotWrapMeta(alias: "Int32List")]
     public static List<int> GetInt32List() => new() { int.MaxValue, int.MinValue };
+
+    // public static List<string> GetStringList() => new() { "Hello", "World" };
+
+    public static List<double> GetDoubleList() => new() { double.MaxValue, double.MinValue };
+
+    public static List<long> GetLongList() => new() { long.MaxValue, long.MinValue };
 
     // public static uint[] GetUInt32Array() => new[] { uint.MaxValue, uint.MinValue };
 

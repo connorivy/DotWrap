@@ -66,5 +66,5 @@ public class SampleClass
     /// <summary>
     /// Instance property int value
     /// </summary>
-    public int InstanceProperty { get; set; }
+    // public int InstanceProperty { get; set; }
 }

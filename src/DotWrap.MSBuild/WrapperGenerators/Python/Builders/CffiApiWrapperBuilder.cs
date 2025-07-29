@@ -53,6 +53,7 @@ public class CffiApiWrapperBuilder(CSharpProjectInfo projectInfo)
         mainPy.AppendLine("import numpy as np");
         mainPy.AppendLine($"from ._{projectName} import lib as {Lib}");
         mainPy.AppendLine($"from ._{projectName} import ffi as {Ffi}");
+        mainPy.AppendLine($"T = TypeVar('T')");
 
         mainPy.AppendLine(
             @$"
@@ -122,7 +123,6 @@ class ArrayInfoWrapper:
     def __del__(self):
         {Lib}.DotWrap_BuiltIn_CString_Free(self.ArrayInfo.Ptr)
 
-T = TypeVar('T')
 class Collection(Generic[T]):
     """"""
     Collection is a generic wrapper for collections returned by the C# library.

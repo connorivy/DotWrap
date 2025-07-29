@@ -49,34 +49,49 @@ namespace {Context.Namespace}
         var className = Context.ClassName;
         var entryPrefix = Context.EntryPrefix;
 
-        methodsSource.AppendLine(
-            $"        private static readonly System.Collections.Concurrent.ConcurrentDictionary<int, {className}> _instances = new();"
-        );
-        methodsSource.AppendLine($"        private static int _nextId = int.MinValue;");
-        methodsSource.AppendLine();
+        // methodsSource.AppendLine(
+        //     $"        private static readonly System.Collections.Concurrent.ConcurrentDictionary<int, {className}> _instances = new();"
+        // );
+        // methodsSource.AppendLine($"        private static int _nextId = int.MinValue;");
+        // methodsSource.AppendLine();
 
         // internal create method
-        methodsSource.AppendLine($"        internal static int {Create}({className} {Obj})");
-        methodsSource.AppendLine("        {");
         methodsSource.AppendLine(
-            $"            int id = System.Threading.Interlocked.Increment(ref _nextId);"
+            $"        internal static {SelfPtrType} {Create}({className} {Obj})"
         );
-        methodsSource.AppendLine($"            _instances[id] = {Obj};");
-        methodsSource.AppendLine($"            return id;");
+        methodsSource.AppendLine("        {");
+        // methodsSource.AppendLine(
+        //     $"            int id = System.Threading.Interlocked.Increment(ref _nextId);"
+        // );
+        // methodsSource.AppendLine($"            _instances[id] = {Obj};");
+        // methodsSource.AppendLine($"            return id;");
+        methodsSource.AppendLine(
+            @$"
+            var handle = GCHandle.Alloc({Obj}, GCHandleType.Pinned);
+            return GCHandle.ToIntPtr(handle);
+"
+        );
         methodsSource.AppendLine("        }");
         methodsSource.AppendLine();
 
         // internal get method
         methodsSource.AppendLine(
-            $"        internal static {className} {Get}(int {SelfPointerName})"
+            $"        internal static {className} {Get}({SelfPtrType} {SelfPointerName})"
         );
         methodsSource.AppendLine("        {");
         methodsSource.AppendLine(
-            $"            if (!_instances.TryGetValue({SelfPointerName}, out var {Obj}))"
+            @$"
+            var handle = GCHandle.FromIntPtr({SelfPointerName});
+            if (!handle.IsAllocated) throw new System.ArgumentException($""Invalid handle: {{{SelfPointerName}}}"");
+            var {Obj} = ({className})handle.Target;
+"
         );
-        methodsSource.AppendLine(
-            @$"                throw new System.ArgumentException($""Invalid instance handle: {{{SelfPointerName}}}"");"
-        );
+        // methodsSource.AppendLine(
+        //     $"            if (!_instances.TryGetValue({SelfPointerName}, out var {Obj}))"
+        // );
+        // methodsSource.AppendLine(
+        //     @$"                throw new System.ArgumentException($""Invalid instance handle: {{{SelfPointerName}}}"");"
+        // );
         methodsSource.AppendLine($"            return {Obj};");
         methodsSource.AppendLine("        }");
         methodsSource.AppendLine();
@@ -85,9 +100,20 @@ namespace {Context.Namespace}
         methodsSource.AppendLine(
             $"        [UnmanagedCallersOnly(EntryPoint = \"{entryPrefix}{Destroy}\")]"
         );
-        methodsSource.AppendLine($"        public static void {Destroy}(int {SelfPointerName})");
+        methodsSource.AppendLine(
+            $"        public static void {Destroy}({SelfPtrType} {SelfPointerName})"
+        );
         methodsSource.AppendLine("        {");
-        methodsSource.AppendLine($"            _instances.TryRemove({SelfPointerName}, out _);");
+        methodsSource.AppendLine(
+            @$"
+            var handle = GCHandle.FromIntPtr({SelfPointerName});
+            if (handle.IsAllocated)
+            {{
+                handle.Free();
+            }}
+"
+        );
+        // methodsSource.AppendLine($"            _instances.TryRemove({SelfPointerName}, out _);");
         methodsSource.AppendLine("        }");
         methodsSource.AppendLine();
     }

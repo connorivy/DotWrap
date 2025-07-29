@@ -17,6 +17,7 @@ public class ClassMetadataBuilder
             ClassName = classContext.ClassName,
             IsStatic = classContext.IsStatic,
             EntryPrefix = classContext.EntryPrefix,
+            SpecialCaseFlags = classContext.SpecialCaseFlags,
             SummaryComment = XmlParser.ParseSummary(
                 classContext.ClassSymbol.GetDocumentationCommentXml()
             ),

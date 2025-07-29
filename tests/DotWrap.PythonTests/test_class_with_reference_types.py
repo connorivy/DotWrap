@@ -9,7 +9,8 @@ def test_class_with_reference_types():
 def test_pass_sample_class():
     sample_class_instance = test_lib.SampleClass()
     class_instance = test_lib.ClassWithReferenceTypes()
-    assert class_instance.AcceptSampleClass(sample_class_instance) is True
+    result = class_instance.AcceptSampleClass(sample_class_instance)
+    assert result is True
 
 
 def test_return_sample_class():

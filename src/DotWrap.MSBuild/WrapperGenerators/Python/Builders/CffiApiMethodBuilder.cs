@@ -10,6 +10,8 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
 {
     private readonly HashSet<string> methodNames = [];
 
+    public IEnumerable<string> MethodNames => this.methodNames;
+
     public void AddClassToMainAndInitPy(ExportedMethodInfo method)
     {
         var context = new MethodBuilderContext(classContext, method);
@@ -83,15 +85,28 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
             mainPy.AppendLine(docComment);
         }
 
+        string libCall;
+        if (context.ClassContext.IsGeneric)
+        {
+            libCall = $"self.{InternalPythonPrefix}{methodName}";
+        }
+        else
+        {
+            libCall = $"{Lib}.{context.ClassContext.ClassInfo.EntryPrefix}{methodInfo.StampedName}";
+        }
+
         mainPy.AppendLine(
-            $"        {returnCall}{resultToExportTypePrefix}{Lib}.{context.ClassContext.ClassInfo.EntryPrefix}{methodInfo.StampedName}({cLibMethodArgs}){resultToExportTypeSuffix}"
+            $"        {returnCall}{resultToExportTypePrefix}{libCall}({cLibMethodArgs}){resultToExportTypeSuffix}"
         );
 
         mainPy.AppendLine();
     }
 }
 
-public record ClassBuilderContext(PythonProjectInfo ProjectInfo, ExportedClassInfo ClassInfo) { };
+public record ClassBuilderContext(PythonProjectInfo ProjectInfo, ExportedClassInfo ClassInfo)
+{
+    public bool IsGeneric => this.ClassInfo.ClassName.Contains('<');
+};
 
 public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMethodInfo MethodInfo)
 {
@@ -112,7 +127,8 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
                 ", ",
                 this.MethodInfo.Parameters.Select(p =>
                 {
-                    return p.ExposedTypeIfDifferent is null ? p.Name : $"{p.Name}.{Ptr}";
+                    return p.GenericTypeName
+                        ?? (p.ExposedTypeIfDifferent is null ? p.Name : $"{p.Name}.{Ptr}");
                 })
             );
     }

@@ -1,6 +1,7 @@
 using System.Text;
 using DotWrap.Generator.Builders.Method;
 using DotWrap.Generator.Extensions;
+using DotWrap.MSBuild;
 using Microsoft.CodeAnalysis;
 using static DotWrap.Internal.Constants;
 
@@ -100,4 +101,34 @@ public record ClassBuilderContext(INamedTypeSymbol ClassSymbol, string? Alias = 
     public string FullyQualifiedWrapperName => $"{Namespace}.{WrapperName}";
     public string EntryPrefix =>
         $"{Namespace.Replace(".", "_")}_{ClassName.Replace('<', '_').Replace('>', '_')}_";
+
+    public ClassSpecialCaseFlags SpecialCaseFlags
+    {
+        get
+        {
+            ClassSpecialCaseFlags flags = ClassSpecialCaseFlags.None;
+
+            if (ClassSymbol.AllInterfaces.Any(i => i.Name == "IEnumerable"))
+            {
+                flags |= ClassSpecialCaseFlags.IEnumerable;
+            }
+            if (ClassSymbol.AllInterfaces.Any(i => i.Name.StartsWith("IReadOnlyCollection")))
+            {
+                flags |= ClassSpecialCaseFlags.ICollection;
+                if (ClassSymbol.AllInterfaces.Any(i => i.Name == "ICollection"))
+                {
+                    flags |= ClassSpecialCaseFlags.IsReadOnly;
+                }
+            }
+            if (ClassSymbol.AllInterfaces.Any(i => i.Name.StartsWith("IReadOnlyList")))
+            {
+                flags |= ClassSpecialCaseFlags.IList;
+                if (!ClassSymbol.AllInterfaces.Any(i => i.Name == "IList"))
+                {
+                    flags |= ClassSpecialCaseFlags.IsReadOnly;
+                }
+            }
+            return flags;
+        }
+    }
 }

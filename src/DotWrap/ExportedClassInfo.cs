@@ -11,6 +11,7 @@ public class ExportedClassInfo
     public required string ClassName { get; set; }
     public required string EntryPrefix { get; set; }
     public required bool IsStatic { get; set; }
+    public required ClassSpecialCaseFlags SpecialCaseFlags { get; set; }
     public string? SummaryComment { get; set; }
     public List<ExportedMethodInfo> Methods { get; set; } = new();
     public List<ExportedPropertyInfo> Properties { get; set; } = new();
@@ -69,6 +70,7 @@ public class ExportedParameterInfo : IHasOriginalAndExposedTypes
     public required string Name { get; set; }
     public required string OriginalType { get; set; }
     public required string? ExposedTypeIfDifferent { get; set; }
+    public required string? GenericTypeName { get; set; }
     public string? Comment { get; set; }
 }
 
@@ -86,4 +88,26 @@ public interface IHasOriginalAndExposedTypes
 {
     public string OriginalType { get; }
     public string? ExposedTypeIfDifferent { get; }
+}
+
+[Flags]
+public enum ClassSpecialCaseFlags
+{
+    None = 0,
+
+    IEnumerable = 1 << 0,
+
+    /// <summary>
+    /// This class implements ICollection<T>
+    /// </summary>
+    ICollection = 1 << 1,
+
+    /// <summary>
+    /// This class implements IList<T>
+    /// </summary>
+    IList = 1 << 2,
+
+    /// <summary>
+    /// </summary>
+    IsReadOnly = 1 << 3,
 }
