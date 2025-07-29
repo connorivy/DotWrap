@@ -4,3 +4,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("DotWrap.MSBuild")]
 [assembly: InternalsVisibleTo("DotWrap.Generator")]
 [assembly: InternalsVisibleTo("DotWrap.TestLib")]
+[assembly: InternalsVisibleTo("DotWrap.Operations")]

@@ -1,5 +1,7 @@
 using System.Text;
 using System.Text.Json;
+using DotWrap.MSBuild;
+using Microsoft.CodeAnalysis;
 using static DotWrap.Internal.Constants;
 
 namespace DotWrap.Generator.Builders.Class;
@@ -19,6 +21,8 @@ public abstract class EntryPointStaticClassBuilderBase(ClassBuilderContext conte
 
         var classMetadataBuilder = new ClassMetadataBuilder(Context);
         this.CreateClassBody(classBody, classMetadataBuilder);
+
+        this.AddSpecialMethods(classBody, classMetadataBuilder, context);
 
         this.AddMetadata(classBody, classMetadataBuilder);
 
@@ -122,6 +126,58 @@ namespace {Context.Namespace}
         StringBuilder methodsSource,
         ClassMetadataBuilder classMetadataBuilder
     );
+
+    protected void AddSpecialMethods(
+        StringBuilder classBody,
+        ClassMetadataBuilder classMetadataBuilder,
+        ClassBuilderContext context
+    )
+    {
+        ExportedClassInfo cls = classMetadataBuilder.ClassInfo;
+        if (cls.TryGetICollectionType(out var collectionType))
+        {
+            classBody.AppendLine(
+                @$"
+        [UnmanagedCallersOnly(EntryPoint = ""{Context.EntryPrefix}{GetCount}"")]
+        public static int {GetCount}({SelfPtrType} {SelfPointerName})
+        {{
+            var {Obj} = {Get}({SelfPointerName});
+            return ((ICollection){Obj}).Count;
+        }}
+        
+        [UnmanagedCallersOnly(EntryPoint = ""{Context.EntryPrefix}{FillArr}"")]
+        public static void {FillArr}({SelfPtrType} {SelfPointerName}, IntPtr numpyArrPtr, int collectionCount)
+        {{
+            var {Obj} = {Get}({SelfPointerName});
+        "
+            );
+
+            string array;
+            if (
+                context.ClassSymbol is IArrayTypeSymbol arrayTypeSymbol
+                && arrayTypeSymbol.ElementType.ToDisplayString() == collectionType
+            )
+            {
+                array = Obj;
+            }
+            else
+            {
+                classBody.AppendLine(
+                    @$"            
+            var arr = {Obj}.ToArray();
+            "
+                );
+                array = $"arr";
+            }
+
+            classBody.AppendLine(
+                @$"
+            global::DotWrap.Operations.Ops.CopyArrayInfoToNumpyArray({array}, numpyArrPtr, collectionCount);
+        }}
+        "
+            );
+        }
+    }
 
     protected void AddMetadata(StringBuilder classBody, ClassMetadataBuilder classMetadataBuilder)
     {

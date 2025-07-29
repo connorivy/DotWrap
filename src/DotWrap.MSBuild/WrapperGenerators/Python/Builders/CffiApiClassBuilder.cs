@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -20,19 +21,20 @@ public class CffiApiClassBuilder(
     {
         foreach (var cls in classes)
         {
-            string? genericClassName = PythonUtils.GetGenericBaseNameOrNull(cls.ClassName);
-            if (genericClassName is not null)
-            {
-                if (this.classNames.Add(genericClassName))
-                {
-                    AddClassToMainAndInitPy(cls);
-                }
-                AddInheritedClassToMainAndInit(cls);
-            }
-            else
-            {
-                AddClassToMainAndInitPy(cls);
-            }
+            // string? genericClassName = PythonUtils.GetGenericBaseNameOrNull(cls.ClassName);
+            // if (genericClassName is not null)
+            // {
+            //     if (this.classNames.Add(genericClassName))
+            //     {
+            //         AddClassToMainAndInitPy(cls);
+            //     }
+            //     AddInheritedClassToMainAndInit(cls);
+            // }
+            // else
+            // {
+            //     AddClassToMainAndInitPy(cls);
+            // }
+            AddClassToMainAndInitPy(cls);
         }
     }
 
@@ -42,14 +44,13 @@ public class CffiApiClassBuilder(
             PythonUtils.GetGenericBaseNameOrNull(cls.ClassName)
             ?? throw new ArgumentException("Class name must be a generic type with '<' and '>'");
         string className = PythonUtils.PythonizeClassName(cls.ClassName);
-        string genericArguments = PythonUtils.MapTypeToPython(
-            cls.ClassName.Substring(
-                cls.ClassName.IndexOf('<') + 1,
-                cls.ClassName.LastIndexOf('>') - cls.ClassName.IndexOf('<') - 1
-            )
-        );
+        var genericArguments = cls
+            .GenericTypeParametersToArguments.Select(kvp => PythonUtils.MapTypeToPython(kvp.Value))
+            .ToList();
 
-        mainPy.AppendLine($"class {className}({genericClassName}[{genericArguments}]):");
+        mainPy.AppendLine(
+            $"class {className}({genericClassName}[{string.Join(", ", genericArguments)}]):"
+        );
         if (!string.IsNullOrWhiteSpace(cls.SummaryComment))
         {
             mainPy.AppendLine(
@@ -79,7 +80,19 @@ public class CffiApiClassBuilder(
         {
             methodNames = methodNames
                 .Prepend($"{Ptr}")
+                .Append($"{Lib}.{classContext.ClassInfo.EntryPrefix}{GetCount}")
+                .Append($"{Lib}.{classContext.ClassInfo.EntryPrefix}{FillArr}")
                 .Append($"{Lib}.{classContext.ClassInfo.EntryPrefix}{Destroy}");
+        }
+
+        foreach (var genericArg in cls.GenericTypeParametersToArguments)
+        {
+            mainPy.AppendLine(
+                @$"    
+    def {GenericTypeNpType}_{genericArg.Key}():
+        return {PythonUtils.MapTypeToNumpy(genericArg.Value)} 
+            "
+            );
         }
 
         mainPy.AppendLine($"    def __init__(self, {Ptr}):");
@@ -142,7 +155,7 @@ public class CffiApiClassBuilder(
             var methods = methodBuilder.MethodNames;
             if (!classInfo.IsStatic)
             {
-                methods = methods.Prepend($"{Ptr}").Append($"{PyDestroy}");
+                methods = methods.Prepend($"{Ptr}").Append($"{PyFillArr}").Append($"{PyDestroy}");
             }
             var ctorArgs = methods.Prepend("self");
             mainPy.AppendLine($"    def __init__({string.Join(", ", ctorArgs)}):");
@@ -155,6 +168,17 @@ public class CffiApiClassBuilder(
                 mainPy.AppendLine($"        self.{methodNameToAdd} = {methodName}");
             }
             mainPy.AppendLine();
+
+            foreach (var genericArg in classInfo.GenericTypeParametersToArguments.Keys)
+            {
+                mainPy.AppendLine(
+                    @$"    
+    @abstractmethod
+    def {GenericTypeNpType}_{genericArg}():
+        pass 
+            "
+                );
+            }
         }
 
         if (!classInfo.IsStatic)
@@ -179,25 +203,39 @@ public class CffiApiClassBuilder(
             }
         }
 
-        //     if (classInfo.SpecialCaseFlags.HasFlag(ClassSpecialCaseFlags.ICollection))
-        //     {
-        //         mainPy.AppendLine(
-        //             @$"
-        // def to_list(self, dtype): -> list
-        //     """"""
-        //     Converts the array data to a list of the specified dtype.
-        //     """"""
-        //     length = {Lib}.self.{Ptr}ArrayInfo.Length
-        //     arr = np.empty(length, dtype=np.int32)
+        if (
+            classInfo
+                .Interfaces.FindAll(i => i.StartsWith("System.Collections.Generic.ICollection"))
+                .FirstOrDefault()
+            is string iCollection
+        )
+        {
+            string genericType = PythonUtils.PythonizeTypeName(
+                iCollection.Substring(
+                    iCollection.IndexOf('<') + 1,
+                    iCollection.LastIndexOf('>') - iCollection.IndexOf('<') - 1
+                )
+            );
+            var genericArg = classInfo
+                .GenericTypeParametersToArguments.FirstOrDefault(kvp => kvp.Value == genericType)
+                .Key;
+            mainPy.AppendLine(
+                @$"
+    def to_list(self) -> list[{genericArg}]:
+        """"""
+        Converts the array data to a list of the specified dtype.
+        """"""
+        length = {Lib}.{classInfo.EntryPrefix}{GetCount}()
+        np_type = self.{GenericTypeNpType}_{genericArg}()
+        arr = np.empty(length, dtype=np_type)
 
-        //     # get stable pointer to the array data
-        //     arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
-        //     _dotwrap_lib.DotWrap_TestLib_Hello_CopyArrayInfoToNumpyArray_27FFF55C(
-        //         self.ArrayInfo, arr_ptr
-        //     )
-        //     return arr
-        //     "
-        //         );
-        //     }
+        # get stable pointer to the array data
+        arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
+        self.{PyFillArr}(self.{Ptr}, arr_ptr, length)
+
+        return arr.tolist()
+        "
+            );
+        }
     }
 }

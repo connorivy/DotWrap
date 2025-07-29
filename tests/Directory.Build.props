@@ -18,6 +18,7 @@
     />
     <ProjectReference Include="..\..\src\DotWrap\DotWrap.csproj" />
     <ProjectReference Include="..\..\src\DotWrap.MSBuild\DotWrap.MSBuild.csproj" />
+    <ProjectReference Include="..\..\src\DotWrap.Operations\DotWrap.Operations.csproj" />
   </ItemGroup>
   <Import
     Condition="'$(ContinuousIntegrationEnv)' == 'false'"
@@ -28,10 +29,6 @@
     Project="..\src\DotWrap\Build\DotWrap.props"
   />
   <ItemGroup Condition="'$(ContinuousIntegrationEnv)' != 'false'">
-    <PackageReference
-      Include="DotWrap"
-      Version="$(DotWrapNugetPackageVersion)"
-      Condition="'$(ContinuousIntegrationEnv)' != 'false'"
-    />
+    <PackageReference Include="DotWrap" Version="$(DotWrapNugetPackageVersion)" />
   </ItemGroup>
 </Project>

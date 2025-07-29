@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using DotWrap;
@@ -71,6 +72,10 @@ public static class Hello
                 dst[i] = src[i];
             }
         }
+    }
+
+    public static void hi()
+    {
     }
 
     // private static string __dotwrapMetadata = JsonSerializer.Serialize(

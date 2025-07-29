@@ -13,5 +13,8 @@ internal static class Constants
     public const string Typed = InternalPrefix + "Typed";
     public const string InternalResult = InternalPrefix + "Result";
     public const string ExportedResult = InternalPrefix + "ExResult";
-    public const string GenericPrefix = InternalPrefix + "Generic";
+    public const string GetCount = InternalPrefix + "GetCount";
+    public const string FillArr = InternalPrefix + "FillArr";
+    public const string CopyArrayInfoToNumpyArrayEntryPoint =
+        "DotWrap_Operations_Ops_CopyArrayInfoToNumpyArray";
 }

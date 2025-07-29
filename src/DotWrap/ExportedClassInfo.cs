@@ -11,10 +11,27 @@ public class ExportedClassInfo
     public required string EntryPrefix { get; set; }
     public required bool IsStatic { get; set; }
     public required Dictionary<string, string> GenericTypeParametersToArguments { get; set; }
+    public required List<string> Interfaces { get; set; }
     public required ClassSpecialCaseFlags SpecialCaseFlags { get; set; }
     public string? SummaryComment { get; set; }
     public List<ExportedMethodInfo> Methods { get; set; } = new();
     public List<ExportedPropertyInfo> Properties { get; set; } = new();
+
+    public bool TryGetICollectionType(out string? collectionType)
+    {
+        var collectionInter = this.Interfaces.FirstOrDefault(i =>
+            i.StartsWith("System.Collections.Generic.ICollection<")
+        );
+        if (collectionInter is not null)
+        {
+            collectionType = collectionInter
+                .Substring("System.Collections.Generic.ICollection<".Length)
+                .TrimEnd('>');
+            return true;
+        }
+        collectionType = null;
+        return false;
+    }
 }
 
 public class ExportedMethodInfo : IHasOriginalAndExposedTypes

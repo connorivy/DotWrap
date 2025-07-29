@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using static DotWrap.Internal.Constants;
 
 namespace DotWrap.Generator;
 
@@ -114,7 +115,7 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
             // This is where you can add additional files to the project, like
             // a file containing the generated code for the CString class.
             var sourceText = SourceText.From(
-                """
+                $$"""
                 using System;
                 using System.Runtime.InteropServices;
 

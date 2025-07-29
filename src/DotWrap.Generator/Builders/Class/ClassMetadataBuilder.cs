@@ -26,6 +26,9 @@ public class ClassMetadataBuilder
             IsStatic = classContext.IsStatic,
             EntryPrefix = classContext.EntryPrefix,
             GenericTypeParametersToArguments = genericTypeParametersToArguments,
+            Interfaces = classContext
+                .ClassSymbol.AllInterfaces.Select(i => i.ToDisplayString())
+                .ToList(),
             SpecialCaseFlags = classContext.SpecialCaseFlags,
             SummaryComment = XmlParser.ParseSummary(
                 classContext.ClassSymbol.GetDocumentationCommentXml()

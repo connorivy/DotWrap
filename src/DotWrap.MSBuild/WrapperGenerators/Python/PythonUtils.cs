@@ -106,13 +106,9 @@ public static class PythonUtils
             "uint32" or "uint" => "np.uint32",
             "int64" or "long" => "np.int64",
             "uint64" or "ulong" => "np.uint64",
-            "char" => "char",
-            "void" => "void",
-            "half" => "float",
-            "float" => "float",
-            "double" => "double",
-            "intptr" => "void*",
-            "arrayinfo" => "ArrayInfo",
+            "half" => "np.float16",
+            "float" => "np.float32",
+            "double" => "np.float64",
             _ => throw new NotSupportedException($"Unsupported type: {t}"),
         };
     }
