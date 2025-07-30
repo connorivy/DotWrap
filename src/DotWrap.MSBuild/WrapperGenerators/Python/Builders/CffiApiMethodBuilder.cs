@@ -19,7 +19,7 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
         {
             { OriginalType: "string" } => ($"str(CString(", "))"),
             { OriginalType: "bool" } => ($"bool(", ")"),
-            // { OriginalType: "int[]" } => ($"Collection[int](", ")"),
+            { OriginalType: "int[]" } => ($"Collection[int](", ")"),
             { ExposedTypeIfDifferent: not null } => (
                 $"{method.OriginalTypeWrapper}.{FromPtr}(",
                 ")"
@@ -39,46 +39,27 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
         var methodInfo = context.MethodInfo;
         var cLibMethodArgs = context.GetCMethodCallArgumentsString();
 
-        var paramListWithHints = string.Join(
-            ", ",
-            methodInfo.Parameters.Select(p =>
-                $"{p.Name}: {p.GenericTypeName ?? p.MapOriginalTypeToPython()}"
-            )
-        );
-        var paramNames = string.Join(", ", methodInfo.Parameters.Select(p => p.Name));
-        var pyReturnType = methodInfo.MapOriginalTypeToPython();
-
-        int numTries = 0;
-        string methodName = methodInfo.OriginalName;
-        while (!this.methodNames.Add(methodName))
-        {
-            numTries++;
-            methodName = $"{methodInfo.OriginalName}_{numTries}";
-        }
+        var pyReturnType = context.GetReturnType();
+        var methodName = context.GetMethodName(this.methodNames);
+        var paramListWithHints = context.PythonMethodParamListWithHints();
 
         var returnCall = "return ";
-        if (methodName == "Constructor")
+        if (methodName == "__init__")
         {
-            methodName = "__init__";
+            paramListWithHints = paramListWithHints.Prepend("self");
             pyReturnType = "None";
             resultToExportTypePrefix = $"self.{Ptr} = ";
             resultToExportTypeSuffix = string.Empty;
             returnCall = string.Empty;
         }
 
-        string selfMethodParameter;
         if (methodInfo.IsStatic && methodName != "__init__")
         {
             mainPy.AppendLine($"    @staticmethod");
-            selfMethodParameter = string.Empty;
-        }
-        else
-        {
-            selfMethodParameter = $"self{(methodInfo.Parameters.Count > 0 ? ", " : "")}";
         }
 
         mainPy.AppendLine(
-            $"    def {methodName}({selfMethodParameter}{paramListWithHints}){$" -> {pyReturnType}"}:"
+            $"    def {methodName}({string.Join(", ", paramListWithHints)}){$" -> {pyReturnType}"}:"
         );
 
         var docComment = methodInfo.GetMethodComment("        ");
@@ -88,14 +69,14 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
         }
 
         string libCall;
-        if (context.ClassContext.IsGeneric)
-        {
-            libCall = $"self.{InternalPythonPrefix}{methodName}";
-        }
-        else
-        {
-            libCall = $"{Lib}.{context.ClassContext.ClassInfo.EntryPrefix}{methodInfo.StampedName}";
-        }
+        // if (context.ClassContext.IsGeneric)
+        // {
+        //     libCall = $"self.{InternalPythonPrefix}{methodName}";
+        // }
+        // else
+        // {
+        libCall = $"{Lib}.{context.ClassContext.ClassInfo.EntryPrefix}{methodInfo.StampedName}";
+        // }
 
         mainPy.AppendLine(
             $"        {returnCall}{resultToExportTypePrefix}{libCall}({cLibMethodArgs}){resultToExportTypeSuffix}"
@@ -104,32 +85,3 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
         mainPy.AppendLine();
     }
 }
-
-public record ClassBuilderContext(PythonProjectInfo ProjectInfo, ExportedClassInfo ClassInfo)
-{
-    public bool IsGeneric => this.ClassInfo.ClassName.Contains('<');
-};
-
-public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMethodInfo MethodInfo)
-{
-    internal string GetCMethodCallArgumentsString()
-    {
-        string self;
-        if (this.MethodInfo.IsStatic)
-        {
-            self = string.Empty;
-        }
-        else
-        {
-            self = $"self.{Ptr}{(this.MethodInfo.Parameters.Count > 0 ? ", " : "")}";
-        }
-
-        return self
-            + string.Join(
-                ", ",
-                this.MethodInfo.Parameters.Select(p =>
-                    p.ExposedTypeIfDifferent is null ? p.Name : $"{p.Name}.{Ptr}"
-                )
-            );
-    }
-};

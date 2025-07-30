@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace DotWrap.MSBuild;
@@ -17,7 +18,7 @@ public class ExportedClassInfo
     public List<ExportedMethodInfo> Methods { get; set; } = new();
     public List<ExportedPropertyInfo> Properties { get; set; } = new();
 
-    public bool TryGetICollectionType(out string? collectionType)
+    public bool TryGetICollectionType([NotNullWhen(true)] out string? collectionType)
     {
         var collectionInter = this.Interfaces.FirstOrDefault(i =>
             i.StartsWith("System.Collections.Generic.ICollection<")

@@ -64,7 +64,6 @@ public static class PythonUtils
         {
             return null; // no valid generic type found
         }
-        var genericPart = className.Substring(startIndex + 1, endIndex - startIndex - 1);
         return className.Substring(0, startIndex);
     }
 

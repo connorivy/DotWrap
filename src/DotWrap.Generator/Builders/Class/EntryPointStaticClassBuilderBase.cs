@@ -69,9 +69,9 @@ namespace {Context.Namespace}
         // );
         // methodsSource.AppendLine($"            _instances[id] = {Obj};");
         // methodsSource.AppendLine($"            return id;");
-        methodsSource.AppendLine(
+        methodsSource.Append(
             @$"
-            var handle = GCHandle.Alloc({Obj}, GCHandleType.Pinned);
+            var handle = GCHandle.Alloc({Obj}, GCHandleType.Normal);
             return GCHandle.ToIntPtr(handle);
 "
         );
@@ -136,16 +136,69 @@ namespace {Context.Namespace}
         ExportedClassInfo cls = classMetadataBuilder.ClassInfo;
         if (cls.TryGetICollectionType(out var collectionType))
         {
+            ExportedMethodInfo getCount = new()
+            {
+                OriginalName = GetCount,
+                OriginalType = "int",
+                IsStatic = false,
+                ExposedTypeIfDifferent = null,
+                GenericTypeName = null,
+                Parameters =
+                [
+                    // new ExportedParameterInfo
+                    // {
+                    //     Name = SelfPointerName,
+                    //     OriginalType = SelfPtrType,
+                    //     ExposedTypeIfDifferent = null,
+                    //     GenericTypeName = null,
+                    // },
+                ],
+            };
+            classMetadataBuilder.AddMethod(getCount);
+
+            ExportedMethodInfo fillArr = new()
+            {
+                OriginalName = FillArr,
+                OriginalType = "void",
+                IsStatic = false,
+                ExposedTypeIfDifferent = null,
+                GenericTypeName = null,
+                Parameters =
+                [
+                    // new ExportedParameterInfo
+                    // {
+                    //     Name = SelfPointerName,
+                    //     OriginalType = SelfPtrType,
+                    //     ExposedTypeIfDifferent = null,
+                    //     GenericTypeName = null,
+                    // },
+                    new ExportedParameterInfo
+                    {
+                        Name = "numpyArrPtr",
+                        OriginalType = "IntPtr",
+                        ExposedTypeIfDifferent = null,
+                        GenericTypeName = null,
+                    },
+                    new ExportedParameterInfo
+                    {
+                        Name = "collectionCount",
+                        OriginalType = "int",
+                        ExposedTypeIfDifferent = null,
+                        GenericTypeName = null,
+                    },
+                ],
+            };
+            classMetadataBuilder.AddMethod(fillArr);
             classBody.AppendLine(
                 @$"
-        [UnmanagedCallersOnly(EntryPoint = ""{Context.EntryPrefix}{GetCount}"")]
+        [UnmanagedCallersOnly(EntryPoint = ""{Context.EntryPrefix}{getCount.StampedName}"")]
         public static int {GetCount}({SelfPtrType} {SelfPointerName})
         {{
             var {Obj} = {Get}({SelfPointerName});
             return ((ICollection){Obj}).Count;
         }}
-        
-        [UnmanagedCallersOnly(EntryPoint = ""{Context.EntryPrefix}{FillArr}"")]
+
+        [UnmanagedCallersOnly(EntryPoint = ""{Context.EntryPrefix}{fillArr.StampedName}"")]
         public static void {FillArr}({SelfPtrType} {SelfPointerName}, IntPtr numpyArrPtr, int collectionCount)
         {{
             var {Obj} = {Get}({SelfPointerName});
