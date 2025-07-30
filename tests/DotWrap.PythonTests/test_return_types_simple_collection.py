@@ -3,7 +3,7 @@ import numpy as np
 
 
 def test_int32_array():
-    x = test_lib.ReturnTypesSimpleCollection.GetInt32Array()
+    x = test_lib.ReturnTypesSimpleCollection.get_int32_array()
     y = x.to_list()
     a = x.element_at(0)
     z = y[0]
@@ -14,7 +14,7 @@ def test_int32_array():
 
 
 def test_int32_list():
-    x = test_lib.ReturnTypesSimpleCollection.GetInt32List()
+    x = test_lib.ReturnTypesSimpleCollection.get_int32_list()
     y = x.to_list()
     assert y == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], (
         f"Expected list [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], got {y}"

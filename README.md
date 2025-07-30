@@ -1,10 +1,10 @@
 # DotWrap
 
-DotWrap is a package for .NET 5+ projects that automatically generates Python packages by wrapping AOT-compiled .NET DLLs.
+DotWrap is a package that automatically generates Python packages by wrapping AOT-compiled .NET libraries.
 
 ## Basic Usage
 
-Suppose you have a .NET class you want to call from Python:
+Suppose you have a c# class you want to call from Python:
 
 ```csharp
 using DotWrap;
@@ -24,8 +24,12 @@ Next publish you package with
 dotnet publish -r linux-x64 (or win-x64)
 ```
 
-A folder called `python-package-root` will automatically be created in your project directory. This is a complete pip package that is ready for push to PyPI. But first you will probably want to test your package.
-cd into the `python-package-root` dir and run `pip install .`
+That is all! A complete python package will be created in a new directory called `python-package-root`. Use the following commands to test it locally
+
+```bash
+cd ./python-package-root
+pip install .
+```
 
 From there you should be able to import your project and any exposed types.
 

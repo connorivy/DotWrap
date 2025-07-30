@@ -26,11 +26,11 @@ def benchmark():
     py_time = time.perf_counter() - start
     print(f"Python sum_of_primes: {py_result} (Time: {py_time:.6f}s)")
 
-    print("Benchmarking bench.SumOfPrimes...")
+    print("Benchmarking c# sum_of_primes...")
     start = time.perf_counter()
-    bench_result = bench.SumOfPrimes()
+    bench_result = bench.sum_of_primes()
     bench_time = time.perf_counter() - start
-    print(f"bench.SumOfPrimes: {bench_result} (Time: {bench_time:.6f}s)")
+    print(f"c# sum_of_primes: {bench_result} (Time: {bench_time:.6f}s)")
 
 
 if __name__ == "__main__":

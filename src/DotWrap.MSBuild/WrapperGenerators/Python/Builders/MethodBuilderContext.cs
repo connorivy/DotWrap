@@ -45,7 +45,7 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
             methodName = "__init__";
         }
 
-        return methodName;
+        return PythonUtils.ToSnakeCase(methodName);
     }
 
     public IEnumerable<string> PythonMethodParamListWithHints()

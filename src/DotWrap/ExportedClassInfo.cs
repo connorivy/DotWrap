@@ -56,6 +56,7 @@ public class ExportedMethodInfo : IHasOriginalAndExposedTypes
     public required bool IsStatic { get; set; }
     public string? SummaryComment { get; set; }
     public string? ReturnsComment { get; set; }
+    public required MethodSpecialCaseFlags SpecialCaseFlags { get; set; }
     public required List<ExportedParameterInfo> Parameters { get; set; } = new();
 
     /// <summary>
@@ -101,6 +102,15 @@ public class ExportedPropertyInfo : IHasOriginalAndExposedTypes
     public required bool HasGetter { get; set; }
     public required bool HasSetter { get; set; }
     public string? Comment { get; set; }
+}
+
+[Flags]
+public enum MethodSpecialCaseFlags
+{
+    None = 0,
+    PropertyGetter = 1 << 0,
+    PropertySetter = 1 << 1,
+    Static = 1 << 2,
 }
 
 public interface IHasOriginalAndExposedTypes

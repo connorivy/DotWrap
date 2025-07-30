@@ -135,4 +135,31 @@ public static class PythonUtils
             _ => throw new NotSupportedException($"Unsupported type: {t}"),
         };
     }
+
+    /// <summary>
+    /// Converts a PascalCase or camelCase string to snake_case.
+    /// </summary>
+    /// <param name="input">The PascalCase or camelCase string.</param>
+    /// <returns>The string in snake_case format.</returns>
+    public static string ToSnakeCase(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+
+        var result = string.Concat(
+            input.Select(
+                (c, i) =>
+                    i > 0
+                    && char.IsUpper(c)
+                    && (
+                        char.IsLower(input[i - 1])
+                        || (i + 1 < input.Length && char.IsLower(input[i + 1]))
+                    )
+                    && input[i - 1] != '_'
+                        ? "_" + char.ToLowerInvariant(c)
+                        : char.ToLowerInvariant(c).ToString()
+            )
+        );
+        return result;
+    }
 }

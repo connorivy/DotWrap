@@ -22,9 +22,9 @@ def benchmark():
     start = time.perf_counter()
 
     for _ in range(bench_range):
-        bench.DoNothing()
+        bench.do_nothing()
     bench_time = time.perf_counter() - start
-    print(f"bench.DoNothing: (Time: {bench_time:.6f}s)")
+    print(f"bench.do_nothing: (Time: {bench_time:.6f}s)")
 
     net_overhead = bench_time - py_time
     print(f"net overhead for dotwrap calls {net_overhead:.6f}s")

@@ -7,11 +7,6 @@
     <PublishAot>true</PublishAot>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference
-      Include="..\DotWrap.Generator\DotWrap.Generator.csproj"
-      OutputItemType="Analyzer"
-      ReferenceOutputAssembly="false"
-    />
     <ProjectReference Include="..\DotWrap\DotWrap.csproj" />
   </ItemGroup>
 </Project>

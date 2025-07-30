@@ -114,6 +114,7 @@ namespace {Context.Namespace}
                 IsStatic = false,
                 ExposedTypeIfDifferent = null,
                 GenericTypeName = null,
+                SpecialCaseFlags = MethodSpecialCaseFlags.None,
                 Parameters =
                 [
                     // new ExportedParameterInfo
@@ -134,6 +135,7 @@ namespace {Context.Namespace}
                 IsStatic = false,
                 ExposedTypeIfDifferent = null,
                 GenericTypeName = null,
+                SpecialCaseFlags = MethodSpecialCaseFlags.None,
                 Parameters =
                 [
                     // new ExportedParameterInfo

@@ -17,7 +17,13 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
                 .OfType<IMethodSymbol>()
                 .Where(m =>
                     m.DeclaredAccessibility == Accessibility.Public
-                    && (m.MethodKind is MethodKind.Ordinary or MethodKind.Constructor)
+                    && (
+                        m.MethodKind
+                        is MethodKind.Ordinary
+                            or MethodKind.Constructor
+                            or MethodKind.PropertyGet
+                            or MethodKind.PropertySet
+                    )
                     && !m.GetAttributes()
                         .Any(a => a.AttributeClass?.Name == nameof(DotWrapIgnoreAttribute))
                 )
@@ -135,29 +141,42 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
             sb.AppendLine(convertParamsToInternal);
         }
 
-        if (methodContext.ReturnType.SpecialType == SpecialType.System_Void)
+        string methodCall;
+        if (methodContext.MethodSymbol.MethodKind is MethodKind.Constructor)
         {
-            sb.AppendLine($"            {obj}.{OriginalMethodName}({internalMethodCallArgs});");
-            sb.AppendLine("        }");
-            sb.AppendLine();
-            return;
+            methodCall = $"new {obj}({internalMethodCallArgs})";
+        }
+        else if (methodContext.MethodSymbol.MethodKind is MethodKind.PropertyGet)
+        {
+            methodCall = $"{obj}.{OriginalMethodName["get_".Length..]}";
+        }
+        else if (methodContext.MethodSymbol.MethodKind is MethodKind.PropertySet)
+        {
+            methodCall = $"{obj}.{OriginalMethodName["set_".Length..]} = {internalMethodCallArgs}";
+        }
+        else
+        {
+            methodCall = $"{obj}.{OriginalMethodName}({internalMethodCallArgs})";
         }
 
-        var methodCall =
-            methodContext.MethodSymbol.MethodKind is MethodKind.Constructor
-                ? $"new {obj}"
-                : $"{obj}.{OriginalMethodName}";
+        string? internalResultAssignment;
+        if (methodContext.ReturnType.SpecialType == SpecialType.System_Void)
+        {
+            internalResultAssignment = null;
+        }
+        else
+        {
+            internalResultAssignment = $"var {InternalResult} = ";
+        }
 
-        sb.AppendLine(
-            $"            var {InternalResult} = {methodCall}({internalMethodCallArgs});"
-        );
+        sb.AppendLine($"            {internalResultAssignment}{methodCall};");
 
         if (exportedResultAssignment is not null)
         {
             sb.AppendLine(exportedResultAssignment);
             sb.AppendLine($"            return {ExportedResult};");
         }
-        else
+        else if (internalResultAssignment is not null)
         {
             sb.AppendLine($"            return {InternalResult};");
         }

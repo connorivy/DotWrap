@@ -52,6 +52,7 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
             GenericTypeName = (
                 this.MethodSymbol.OriginalDefinition.ReturnType as ITypeParameterSymbol
             )?.Name,
+            SpecialCaseFlags = this.GetSpecialCaseFlags(),
             SummaryComment = XmlParser.ParseSummary(xmlDoc),
             ReturnsComment = XmlParser.ParseReturns(xmlDoc),
             Parameters = parameters,
@@ -114,5 +115,26 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
             GetParameterDetails()
                 .Select(p => $"{(p.OriginalTypeIfDifferent is null ? p.Name : $"{p.Name}{Typed}")}")
         );
+    }
+
+    public MethodSpecialCaseFlags GetSpecialCaseFlags()
+    {
+        MethodSpecialCaseFlags flags = MethodSpecialCaseFlags.None;
+
+        if (this.MethodSymbol.IsStatic)
+        {
+            flags |= MethodSpecialCaseFlags.Static;
+        }
+
+        if (this.MethodSymbol.MethodKind is MethodKind.PropertyGet)
+        {
+            flags |= MethodSpecialCaseFlags.PropertyGetter;
+        }
+        else if (this.MethodSymbol.MethodKind is MethodKind.PropertySet)
+        {
+            flags |= MethodSpecialCaseFlags.PropertySetter;
+        }
+
+        return flags;
     }
 };
