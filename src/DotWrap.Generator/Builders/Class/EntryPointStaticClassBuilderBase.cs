@@ -37,7 +37,7 @@ namespace {Context.Namespace}
 
     [global::System.CodeDom.Compiler.GeneratedCode(""DotWrap"", ""1.0.0"")]
     [global::{nameof(DotWrap)}.{nameof(DotWrap.DotWrapGeneratedAttribute).Replace("Attribute", "")}]
-    public static class {Context.WrapperName}
+    internal static class {Context.WrapperName}
     {{
 {classBody.ToString().TrimEnd()}
     }}

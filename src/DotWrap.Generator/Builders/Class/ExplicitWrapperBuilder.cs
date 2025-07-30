@@ -35,7 +35,7 @@ public record ClassBuilderContext(INamedTypeSymbol ClassSymbol, string? Alias = 
     public string Namespace => ClassSymbol.ContainingNamespace.ToDisplayString();
     public string WrapperName =>
         ClassNameWithoutGenerics
-        + "Wrapper"
+        + "DotWrapWrapper"
         + string.Join("_", ClassSymbol.TypeArguments.Select(t => t.ToDisplayString()))
             .AddOnIfNotNullOrEmpty("_");
     public bool IsStatic => ClassSymbol.IsStatic;

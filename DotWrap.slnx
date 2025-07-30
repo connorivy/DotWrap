@@ -1,7 +1,4 @@
 <Solution>
-  <Folder Name="/examples/">
-    <Project Path="examples/DotWrap.SampleAotLib/DotWrap.SampleAotLib.csproj" />
-  </Folder>
   <Folder Name="/src/">
     <Project Path="src/DotWrap.Generator/DotWrap.Generator.csproj" />
     <Project Path="src/DotWrap.MSBuild/DotWrap.MSBuild.csproj" />
@@ -13,5 +10,8 @@
     <File Path="tests/Directory.Build.targets" />
     <Project Path="tests/DotWrap.TestLib/DotWrap.TestLib.csproj" />
     <Project Path="tests/DotWrap.Tests/DotWrap.Tests.csproj" />
+  </Folder>
+  <Folder Name="/wiki/">
+    <File Path="HowItWorks.md" />
   </Folder>
 </Solution>

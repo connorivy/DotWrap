@@ -28,9 +28,11 @@ def benchmark():
 
     print("Benchmarking c# sum_of_primes...")
     start = time.perf_counter()
-    bench_result = bench.sum_of_primes()
-    bench_time = time.perf_counter() - start
-    print(f"c# sum_of_primes: {bench_result} (Time: {bench_time:.6f}s)")
+    cs_result = bench.sum_of_primes()
+    cs_time = time.perf_counter() - start
+    print(f"c# sum_of_primes: {cs_result} (Time: {cs_time:.6f}s)")
+
+    print(f"C# implementation is {py_time / cs_time:.2f} times faster than Python.")
 
 
 if __name__ == "__main__":
