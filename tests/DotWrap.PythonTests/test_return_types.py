@@ -118,12 +118,16 @@ def test_min_double():
     )
 
 
-# def test_true():
-#     x = test_lib.True()
-#     assert x == True, f"Expected True, got {x}"
-# def test_false():
-#     x = test_lib.False()
-#     assert x == False, f"Expected False, got {x}"
+def test_true():
+    x = test_lib.true()
+    assert x == True, f"Expected True, got {x}"
+
+
+def test_false():
+    x = test_lib.false()
+    assert x == False, f"Expected False, got {x}"
+
+
 def test_hello_world():
     x = test_lib.hello_world()
     assert x == "HelloWorld", f"Expected 'HelloWorld', got {x}"

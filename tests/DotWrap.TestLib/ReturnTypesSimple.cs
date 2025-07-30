@@ -57,10 +57,9 @@ public class ReturnTypesSimple
     // public static decimal MinDecimal() => decimal.MinValue;
 
     // Boolean type
-    // todo:
-    // public static bool True() => true;
+    public static bool True() => true;
 
-    // public static bool False() => false;
+    public static bool False() => false;
 
     // String type
     public static string HelloWorld() => "HelloWorld";
