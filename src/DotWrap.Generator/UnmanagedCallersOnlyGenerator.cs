@@ -32,53 +32,47 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
             static (spc, source) =>
             {
                 var (compilation, classes) = source;
-                List<DotWrapExposeData> explicitTypesToWrap = [];
-
-                // todo: populate this
-                HashSet<INamedTypeSymbol> explicitExternalTypesToWrap = [];
-                HashSet<INamedTypeSymbol> inferedTypedToWrap = [];
 
                 // collect all assembly attributes that are marked for external exposure
                 var assemblyAttrs = compilation.Assembly.GetAttributes();
 
-                var externalExposes = assemblyAttrs
-                    .Where(a => a.AttributeClass?.Name == nameof(DotWrapExternalExposeAttribute))
-                    .Select(a => DotWrapExternalExposeAttribute.FromAttributeData(a))
-                    .Select(a => new DotWrapExposeData(a.typeToWrap, a.alias))
-                    .ToList();
+                // var externalExposes = assemblyAttrs
+                //     .Where(a => a.AttributeClass?.Name == nameof(DotWrapExternalExposeAttribute))
+                //     .Select(a => DotWrapExternalExposeAttribute.FromAttributeData(a))
+                //     .Select(a => new DotWrapExposeData(a.typeToWrap, a.alias))
+                //     .ToList();
+
+                HashSet<ITypeSymbol> allExplicitTypes = [];
+                HashSet<ITypeSymbol> allInferedTypes = [];
+                List<ITypeSymbol> inferedTypesToWrap = [];
+
+                // System.Diagnostics.Debugger.Launch();
 
                 foreach (var classDecl in classes)
                 {
                     var semanticModel = compilation.GetSemanticModel(classDecl.SyntaxTree);
-                    var classSymbol = semanticModel.GetDeclaredSymbol(classDecl);
-                    if (classSymbol == null)
+                    var namedTypeSymbol = semanticModel.GetDeclaredSymbol(classDecl);
+                    if (namedTypeSymbol == null)
                     {
                         continue;
                     }
 
-                    if (classSymbol.GetDotWrapExposeAttribute() is not AttributeData exposeAttr)
+                    if (namedTypeSymbol.GetDotWrapExposeAttribute() is not AttributeData exposeAttr)
                     {
                         // if the class is not marked for wrapper generation, skip it
                         continue;
                     }
-                    explicitTypesToWrap.Add(
-                        DotWrapExposeData.FromAttributeData(classSymbol, exposeAttr)
+                    var classSymbol = DotWrapExposeData.FromAttributeData(
+                        namedTypeSymbol,
+                        exposeAttr
                     );
-                    inferedTypedToWrap.UnionWith(
-                        GetInferredTypesToWrap(classSymbol, explicitExternalTypesToWrap)
-                    );
-                }
 
-                if (explicitTypesToWrap.Count == 0 && inferedTypedToWrap.Count == 0)
-                {
-                    return; // no types to wrap, nothing to do
-                }
-                // System.Diagnostics.Debugger.Launch();
-
-                foreach (var classSymbol in explicitTypesToWrap)
-                {
+                    allExplicitTypes.Add(classSymbol.typeSymbol);
                     var context = new ClassBuilderContext(
                         classSymbol.typeSymbol,
+                        allExplicitTypes,
+                        allInferedTypes,
+                        inferedTypesToWrap,
                         classSymbol.Alias
                     );
                     string sourceText = new ExplicitWrapperBuilder(context).GenerateClassFile();
@@ -87,6 +81,11 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                         $"{context.WrapperName.Replace("<", "_").Replace(">", "_")}.g.cs",
                         SourceText.From(sourceText, Encoding.UTF8)
                     );
+                }
+
+                if (inferedTypesToWrap.Count == 0)
+                {
+                    return;
                 }
 
                 var externalMethodExposes = assemblyAttrs
@@ -101,18 +100,32 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                     )
                     .ToList();
 
-                foreach (var classSymbol in inferedTypedToWrap)
+                while (inferedTypesToWrap.Count > 0)
                 {
-                    var context = new ClassBuilderContext(classSymbol);
-                    string sourceText = new ImplicitWrapperBuilder(
-                        context,
-                        externalMethodExposes
-                    ).GenerateClassFile();
+                    for (int i = inferedTypesToWrap.Count - 1; i >= 0; i--)
+                    {
+                        var classSymbol = inferedTypesToWrap[i];
+                        inferedTypesToWrap.RemoveAt(i);
+                        if (classSymbol is not INamedTypeSymbol namedTypeSymbol)
+                        {
+                            continue;
+                        }
+                        var context = new ClassBuilderContext(
+                            namedTypeSymbol,
+                            allExplicitTypes,
+                            allInferedTypes,
+                            inferedTypesToWrap
+                        );
+                        string sourceText = new ImplicitWrapperBuilder(
+                            context,
+                            externalMethodExposes
+                        ).GenerateClassFile();
 
-                    spc.AddSource(
-                        $"{context.WrapperName.Replace("<", "_").Replace(">", "_")}.g.cs",
-                        SourceText.From(sourceText, Encoding.UTF8)
-                    );
+                        spc.AddSource(
+                            $"{context.WrapperName.Replace("<", "_").Replace(">", "_")}.g.cs",
+                            SourceText.From(sourceText, Encoding.UTF8)
+                        );
+                    }
                 }
             }
         );
@@ -160,63 +173,6 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
         });
     }
 
-    public static IEnumerable<INamedTypeSymbol> GetInferredTypesToWrap(
-        INamedTypeSymbol classSymbol,
-        HashSet<INamedTypeSymbol> explicitExternalTypes
-    )
-    {
-        var classContext = new ClassBuilderContext(classSymbol);
-        foreach (var method in classSymbol.GetMembers().OfType<IMethodSymbol>())
-        {
-            if (SkipMethod(method))
-            {
-                continue;
-            }
-
-            var methodContext = new MethodBuilderContext(method, classContext);
-            foreach (
-                var namedTypeSymbol in methodContext
-                    .GetParameterDetails()
-                    .Select(p => p.OriginalTypeIfDifferent)
-                    .Concat([methodContext.MethodSymbol.ReturnType as INamedTypeSymbol])
-                    .OfType<INamedTypeSymbol>()
-            )
-            {
-                if (
-                    SkipWrapperGeneration(namedTypeSymbol)
-                    || explicitExternalTypes.Contains(namedTypeSymbol)
-                )
-                {
-                    continue;
-                }
-
-                if (namedTypeSymbol.IsMarkedForWrapperGeneration())
-                {
-                    // if a type is marked for wrapper gen, then it will be handled by it's own source generator runs
-                    continue;
-                }
-
-                yield return namedTypeSymbol;
-            }
-        }
-    }
-
-    private static bool SkipWrapperGeneration(INamedTypeSymbol classSymbol)
-    {
-        return classSymbol switch
-        {
-            _ when classSymbol.IsBlittable() => true,
-            { SpecialType: SpecialType.System_String } => true,
-            _ => false,
-        };
-    }
-
-    private static bool SkipMethod(IMethodSymbol methodSymbol)
-    {
-        return methodSymbol.DeclaredAccessibility != Accessibility.Public
-            || !methodSymbol.IsDefinition
-            || methodSymbol.IsExtensionMethod;
-    }
 }
 
 public record DotWrapExposeData(INamedTypeSymbol typeSymbol, string? Alias = null)

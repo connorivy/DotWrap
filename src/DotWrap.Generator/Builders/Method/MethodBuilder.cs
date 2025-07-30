@@ -7,7 +7,11 @@ using static DotWrap.Internal.Constants;
 
 namespace DotWrap.Generator.Builders.Method;
 
-public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataBuilder)
+public class MethodBuilder(
+    StringBuilder sb,
+    ClassMetadataBuilder classMetadataBuilder,
+    ClassBuilderContext classContext
+)
 {
     public void GenerateAllMethods(ClassBuilderContext classContext)
     {
@@ -37,6 +41,7 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
     {
         var context = new MethodBuilderContext(method, classContext);
         var methodXml = method.GetDocumentationCommentXml();
+        this.AddInferedTypes(context);
 
         List<ExportedParameterInfo> parameters = new(method.Parameters.Length);
         foreach (var param in method.Parameters)
@@ -102,6 +107,15 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
             var {ExportedResult} = {GetWrapperName(context.ReturnType)}.{Create}({InternalResult});";
         }
         GenerateSingleMethod(context, exportedMethodInfo, exportedResultAssignment);
+    }
+
+    private void AddInferedTypes(MethodBuilderContext context)
+    {
+        classContext.AddInferedType(context.ReturnType);
+        foreach (var param in context.MethodSymbol.Parameters)
+        {
+            classContext.AddInferedType(param.Type);
+        }
     }
 
     private void GenerateSingleMethod(
@@ -185,14 +199,14 @@ public class MethodBuilder(StringBuilder sb, ClassMetadataBuilder classMetadataB
         sb.AppendLine();
     }
 
-    protected static string GetWrapperName(ITypeSymbol returnType)
+    protected string GetWrapperName(ITypeSymbol returnType)
     {
         if (returnType is not INamedTypeSymbol namedType)
         {
             throw new NotSupportedException($"Unsupported return type: {returnType}");
         }
 
-        ClassBuilderContext context = new ClassBuilderContext(namedType);
-        return context.FullyQualifiedWrapperName;
+        var newContext = classContext with { ClassSymbol = namedType, Alias = null };
+        return newContext.FullyQualifiedWrapperName;
     }
 }

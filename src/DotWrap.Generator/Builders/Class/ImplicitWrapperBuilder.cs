@@ -71,7 +71,7 @@ public class ImplicitWrapperBuilder(
             }
 
             // If we have a method symbol, we can use it to generate the method
-            var methodBuilder = new MethodBuilder(methodsSource, classMetadataBuilder);
+            var methodBuilder = new MethodBuilder(methodsSource, classMetadataBuilder, Context);
             methodBuilder.GenerateSingleMethod(Context, methodSymbol);
         }
     }

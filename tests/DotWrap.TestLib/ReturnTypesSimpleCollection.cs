@@ -9,6 +9,7 @@ using DotWrap;
     typeof(IReadOnlyCollection<>),
     nameof(IReadOnlyCollection<>.Count)
 )]
+[assembly: DotWrapExternalPropertyMeta(typeof(IDictionary<,>), nameof(IDictionary<,>.Keys))]
 
 namespace DotWrap.TestLib;
 
@@ -31,6 +32,15 @@ public class ReturnTypesSimpleCollection
     public static IReadOnlyList<int> GetReadOnlyInt32List() => [0, 1, 2, 3, 4, 5];
 
     // public static List<string> GetStringList() => new() { "Hello", "World" };
+    public static Dictionary<int, string> GetIntStringDictionary()
+    {
+        return new Dictionary<int, string>
+        {
+            { 1, "One" },
+            { 2, "Two" },
+            { 3, "Three" },
+        };
+    }
 
     public static List<double> GetDoubleList() => new() { double.MaxValue, double.MinValue };
 

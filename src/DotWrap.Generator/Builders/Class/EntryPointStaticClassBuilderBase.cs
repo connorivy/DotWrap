@@ -50,7 +50,7 @@ namespace {Context.Namespace}
 
     protected void AddMemoryManagmentMethods(StringBuilder methodsSource)
     {
-        var className = Context.ClassName;
+        var className = Context.FullyQualifiedClassName;
         var entryPrefix = Context.EntryPrefix;
 
         // internal create method

@@ -38,7 +38,7 @@ public class ExportedClassInfo
         var collectionInter = this.Interfaces.FirstOrDefault(i => i.StartsWith(interfaceStart));
         if (collectionInter is not null)
         {
-            collectionType = collectionInter.Substring(interfaceStart.Length).TrimEnd('>');
+            collectionType = collectionInter[interfaceStart.Length..^1];
             return true;
         }
         collectionType = null;

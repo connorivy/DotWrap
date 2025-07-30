@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using static DotWrap.Internal.Constants;
 using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
 
@@ -96,14 +97,11 @@ public class CffiApiClassBuilder(
             || cls.TryGetIReadonlyCollectionType(out genericType)
         )
         {
-            var genericArg = PythonUtils.MapTypeToPython(genericType);
-            var genericParam =
-                cls.GenericTypeParametersToArguments.FirstOrDefault(kvp =>
-                    kvp.Value == genericType
-                ).Key
-                ?? throw new InvalidOperationException(
-                    "Generic type parameter not found in class generic type parameters"
-                );
+            foreach (var kvp in cls.GenericTypeParametersToArguments)
+            {
+                genericType = genericType.Replace(kvp.Value, kvp.Key);
+            }
+            var genericParam = PythonUtils.MapTypeToPython(genericType);
             mainPy.AppendLine(
                 @$"
     def to_list(self) -> list[{genericParam}]:

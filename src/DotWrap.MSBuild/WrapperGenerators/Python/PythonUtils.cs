@@ -22,7 +22,10 @@ public static class PythonUtils
             {
                 break; // no valid generic type found
             }
-            var genericPart = className.Substring(startIndex + 1, endIndex - startIndex - 1);
+            var genericPart = className
+                .Substring(startIndex + 1, endIndex - startIndex - 1)
+                .Replace(", ", "And")
+                .Replace(",", "And");
             className =
                 className.Substring(0, startIndex)
                 + $"Of{genericPart}"
@@ -39,22 +42,24 @@ public static class PythonUtils
 
     public static string PythonizeTypeName(string typeName)
     {
-        while (typeName.Contains('<'))
+        // split on first < and last >
+        var startIndex = typeName.IndexOf('<');
+        var endIndex = typeName.LastIndexOf('>');
+        if (startIndex >= 0 && endIndex >= 0 && startIndex < endIndex)
         {
-            // split on first < and last >
-            var startIndex = typeName.IndexOf('<');
-            var endIndex = typeName.LastIndexOf('>');
-            if (startIndex < 0 || endIndex < 0 || startIndex >= endIndex)
-            {
-                break; // no valid generic type found
-            }
             var genericPart = MapTypeToPython(
                 typeName.Substring(startIndex + 1, endIndex - startIndex - 1)
             );
             typeName =
                 typeName.Substring(0, startIndex)
-                + $"[{genericPart}]"
+                + $"[{MapTypeToPython(genericPart)}]"
                 + typeName.Substring(endIndex + 1);
+        }
+
+        var parts = typeName.Split(',').Select(p => p.Trim()).ToList();
+        if (parts.Count > 1)
+        {
+            return string.Join(", ", parts.Select(MapTypeToPython));
         }
 
         return typeName;
@@ -93,7 +98,7 @@ public static class PythonUtils
             "void" => "None",
             "string" => "str",
             "int[]" => "list[int]",
-            _ => $"\"{PythonUtils.PythonizeTypeName(t.Split('.').Last())}\"",
+            _ => PythonizeTypeName(t.Split('.').Last()),
         };
     }
 
@@ -113,7 +118,8 @@ public static class PythonUtils
             "half" => "np.float16",
             "float" => "np.float32",
             "double" => "np.float64",
-            _ => throw new NotSupportedException($"Unsupported type: {t}"),
+            _ => "np.object_",
+            // _ => throw new NotSupportedException($"Unsupported type: {t}"),
         };
     }
 
