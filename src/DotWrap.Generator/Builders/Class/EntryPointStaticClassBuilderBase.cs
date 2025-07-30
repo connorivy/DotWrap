@@ -191,14 +191,14 @@ namespace {Context.Namespace}
             classMetadataBuilder.AddMethod(fillArr);
             classBody.AppendLine(
                 @$"
-        [UnmanagedCallersOnly(EntryPoint = ""{Context.EntryPrefix}{getCount.StampedName}"")]
+        [UnmanagedCallersOnly(EntryPoint = ""{Context.EntryPrefix}{GetCount}"")]
         public static int {GetCount}({SelfPtrType} {SelfPointerName})
         {{
             var {Obj} = {Get}({SelfPointerName});
             return ((ICollection){Obj}).Count;
         }}
 
-        [UnmanagedCallersOnly(EntryPoint = ""{Context.EntryPrefix}{fillArr.StampedName}"")]
+        [UnmanagedCallersOnly(EntryPoint = ""{Context.EntryPrefix}{FillArr}"")]
         public static void {FillArr}({SelfPtrType} {SelfPointerName}, IntPtr numpyArrPtr, int collectionCount)
         {{
             var {Obj} = {Get}({SelfPointerName});

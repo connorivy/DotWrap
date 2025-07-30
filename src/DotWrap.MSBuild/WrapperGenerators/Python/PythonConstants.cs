@@ -7,8 +7,4 @@ internal static class PythonConstants
     internal const string Lib = InternalPythonPrefix + "lib";
     internal const string Ffi = InternalPythonPrefix + "ffi";
     internal const string FromPtr = InternalPythonPrefix + "from_ptr";
-    internal const string PyCreate = InternalPythonPrefix + "create";
-    internal const string PyDestroy = InternalPythonPrefix + "destroy";
-    internal const string PyFillArr = InternalPythonPrefix + "fill_arr";
-    internal const string GenericTypeNpType = InternalPythonPrefix + "np_type";
 }

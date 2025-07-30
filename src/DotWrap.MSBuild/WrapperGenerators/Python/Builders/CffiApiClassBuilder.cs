@@ -163,12 +163,12 @@ public class CffiApiClassBuilder(
         """"""
         Converts the array data to a list of the specified dtype.
         """"""
-        length = {Lib}.{classInfo.EntryPrefix}{GetCount}_0DE6EC57(self.{Ptr})
+        length = {Lib}.{classInfo.EntryPrefix}{GetCount}(self.{Ptr})
         arr = np.empty(length, dtype={PythonUtils.MapTypeToNumpy(genericType)})
 
         # get stable pointer to the array data
         arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
-        {Lib}.{classInfo.EntryPrefix}{PyFillArr}_76C67BC3(self.{Ptr}, arr_ptr, length)
+        {Lib}.{classInfo.EntryPrefix}{FillArr}(self.{Ptr}, arr_ptr, length)
 
         return arr.tolist()
         "

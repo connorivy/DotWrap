@@ -26,7 +26,9 @@ public class ReturnTypesSimpleCollection
     public static int[] GetInt32Array() => new[] { int.MaxValue, int.MinValue };
 
     // [DotWrapMeta(alias: "Int32List")]
-    public static List<int> GetInt32List() => new() { int.MaxValue, int.MinValue };
+    public static List<int> GetInt32List() => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+    // public static IReadOnlyList<int> GetReadOnlyInt32List() => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
     // public static List<string> GetStringList() => new() { "Hello", "World" };
 
@@ -74,9 +76,7 @@ public static class Hello
         }
     }
 
-    public static void hi()
-    {
-    }
+    public static void hi() { }
 
     // private static string __dotwrapMetadata = JsonSerializer.Serialize(
     //     new ExportedClassInfo
