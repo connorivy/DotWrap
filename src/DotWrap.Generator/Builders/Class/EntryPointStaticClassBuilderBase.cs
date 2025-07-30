@@ -53,73 +53,44 @@ namespace {Context.Namespace}
         var className = Context.ClassName;
         var entryPrefix = Context.EntryPrefix;
 
-        // methodsSource.AppendLine(
-        //     $"        private static readonly System.Collections.Concurrent.ConcurrentDictionary<int, {className}> _instances = new();"
-        // );
-        // methodsSource.AppendLine($"        private static int _nextId = int.MinValue;");
-        // methodsSource.AppendLine();
-
         // internal create method
-        methodsSource.AppendLine(
-            $"        internal static {SelfPtrType} {Create}({className} {Obj})"
-        );
-        methodsSource.AppendLine("        {");
-        // methodsSource.AppendLine(
-        //     $"            int id = System.Threading.Interlocked.Increment(ref _nextId);"
-        // );
-        // methodsSource.AppendLine($"            _instances[id] = {Obj};");
-        // methodsSource.AppendLine($"            return id;");
         methodsSource.Append(
             @$"
+        internal static {SelfPtrType} {Create}({className} {Obj})
+        {{
             var handle = GCHandle.Alloc({Obj}, GCHandleType.Normal);
             return GCHandle.ToIntPtr(handle);
+        }}
 "
         );
-        methodsSource.AppendLine("        }");
-        methodsSource.AppendLine();
 
         // internal get method
         methodsSource.AppendLine(
-            $"        internal static {className} {Get}({SelfPtrType} {SelfPointerName})"
-        );
-        methodsSource.AppendLine("        {");
-        methodsSource.AppendLine(
             @$"
+        internal static {className} {Get}({SelfPtrType} {SelfPointerName})
+        {{
             var handle = GCHandle.FromIntPtr({SelfPointerName});
             if (!handle.IsAllocated) throw new System.ArgumentException($""Invalid handle: {{{SelfPointerName}}}"");
             var {Obj} = ({className})handle.Target;
+            return {Obj};
+        }}
 "
         );
-        // methodsSource.AppendLine(
-        //     $"            if (!_instances.TryGetValue({SelfPointerName}, out var {Obj}))"
-        // );
-        // methodsSource.AppendLine(
-        //     @$"                throw new System.ArgumentException($""Invalid instance handle: {{{SelfPointerName}}}"");"
-        // );
-        methodsSource.AppendLine($"            return {Obj};");
-        methodsSource.AppendLine("        }");
-        methodsSource.AppendLine();
 
         // Destroy method
         methodsSource.AppendLine(
-            $"        [UnmanagedCallersOnly(EntryPoint = \"{entryPrefix}{Destroy}\")]"
-        );
-        methodsSource.AppendLine(
-            $"        public static void {Destroy}({SelfPtrType} {SelfPointerName})"
-        );
-        methodsSource.AppendLine("        {");
-        methodsSource.AppendLine(
             @$"
+        [UnmanagedCallersOnly(EntryPoint = ""{entryPrefix}{Destroy}"")]
+        public static void {Destroy}({SelfPtrType} {SelfPointerName})
+        {{
             var handle = GCHandle.FromIntPtr({SelfPointerName});
             if (handle.IsAllocated)
             {{
                 handle.Free();
             }}
+        }}
 "
         );
-        // methodsSource.AppendLine($"            _instances.TryRemove({SelfPointerName}, out _);");
-        methodsSource.AppendLine("        }");
-        methodsSource.AppendLine();
     }
 
     public abstract void CreateClassBody(

@@ -10,6 +10,8 @@ using DotWrap.MSBuild;
 [assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<>.Remove))]
 [assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<>.Count))]
 
+// [assembly: DotWrapExternalMethodMeta(typeof(IReadOnlyList<>), nameof(IReadOnlyList<>.Count))]
+
 namespace DotWrap.TestLib;
 
 [DotWrapExpose]
