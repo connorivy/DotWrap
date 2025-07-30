@@ -1,8 +1,5 @@
-using System;
-using System.Configuration.Assemblies;
-using System.Text;
-using DotWrap.Generator.Builders.Method;
 using DotWrap.MSBuild;
+using Microsoft.CodeAnalysis;
 
 namespace DotWrap.Generator.Builders.Class;
 
@@ -28,6 +25,12 @@ public class ClassMetadataBuilder
             GenericTypeParametersToArguments = genericTypeParametersToArguments,
             Interfaces = classContext
                 .ClassSymbol.AllInterfaces.Select(i => i.ToDisplayString())
+                .Append(
+                    classContext.ClassSymbol.TypeKind == TypeKind.Interface
+                        ? classContext.ClassSymbol.ToDisplayString()
+                        : null
+                )
+                .OfType<string>()
                 .ToList(),
             SpecialCaseFlags = classContext.SpecialCaseFlags,
             SummaryComment = XmlParser.ParseSummary(

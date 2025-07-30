@@ -1,16 +1,14 @@
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text.Json;
 using DotWrap;
-using DotWrap.MSBuild;
 
-[assembly: DotWrapExternalExpose(typeof(IList<>))]
+// [assembly: DotWrapExternalExpose(typeof(IList<>))]
 [assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<>.Add), alias: "CustomAddName")]
 [assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<>.Remove))]
-[assembly: DotWrapExternalPropertyMeta(typeof(IList<>), nameof(IList<>.Count))]
-
-// [assembly: DotWrapExternalMethodMeta(typeof(IReadOnlyList<>), nameof(IReadOnlyList<>.Count))]
+[assembly: DotWrapExternalPropertyMeta(typeof(ICollection<>), nameof(ICollection<>.Count))]
+[assembly: DotWrapExternalPropertyMeta(
+    typeof(IReadOnlyCollection<>),
+    nameof(IReadOnlyCollection<>.Count)
+)]
 
 namespace DotWrap.TestLib;
 

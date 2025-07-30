@@ -15,6 +15,18 @@ public class ImplicitWrapperBuilder(
     )
     {
         var classSymbol = Context.ClassSymbol;
+        IEnumerable<INamedTypeSymbol> applicableNamedTypeSymbols = [classSymbol];
+
+        // if the symbol is an interface, the only members returned from the GetMembers call will be the members defined
+        // on the interface itself. For example, GetMembers call will not return the `get_Count` method of `IList<T>`
+        // because it is defined on the `ICollection<T>` interface. Therefore we, if the class symbol is an interface,
+        // we need to also include all interfaces that the class symbol implements.
+        if (classSymbol.TypeKind is TypeKind.Interface)
+        {
+            applicableNamedTypeSymbols = applicableNamedTypeSymbols.Concat(
+                classSymbol.AllInterfaces
+            );
+        }
 
         var applicableExposes = GetExternalMethodExposeContext(Context, externalMethodMeta)
             .ToList();
@@ -24,27 +36,43 @@ public class ImplicitWrapperBuilder(
             return;
         }
 
+        HashSet<IMethodSymbol> visitedMethodSymbols = [];
         foreach (var exposeContext in applicableExposes)
         {
-            var methodSymbols = classSymbol
-                .GetMembers(exposeContext.methodName)
-                // .Where(m =>
-                // {
-                //     if (exposeContext.Parameters is null)
-                //     {
-                //         return true;
-                //     }
-                //     return exposeContext.Parameters.Length == m.P
-                // })
-                .OfType<IMethodSymbol>()
-                .FirstOrDefault();
-
-            if (methodSymbols is not null)
+            IMethodSymbol? methodSymbol = null;
+            foreach (var namedTypeSymbol in applicableNamedTypeSymbols)
             {
-                // If we have a method symbol, we can use it to generate the method
-                var methodBuilder = new MethodBuilder(methodsSource, classMetadataBuilder);
-                methodBuilder.GenerateSingleMethod(Context, methodSymbols);
+                methodSymbol = namedTypeSymbol
+                    .GetMembers(exposeContext.methodName)
+                    .OfType<IMethodSymbol>()
+                    .FirstOrDefault();
+
+                if (methodSymbol is not null)
+                {
+                    break; // Found a matching method symbol, exit the loop
+                }
             }
+            // var methodSymbols = classSymbol
+            //     .GetMembers(exposeContext.methodName)
+            //     // .Where(m =>
+            //     // {
+            //     //     if (exposeContext.Parameters is null)
+            //     //     {
+            //     //         return true;
+            //     //     }
+            //     //     return exposeContext.Parameters.Length == m.P
+            //     // })
+            //     .OfType<IMethodSymbol>()
+            //     .FirstOrDefault();
+
+            if (methodSymbol is null || !visitedMethodSymbols.Add(methodSymbol))
+            {
+                continue;
+            }
+
+            // If we have a method symbol, we can use it to generate the method
+            var methodBuilder = new MethodBuilder(methodsSource, classMetadataBuilder);
+            methodBuilder.GenerateSingleMethod(Context, methodSymbol);
         }
     }
 
