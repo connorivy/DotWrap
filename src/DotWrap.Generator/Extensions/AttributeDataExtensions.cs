@@ -8,7 +8,7 @@ public static class AttributeDataExtensions
 {
     extension(AttributeData attrData)
     {
-        public T? GetCtorArg<T>(int index, string name)
+        public T? GetCtorArg<T>(int index, string name, T? dummy = null)
             where T : class
         {
             if (attrData.ConstructorArguments.Length <= index)
@@ -28,6 +28,18 @@ public static class AttributeDataExtensions
             }
 
             throw new InvalidCastException($"Cannot cast argument '{name}' to type '{typeof(T).Name}'.");
+        }
+
+        public T GetCtorArg<T>(int index, string name)
+            where T : struct
+        {
+            if (attrData.ConstructorArguments.Length <= index)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), $"Index {index} is out of range for constructor arguments.");
+            }
+
+            var arg = attrData.NamedArguments.FirstOrDefault(n => n.Key == name).Value.Value ?? attrData.ConstructorArguments[index].Value;
+            return (T)arg;
         }
 
         public T GetCtorArgForCollection<T>(int index, string name)

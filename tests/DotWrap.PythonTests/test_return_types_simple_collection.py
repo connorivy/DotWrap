@@ -21,5 +21,11 @@ def test_int32_list():
     )
 
 
+def test_read_only_int32_list():
+    x = test_lib.ReturnTypesSimpleCollection.get_read_only_int32_list()
+    y = x.to_list()
+    assert y == [0, 1, 2, 3, 4, 5], f"Expected list [0, 1, 2, 3, 4, 5], got {y}"
+
+
 # test_int32_array()
-test_int32_list()
+# test_int32_list()

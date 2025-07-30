@@ -92,6 +92,13 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                 var externalMethodExposes = assemblyAttrs
                     .Where(a => a.AttributeClass?.Name == nameof(DotWrapExternalMethodMeta))
                     .Select(a => DotWrapExternalMethodMeta.FromAttributeData(a))
+                    .Concat(
+                        assemblyAttrs
+                            .Where(a =>
+                                a.AttributeClass?.Name == nameof(DotWrapExternalPropertyMeta)
+                            )
+                            .SelectMany(a => DotWrapExternalPropertyMeta.FromAttributeData(a))
+                    )
                     .ToList();
 
                 foreach (var classSymbol in inferedTypedToWrap)
@@ -247,6 +254,61 @@ public record DotWrapExternalMethodMeta(
             ),
             attribute.GetCtorArg<string>(3, nameof(DotWrap.DotWrapExternalMethodMeta.alias))
         );
+    }
+}
+
+public record DotWrapExternalPropertyMeta(
+    ITypeSymbol containingType,
+    string propertyName,
+    PropertyType? propertyType,
+    ImmutableArray<TypedConstant>? parameters = null,
+    string? alias = null
+)
+{
+    public static IEnumerable<DotWrapExternalMethodMeta> FromAttributeData(AttributeData attribute)
+    {
+        var propertyType = attribute.GetCtorArg<PropertyType>(
+            2,
+            nameof(DotWrap.DotWrapExternalPropertyMeta.propertyType)
+        );
+        if (propertyType is PropertyType.None)
+        {
+            yield break;
+        }
+        if (propertyType.HasFlag(PropertyType.Get))
+        {
+            yield return new(
+                attribute.GetCtorArg<ITypeSymbol>(
+                    0,
+                    nameof(DotWrap.DotWrapExternalPropertyMeta.containingType)
+                ),
+                $"get_{attribute.GetCtorArg<string>(
+                    1,
+                    nameof(DotWrap.DotWrapExternalPropertyMeta.propertyName)
+                )}",
+                alias: attribute.GetCtorArg<string>(
+                    4,
+                    nameof(DotWrap.DotWrapExternalPropertyMeta.alias)
+                )
+            );
+        }
+        if (propertyType.HasFlag(PropertyType.Set))
+        {
+            yield return new(
+                attribute.GetCtorArg<ITypeSymbol>(
+                    0,
+                    nameof(DotWrap.DotWrapExternalPropertyMeta.containingType)
+                ),
+                $"set_{attribute.GetCtorArg<string>(
+                    1,
+                    nameof(DotWrap.DotWrapExternalPropertyMeta.propertyName)
+                )}",
+                alias: attribute.GetCtorArg<string>(
+                    4,
+                    nameof(DotWrap.DotWrapExternalPropertyMeta.alias)
+                )
+            );
+        }
     }
 }
 

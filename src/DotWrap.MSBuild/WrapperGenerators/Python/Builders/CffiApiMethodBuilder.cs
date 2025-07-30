@@ -78,15 +78,7 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
             mainPy.AppendLine(docComment);
         }
 
-        string libCall;
-        // if (context.ClassContext.IsGeneric)
-        // {
-        //     libCall = $"self.{InternalPythonPrefix}{methodName}";
-        // }
-        // else
-        // {
-        libCall = $"{Lib}.{context.ClassContext.ClassInfo.EntryPrefix}{methodInfo.StampedName}";
-        // }
+        var libCall = $"{Lib}.{context.ClassContext.ClassInfo.EntryPrefix}{methodInfo.StampedName}";
 
         mainPy.AppendLine(
             $"        {returnCall}{resultToExportTypePrefix}{libCall}({cLibMethodArgs}){resultToExportTypeSuffix}"

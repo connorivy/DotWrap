@@ -18,16 +18,27 @@ public class ExportedClassInfo
     public List<ExportedMethodInfo> Methods { get; set; } = new();
     public List<ExportedPropertyInfo> Properties { get; set; } = new();
 
-    public bool TryGetICollectionType([NotNullWhen(true)] out string? collectionType)
-    {
-        var collectionInter = this.Interfaces.FirstOrDefault(i =>
-            i.StartsWith("System.Collections.Generic.ICollection<")
+    public bool TryGetICollectionType([NotNullWhen(true)] out string? collectionType) =>
+        this.TryGetSingleGenericInterfaceType(
+            "System.Collections.Generic.ICollection<",
+            out collectionType
         );
+
+    public bool TryGetIReadonlyCollectionType([NotNullWhen(true)] out string? collectionType) =>
+        this.TryGetSingleGenericInterfaceType(
+            "System.Collections.Generic.IReadOnlyCollection<",
+            out collectionType
+        );
+
+    public bool TryGetSingleGenericInterfaceType(
+        string interfaceStart,
+        [NotNullWhen(true)] out string? collectionType
+    )
+    {
+        var collectionInter = this.Interfaces.FirstOrDefault(i => i.StartsWith(interfaceStart));
         if (collectionInter is not null)
         {
-            collectionType = collectionInter
-                .Substring("System.Collections.Generic.ICollection<".Length)
-                .TrimEnd('>');
+            collectionType = collectionInter.Substring(interfaceStart.Length).TrimEnd('>');
             return true;
         }
         collectionType = null;

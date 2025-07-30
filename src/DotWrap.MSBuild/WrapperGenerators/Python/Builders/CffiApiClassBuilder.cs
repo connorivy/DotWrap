@@ -71,6 +71,16 @@ public class CffiApiClassBuilder(
             var pyReturnType = context.MethodInfo.GenericTypeName ?? context.GetReturnType();
             var methodName = context.GetMethodName(methodNames);
             var paramListWithHints = context.PythonMethodGenericParamListWithHints();
+            if (method.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.PropertyGetter))
+            {
+                methodName = methodName["get_".Length..];
+                mainPy.AppendLine($"    @property");
+            }
+            else if (method.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.PropertySetter))
+            {
+                methodName = methodName["set_".Length..];
+                mainPy.AppendLine($"    @{methodName}.setter");
+            }
 
             mainPy.AppendLine(
                 @$"    
@@ -81,7 +91,10 @@ public class CffiApiClassBuilder(
             );
         }
 
-        if (cls.TryGetICollectionType(out var genericType))
+        if (
+            cls.TryGetICollectionType(out var genericType)
+            || cls.TryGetIReadonlyCollectionType(out genericType)
+        )
         {
             var genericArg = PythonUtils.MapTypeToPython(genericType);
             var genericParam =
@@ -98,6 +111,14 @@ public class CffiApiClassBuilder(
         "
             );
         }
+
+        mainPy.AppendLine(
+            @$"    
+    @abstractmethod
+    def __del__(self) -> None:
+        pass
+    "
+        );
     }
 
     public void AddClassToMainAndInitPy(ExportedClassInfo classInfo)
@@ -154,7 +175,10 @@ public class CffiApiClassBuilder(
             mainPy.AppendLine();
         }
 
-        if (classInfo.TryGetICollectionType(out var genericType))
+        if (
+            classInfo.TryGetICollectionType(out var genericType)
+            || classInfo.TryGetIReadonlyCollectionType(out genericType)
+        )
         {
             var genericArg = PythonUtils.MapTypeToPython(genericType);
             mainPy.AppendLine(

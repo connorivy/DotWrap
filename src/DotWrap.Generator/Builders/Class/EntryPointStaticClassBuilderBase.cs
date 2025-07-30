@@ -105,7 +105,10 @@ namespace {Context.Namespace}
     )
     {
         ExportedClassInfo cls = classMetadataBuilder.ClassInfo;
-        if (cls.TryGetICollectionType(out var collectionType))
+        if (
+            cls.TryGetICollectionType(out var collectionType)
+            || cls.TryGetIReadonlyCollectionType(out collectionType)
+        )
         {
             ExportedMethodInfo getCount = new()
             {
@@ -115,16 +118,7 @@ namespace {Context.Namespace}
                 ExposedTypeIfDifferent = null,
                 GenericTypeName = null,
                 SpecialCaseFlags = MethodSpecialCaseFlags.None,
-                Parameters =
-                [
-                    // new ExportedParameterInfo
-                    // {
-                    //     Name = SelfPointerName,
-                    //     OriginalType = SelfPtrType,
-                    //     ExposedTypeIfDifferent = null,
-                    //     GenericTypeName = null,
-                    // },
-                ],
+                Parameters = [],
             };
             classMetadataBuilder.AddMethod(getCount);
 
@@ -138,13 +132,6 @@ namespace {Context.Namespace}
                 SpecialCaseFlags = MethodSpecialCaseFlags.None,
                 Parameters =
                 [
-                    // new ExportedParameterInfo
-                    // {
-                    //     Name = SelfPointerName,
-                    //     OriginalType = SelfPtrType,
-                    //     ExposedTypeIfDifferent = null,
-                    //     GenericTypeName = null,
-                    // },
                     new ExportedParameterInfo
                     {
                         Name = "numpyArrPtr",

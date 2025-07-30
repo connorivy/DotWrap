@@ -40,3 +40,27 @@ public class DotWrapExternalMethodMeta(
     public string methodName { get; } = methodName;
     public Type[]? parameters { get; } = parameters;
 }
+
+[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+public class DotWrapExternalPropertyMeta(
+    Type containingType,
+    string propertyName,
+    PropertyType propertyType = PropertyType.GetAndSet,
+    Type[]? parameters = null,
+    string? alias = null
+) : DotWrapMetaAttribute(alias)
+{
+    public Type containingType { get; } = containingType;
+    public string propertyName { get; } = propertyName;
+    public PropertyType propertyType { get; } = propertyType;
+    public Type[]? parameters { get; } = parameters;
+}
+
+[Flags]
+public enum PropertyType
+{
+    None = 0,
+    Get = 1 << 0,
+    Set = 1 << 1,
+    GetAndSet = Get | Set,
+}

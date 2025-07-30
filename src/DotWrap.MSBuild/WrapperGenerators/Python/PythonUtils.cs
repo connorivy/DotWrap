@@ -29,6 +29,11 @@ public static class PythonUtils
                 + className.Substring(endIndex + 1);
         }
 
+        if (className.Length > 0 && char.IsLower(className[0]))
+        {
+            className = char.ToUpperInvariant(className[0]) + className.Substring(1);
+        }
+
         return className;
     }
 

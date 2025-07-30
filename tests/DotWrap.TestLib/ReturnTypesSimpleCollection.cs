@@ -8,7 +8,7 @@ using DotWrap.MSBuild;
 [assembly: DotWrapExternalExpose(typeof(IList<>))]
 [assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<>.Add), alias: "CustomAddName")]
 [assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<>.Remove))]
-[assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<>.Count))]
+[assembly: DotWrapExternalPropertyMeta(typeof(IList<>), nameof(IList<>.Count))]
 
 // [assembly: DotWrapExternalMethodMeta(typeof(IReadOnlyList<>), nameof(IReadOnlyList<>.Count))]
 
@@ -30,7 +30,7 @@ public class ReturnTypesSimpleCollection
     // [DotWrapMeta(alias: "Int32List")]
     public static List<int> GetInt32List() => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-    // public static IReadOnlyList<int> GetReadOnlyInt32List() => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    public static IReadOnlyList<int> GetReadOnlyInt32List() => [0, 1, 2, 3, 4, 5];
 
     // public static List<string> GetStringList() => new() { "Hello", "World" };
 
