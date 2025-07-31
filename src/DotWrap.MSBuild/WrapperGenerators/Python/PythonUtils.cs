@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DotWrap.Internal;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python;
 
@@ -18,6 +19,7 @@ public static class PythonUtils
     /// <returns></returns>
     public static string PythonizeClassName(string fullTypeName)
     {
+        fullTypeName = DotWrapUtils.ReplaceArraySymbols(fullTypeName);
         // Handle generic types in the original type
         // e.g., typeName = "System.Collections.Generic.Dictionary<string, int>.KeyCollection"
         var innerGenerics = fullTypeName
@@ -47,6 +49,8 @@ public static class PythonUtils
         IDictionary<string, string>? genericParamsToArgsDict = null
     )
     {
+        fullTypeName = DotWrapUtils.ReplaceArraySymbols(fullTypeName);
+
         // Handle generic types in the original type
         // e.g., typeName = "System.Collections.Generic.Dictionary<string, int>.KeyCollection"
         var innerGenerics = fullTypeName
@@ -163,7 +167,6 @@ public static class PythonUtils
             "boolean" or "bool" => "bool",
             "void" => "None",
             "string" => "str",
-            "int[]" => "list[int]",
             _ => PythonizeTypeName(t, genericParamsToArgsDict),
         };
     }
@@ -208,7 +211,6 @@ public static class PythonUtils
             "float" => "float",
             "double" => "double",
             "intptr" => "void*",
-            "arrayinfo" => "ArrayInfo",
             _ => throw new NotSupportedException($"Unsupported type: {t}"),
         };
     }

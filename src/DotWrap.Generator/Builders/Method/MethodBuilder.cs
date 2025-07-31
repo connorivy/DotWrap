@@ -66,40 +66,23 @@ public class MethodBuilder(
         {
             exportedResultAssignment = null;
         }
-        else if (
-            context.ReturnType.Name == "Half"
-            && context.ReturnType.ContainingNamespace?.ToString() == "System"
-        )
+        else if (GetBlittableExternalTypeAssignment(context.ReturnType) is string assignment)
         {
-            exportedResultAssignment =
-                @$"
-            var {ExportedResult} = (float){InternalResult};";
+            exportedResultAssignment = assignment;
         }
-        else if (context.ReturnType.SpecialType == SpecialType.System_String)
-        {
-            exportedResultAssignment =
-                @$"
-            var {ExportedResult} = global::DotWrap.BuiltIn.CString.Create({InternalResult});";
-        }
-        else if (context.ReturnType.SpecialType == SpecialType.System_Boolean)
-        {
-            exportedResultAssignment =
-                @$"
-            var {ExportedResult} = {InternalResult} ? 1 : 0;";
-        }
-        else if (context.ReturnType is IArrayTypeSymbol arrayTypeSymbol)
-        {
-            exportedResultAssignment =
-                @$"
-            var {InternalPrefix}Arr = System.Runtime.InteropServices.Marshal.AllocHGlobal(sizeof({arrayTypeSymbol.ElementType.ToDisplayString()}) * {InternalResult}.Length);
-            System.Runtime.InteropServices.Marshal.Copy({InternalResult}, 0, {InternalPrefix}Arr, {InternalResult}.Length);
-            var {ExportedResult} = new ArrayInfo
-            {{
-                Ptr = {InternalPrefix}Arr,
-                Length = {InternalResult}.Length
-            }};
-        ";
-        }
+        // else if (context.ReturnType is IArrayTypeSymbol arrayTypeSymbol)
+        // {
+        //     exportedResultAssignment =
+        //         @$"
+        //     var {InternalPrefix}Arr = System.Runtime.InteropServices.Marshal.AllocHGlobal(sizeof({arrayTypeSymbol.ElementType.ToDisplayString()}) * {InternalResult}.Length);
+        //     System.Runtime.InteropServices.Marshal.Copy({InternalResult}, 0, {InternalPrefix}Arr, {InternalResult}.Length);
+        //     var {ExportedResult} = new ArrayInfo
+        //     {{
+        //         Ptr = {InternalPrefix}Arr,
+        //         Length = {InternalResult}.Length
+        //     }};
+        // ";
+        // }
         else
         {
             exportedResultAssignment =
@@ -156,17 +139,35 @@ public class MethodBuilder(
         }
 
         string methodCall;
+        bool isIndexer =
+            methodContext.MethodSymbol.AssociatedSymbol is IPropertySymbol propertySymbol
+            && propertySymbol.IsIndexer;
         if (methodContext.MethodSymbol.MethodKind is MethodKind.Constructor)
         {
             methodCall = $"new {obj}({internalMethodCallArgs})";
         }
         else if (methodContext.MethodSymbol.MethodKind is MethodKind.PropertyGet)
         {
-            methodCall = $"{obj}.{OriginalMethodName["get_".Length..]}";
+            if (isIndexer)
+            {
+                methodCall = $"{obj}[{internalMethodCallArgs}]";
+            }
+            else
+            {
+                methodCall = $"{obj}.{OriginalMethodName["get_".Length..]}";
+            }
         }
         else if (methodContext.MethodSymbol.MethodKind is MethodKind.PropertySet)
         {
-            methodCall = $"{obj}.{OriginalMethodName["set_".Length..]} = {internalMethodCallArgs}";
+            if (isIndexer)
+            {
+                methodCall = $"{obj}[index] = value";
+            }
+            else
+            {
+                methodCall =
+                    $"{obj}.{OriginalMethodName["set_".Length..]} = {internalMethodCallArgs}";
+            }
         }
         else
         {
@@ -201,12 +202,33 @@ public class MethodBuilder(
 
     protected string GetWrapperName(ITypeSymbol returnType)
     {
-        if (returnType is not INamedTypeSymbol namedType)
+        ClassBuilderContext newContext = new(classContext.GlobalContext, returnType);
+        return newContext.FullyQualifiedWrapperName;
+    }
+
+    public static string? GetBlittableExternalTypeAssignment(ITypeSymbol typeSymbol)
+    {
+        if (typeSymbol is null)
         {
-            throw new NotSupportedException($"Unsupported return type: {returnType}");
+            throw new ArgumentNullException(nameof(typeSymbol));
         }
 
-        ClassBuilderContext newContext = new(classContext.GlobalContext, namedType);
-        return newContext.FullyQualifiedWrapperName;
+        if (typeSymbol.Name == "Half" && typeSymbol.ContainingNamespace?.ToString() == "System")
+        {
+            return @$"
+            var {ExportedResult} = (float){InternalResult};";
+        }
+        else if (typeSymbol.SpecialType == SpecialType.System_String)
+        {
+            return @$"
+            var {ExportedResult} = global::DotWrap.BuiltIn.CString.Create({InternalResult});";
+        }
+        else if (typeSymbol.SpecialType == SpecialType.System_Boolean)
+        {
+            return @$"
+            var {ExportedResult} = {InternalResult} ? 1 : 0;";
+        }
+
+        return null;
     }
 }

@@ -53,4 +53,36 @@ internal static class DotWrapUtils
             _ => "IntPtr", // Default to IntPtr for unsupported types
         };
     }
+
+    /// <summary>
+    /// int[] -> intArray
+    /// int[][] -> intArrayArray
+    /// int[,] -> intArray2D
+    /// int[,,] -> intArray3D
+    /// int[,,][] -> intArray3DArray
+    /// int[][,,] -> intArrayArray2D
+    /// hello -> hello
+    /// List<int[]>[] -> List<intArray>Array
+    /// </summary>
+    /// <param name="typeName"></param>
+    /// <returns></returns>
+    public static string ReplaceArraySymbols(string typeName)
+    {
+        // Replace [] with Array
+        typeName = typeName.Replace("[]", "Array");
+
+        // Replace multidimensional arrays [,,] with ArrayND (N = number of commas + 1)
+        // Regex: \[(,+)\]
+        var regex = new System.Text.RegularExpressions.Regex(@"\[(,+)\]");
+        typeName = regex.Replace(
+            typeName,
+            m =>
+            {
+                int n = m.Groups[1].Value.Length + 1;
+                return $"Array{n}d";
+            }
+        );
+
+        return typeName;
+    }
 }

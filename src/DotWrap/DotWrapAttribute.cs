@@ -64,3 +64,15 @@ public enum PropertyType
     Set = 1 << 1,
     GetAndSet = Get | Set,
 }
+
+[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+public class DotWrapExternalIndexerMeta(
+    Type containingType,
+    PropertyType propertyType = PropertyType.GetAndSet,
+    string? alias = null
+) : DotWrapMetaAttribute(alias)
+{
+    public Type containingType { get; } = containingType;
+
+    public PropertyType propertyType { get; } = propertyType;
+}

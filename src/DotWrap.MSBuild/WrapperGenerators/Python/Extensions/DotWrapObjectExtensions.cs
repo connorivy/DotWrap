@@ -29,7 +29,6 @@ public static class DotWrapObjectExtensions
                 "boolean" or "bool" => "bool",
                 "void" => "None",
                 "string" => "str",
-                "int[]" => "list[int]",
                 _ => $"\"{PythonUtils.PythonizeTypeName(typeInfo.OriginalType, genericParamsToArgsDict)}\"",
             };
         }
@@ -46,7 +45,6 @@ public static class DotWrapObjectExtensions
                 "boolean" or "bool" => "bool",
                 "void" => "None",
                 "string" => "CString", // use CString wrapper for strings
-                "arrayinfo" => "ArrayWrapper", 
                 _ => $"\"{PythonUtils.PythonizeTypeName(typeInfo.OriginalType.Split('.').Last())}\"",
             };
         }

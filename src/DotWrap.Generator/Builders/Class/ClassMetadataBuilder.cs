@@ -22,7 +22,7 @@ public class ClassMetadataBuilder
         );
         ClassInfo = new ExportedClassInfo
         {
-            Namespace = classContext.ClassSymbol.ContainingNamespace.ToDisplayString(),
+            Namespace = classContext.Namespace,
             ClassName = classContext.ClassName,
             IsStatic = classContext.IsStatic,
             EntryPrefix = classContext.EntryPrefix,

@@ -1,3 +1,4 @@
+using System.Text;
 using DotWrap.Generator.Extensions;
 using DotWrap.Internal;
 using DotWrap.MSBuild;
@@ -7,25 +8,34 @@ namespace DotWrap.Generator.Builders.Class;
 
 public class ClassBuilderContext(
     GlobalContext globalContext,
-    INamedTypeSymbol classSymbol,
+    ITypeSymbol classSymbol,
     string? alias = null
 )
 {
     public GlobalContext GlobalContext => globalContext;
-    public INamedTypeSymbol ClassSymbol => classSymbol;
+    public ITypeSymbol ClassSymbol => classSymbol;
     public string? Alias => alias;
-    public string ClassNameWithoutGenerics => Alias ?? ClassSymbol.Name;
+    public string ClassNameWithoutGenerics
+    {
+        get
+        {
+            if (Alias is not null)
+            {
+                return Alias;
+            }
+            if (ClassSymbol is IArrayTypeSymbol arraySymbol)
+            {
+                return DotWrapUtils.ReplaceArraySymbols(arraySymbol.ToDisplayString());
+            }
+            return ClassSymbol.Name;
+        }
+    }
     public string ClassName =>
         ClassNameWithoutGenerics
-        + string.Join(
-                ", ",
-                ClassSymbol
-                    .TypeArguments.Concat(ContainingTypes.SelectMany(c => c.TypeArguments))
-                    .Select(t => t.ToDisplayString())
-            )
+        + string.Join(", ", TypeArguments.Select(t => t.ToDisplayString()))
             .AddOnIfNotNullOrEmpty("<", ">");
 
-    public string Namespace => ClassSymbol.ContainingNamespace.ToDisplayString();
+    public string Namespace => ClassSymbol.ContainingNamespace?.ToDisplayString() ?? "System";
 
     public List<INamedTypeSymbol> ContainingTypes
     {
@@ -46,27 +56,30 @@ public class ClassBuilderContext(
         }
     }
 
+    public IReadOnlyList<ITypeParameterSymbol> TypeParameters =>
+        field ??= (
+            (this.ClassSymbol as INamedTypeSymbol)
+                ?.TypeParameters.Concat(ContainingTypes.SelectMany(c => c.TypeParameters))
+                .ToList() ?? []
+        );
+
+    public IReadOnlyList<ITypeSymbol> TypeArguments =>
+        field ??= (
+            (this.ClassSymbol as INamedTypeSymbol)
+                ?.TypeArguments.Concat(ContainingTypes.SelectMany(c => c.TypeArguments))
+                .ToList() ?? []
+        );
+
     public IReadOnlyDictionary<ITypeParameterSymbol, ITypeSymbol> TypeParametersToArguments =>
         field ??= (
-            ClassSymbol
-                .TypeParameters.Concat(ContainingTypes.SelectMany(c => c.TypeParameters))
-                .Zip(
-                    ClassSymbol.TypeArguments.Concat(
-                        ContainingTypes.SelectMany(c => c.TypeArguments)
-                    ),
-                    (param, arg) => (param, arg)
-                )
+            TypeParameters
+                .Zip(TypeArguments, (param, arg) => (param, arg))
                 .ToDictionary(pair => pair.param, pair => pair.arg)
         );
     public string WrapperName =>
         ClassNameWithoutGenerics
         + "DotWrapWrapper"
-        + string.Join(
-                "_",
-                ClassSymbol
-                    .TypeArguments.Concat(ContainingTypes.SelectMany(c => c.TypeArguments))
-                    .Select(t => t.ToDisplayString())
-            )
+        + string.Join("_", TypeArguments.Select(t => t.ToDisplayString()))
             .AddOnIfNotNullOrEmpty("_");
     public bool IsStatic => ClassSymbol.IsStatic;
     public string FullyQualifiedWrapperName => $"{Namespace}.{WrapperName}";

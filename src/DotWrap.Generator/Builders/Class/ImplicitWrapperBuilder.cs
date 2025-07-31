@@ -1,3 +1,5 @@
+using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Text;
 using DotWrap.Generator.Builders.Method;
 using Microsoft.CodeAnalysis;
@@ -15,16 +17,29 @@ public class ImplicitWrapperBuilder(
     )
     {
         var classSymbol = Context.ClassSymbol;
-        IEnumerable<INamedTypeSymbol> applicableNamedTypeSymbols = [classSymbol];
+        IEnumerable<ITypeSymbol> applicableNamedTypeSymbols = [classSymbol];
 
         // if the symbol is an interface, the only members returned from the GetMembers call will be the members defined
         // on the interface itself. For example, GetMembers call will not return the `get_Count` method of `IList<T>`
         // because it is defined on the `ICollection<T>` interface. Therefore we, if the class symbol is an interface,
         // we need to also include all interfaces that the class symbol implements.
-        if (classSymbol.TypeKind is TypeKind.Interface)
+        //
+        // if the class symbol is an array, then really nothing is defined on the class symbol itself,
+        // the base symbol is `System.Array`, which has several members, but they are all generic and deal with `object`
+        // so we also want to include the interfaces for array
+        if (classSymbol.TypeKind is TypeKind.Interface or TypeKind.Array)
         {
             applicableNamedTypeSymbols = applicableNamedTypeSymbols.Concat(
                 classSymbol.AllInterfaces
+            );
+        }
+
+        // certain properties, like `Length` are defined on the base type of the array
+        if (classSymbol.TypeKind is TypeKind.Array)
+        {
+            applicableNamedTypeSymbols = applicableNamedTypeSymbols.Append(
+                classSymbol.BaseType
+                    ?? throw new InvalidOperationException("Array type must have a base type.")
             );
         }
 
@@ -40,11 +55,16 @@ public class ImplicitWrapperBuilder(
         foreach (var exposeContext in applicableExposes)
         {
             IMethodSymbol? methodSymbol = null;
-            foreach (var namedTypeSymbol in applicableNamedTypeSymbols)
+            foreach (
+                var namedTypeSymbol in applicableNamedTypeSymbols.OrderByDescending(sym =>
+                    sym is INamedTypeSymbol namedType ? namedType.TypeArguments.Length : 0
+                )
+            )
             {
                 methodSymbol = namedTypeSymbol
                     .GetMembers(exposeContext.methodName)
                     .OfType<IMethodSymbol>()
+                    .OrderByDescending(m => m.TypeParameters.Length)
                     .FirstOrDefault();
 
                 if (methodSymbol is not null)
@@ -86,22 +106,22 @@ public class ImplicitWrapperBuilder(
     /// - type is generic type definition and implements interface (IList<>)
     /// </summary>
     /// <param name="classContext"></param>
-    /// <param name="externalMethodExposes"></param>
+    /// <param name="externalMethodMetas"></param>
     /// <returns></returns>
     public IEnumerable<DotWrapExternalMethodMeta> GetExternalMethodExposeContext(
         ClassBuilderContext classContext,
-        IList<DotWrapExternalMethodMeta> externalMethodExposes
+        IList<DotWrapExternalMethodMeta> externalMethodMetas
     )
     {
         var classSymbol = classContext.ClassSymbol;
-        foreach (var exposeContext in externalMethodExposes)
+        foreach (var externalMethodMeta in externalMethodMetas)
         {
-            var exposeTypeSymbol = exposeContext.containingType;
+            var exposeTypeSymbol = externalMethodMeta.containingType;
 
-            // 1. Exact type match (e.g., List<int> == List<int>)
-            if (SymbolEqualityComparer.Default.Equals(classSymbol, exposeTypeSymbol))
+            // 1. Exact type match for classSymbol or base of classSymbol (e.g., List<int> == List<int>)
+            if (CurrentSymOrBaseOfCurrentMatchesCompareSymbol(classSymbol, exposeTypeSymbol))
             {
-                yield return exposeContext;
+                yield return externalMethodMeta;
                 continue;
             }
 
@@ -112,7 +132,7 @@ public class ImplicitWrapperBuilder(
                 )
             )
             {
-                yield return exposeContext;
+                yield return externalMethodMeta;
                 continue;
             }
 
@@ -137,7 +157,7 @@ public class ImplicitWrapperBuilder(
                         )
                     )
                     {
-                        yield return exposeContext;
+                        yield return externalMethodMeta;
                     }
                 }
             }
@@ -156,11 +176,28 @@ public class ImplicitWrapperBuilder(
                             )
                         )
                         {
-                            yield return exposeContext;
+                            yield return externalMethodMeta;
                         }
                     }
                 }
             }
         }
+    }
+
+    private bool CurrentSymOrBaseOfCurrentMatchesCompareSymbol(
+        ITypeSymbol currentSymbol,
+        ITypeSymbol compareSymbol
+    )
+    {
+        var baseSymbol = currentSymbol.BaseType;
+        while (baseSymbol is not null)
+        {
+            if (SymbolEqualityComparer.Default.Equals(baseSymbol, compareSymbol))
+            {
+                return true;
+            }
+            baseSymbol = baseSymbol.BaseType;
+        }
+        return false;
     }
 }

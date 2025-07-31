@@ -22,11 +22,11 @@
   </ItemGroup>
   <Import
     Condition="'$(ContinuousIntegrationEnv)' == 'false'"
-    Project="..\src\DotWrap\Build\DotWrap.targets"
+    Project="..\..\src\DotWrap\Build\DotWrap.targets"
   />
   <Import
     Condition="'$(ContinuousIntegrationEnv)' == 'false'"
-    Project="..\src\DotWrap\Build\DotWrap.props"
+    Project="..\..\src\DotWrap\Build\DotWrap.props"
   />
   <ItemGroup Condition="'$(ContinuousIntegrationEnv)' != 'false'">
     <PackageReference Include="DotWrap" Version="$(DotWrapNugetPackageVersion)" />

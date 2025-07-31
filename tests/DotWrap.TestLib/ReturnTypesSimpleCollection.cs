@@ -12,21 +12,15 @@ using DotWrap;
 [assembly: DotWrapExternalPropertyMeta(typeof(IDictionary<,>), nameof(IDictionary<,>.Keys))]
 [assembly: DotWrapExternalPropertyMeta(typeof(KeyValuePair<,>), nameof(KeyValuePair<,>.Key))]
 [assembly: DotWrapExternalPropertyMeta(typeof(KeyValuePair<,>), nameof(KeyValuePair<,>.Value))]
+[assembly: DotWrapExternalPropertyMeta(typeof(System.Array), nameof(System.Array.Length))]
+[assembly: DotWrapExternalIndexerMeta(typeof(System.Array))]
 
 namespace DotWrap.TestLib;
 
 [DotWrapExpose]
 public class ReturnTypesSimpleCollection
 {
-    // public static sbyte[] GetSByteArray() => new[] { sbyte.MaxValue, sbyte.MinValue };
-
-    // public static byte[] GetByteArray() => new[] { byte.MaxValue, byte.MinValue };
-
-    // public static short[] GetInt16Array() => new[] { short.MaxValue, short.MinValue };
-
-    // public static ushort[] GetUInt16Array() => new[] { ushort.MaxValue, ushort.MinValue };
-
-    // public static int[] GetInt32Array() => new[] { int.MaxValue, int.MinValue };
+    public static int[] GetInt32Array() => new[] { int.MaxValue, int.MinValue };
 
     // [DotWrapMeta(alias: "Int32List")]
     public static List<int> GetInt32List() => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];

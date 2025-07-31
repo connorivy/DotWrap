@@ -108,7 +108,8 @@ namespace {Context.Namespace}
         ExportedClassInfo cls = classMetadataBuilder.ClassInfo;
         // get icollection<T> interface symbol if implemented by context.ClassSymbol
         var iCollectionSymbol = context.ClassSymbol.AllInterfaces.FirstOrDefault(i =>
-            i.Name == "ICollection" || i.Name == "IReadOnlyCollection"
+            i.ContainingNamespace.ToDisplayString().Contains("System.Collections.Generic")
+            && (i.Name == "ICollection" || i.Name == "IReadOnlyCollection")
         );
 
         if (iCollectionSymbol is not { TypeArguments: [var typeArg] })
@@ -167,7 +168,7 @@ namespace {Context.Namespace}
         public static int {GetCount}({SelfPtrType} {SelfPointerName})
         {{
             var {Obj} = {Get}({SelfPointerName});
-            return ((ICollection){Obj}).Count;
+            return (({iCollectionSymbol.ToDisplayString()}){Obj}).Count;
         }}
 
         [UnmanagedCallersOnly(EntryPoint = ""{Context.EntryPrefix}{FillArr}"")]

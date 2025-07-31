@@ -52,7 +52,7 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                     inferedTypesToWrap
                 );
 
-                // System.Diagnostics.Debugger.Launch();
+                System.Diagnostics.Debugger.Launch();
 
                 foreach (var classDecl in classes)
                 {
@@ -93,14 +93,22 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                 }
 
                 var externalMethodExposes = assemblyAttrs
-                    .Where(a => a.AttributeClass?.Name == nameof(DotWrapExternalMethodMeta))
+                    .Where(a => a.AttributeClass?.Name == nameof(DotWrap.DotWrapExternalMethodMeta))
                     .Select(a => DotWrapExternalMethodMeta.FromAttributeData(a))
                     .Concat(
                         assemblyAttrs
                             .Where(a =>
-                                a.AttributeClass?.Name == nameof(DotWrapExternalPropertyMeta)
+                                a.AttributeClass?.Name
+                                == nameof(DotWrap.DotWrapExternalPropertyMeta)
                             )
                             .SelectMany(a => DotWrapExternalPropertyMeta.FromAttributeData(a))
+                    )
+                    .Concat(
+                        assemblyAttrs
+                            .Where(a =>
+                                a.AttributeClass?.Name == nameof(DotWrap.DotWrapExternalIndexerMeta)
+                            )
+                            .SelectMany(a => DotWrapExternalIndexerMeta.FromAttributeData(a))
                     )
                     .ToList();
 
@@ -110,11 +118,7 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                     {
                         var classSymbol = inferedTypesToWrap[i];
                         inferedTypesToWrap.RemoveAt(i);
-                        if (classSymbol is not INamedTypeSymbol namedTypeSymbol)
-                        {
-                            continue;
-                        }
-                        var context = new ClassBuilderContext(globalContext, namedTypeSymbol);
+                        var context = new ClassBuilderContext(globalContext, classSymbol);
                         string sourceText = new ImplicitWrapperBuilder(
                             context,
                             externalMethodExposes
@@ -260,6 +264,49 @@ public record DotWrapExternalPropertyMeta(
                 alias: attribute.GetCtorArg<string>(
                     4,
                     nameof(DotWrap.DotWrapExternalPropertyMeta.alias)
+                )
+            );
+        }
+    }
+}
+
+public record DotWrapExternalIndexerMeta(INamedTypeSymbol typeToWrap, string? alias = null)
+{
+    public static IEnumerable<DotWrapExternalMethodMeta> FromAttributeData(AttributeData attribute)
+    {
+        var propertyType = attribute.GetCtorArg<PropertyType>(
+            1,
+            nameof(DotWrap.DotWrapExternalIndexerMeta.propertyType)
+        );
+        if (propertyType is PropertyType.None)
+        {
+            yield break;
+        }
+        var containingType =
+            attribute.GetCtorArg<ITypeSymbol>(
+                0,
+                nameof(DotWrap.DotWrapExternalIndexerMeta.containingType)
+            ) ?? throw new ArgumentException("Containing type cannot be null", nameof(attribute));
+
+        if (propertyType.HasFlag(PropertyType.Get))
+        {
+            yield return new(
+                containingType,
+                "get_Item",
+                alias: attribute.GetCtorArg<string>(
+                    2,
+                    nameof(DotWrap.DotWrapExternalIndexerMeta.alias)
+                )
+            );
+        }
+        if (propertyType.HasFlag(PropertyType.Set))
+        {
+            yield return new(
+                containingType,
+                "set_Item",
+                alias: attribute.GetCtorArg<string>(
+                    2,
+                    nameof(DotWrap.DotWrapExternalIndexerMeta.alias)
                 )
             );
         }

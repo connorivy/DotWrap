@@ -100,10 +100,6 @@ public class CffiApiClassBuilder(
             || cls.TryGetIReadonlyCollectionType(out genericType)
         )
         {
-            // foreach (var kvp in cls.GenericTypeArgumentsToParameters)
-            // {
-            //     genericType = genericType.Replace(kvp.Value, kvp.Key);
-            // }
             var genericParam = PythonUtils.MapTypeToPython(
                 genericType,
                 cls.GenericTypeArgumentsToParameters

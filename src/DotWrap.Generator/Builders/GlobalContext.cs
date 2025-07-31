@@ -1,3 +1,4 @@
+using DotWrap.Generator.Builders.Method;
 using DotWrap.Generator.Extensions;
 using Microsoft.CodeAnalysis;
 
@@ -23,11 +24,14 @@ public class GlobalContext(
 
     private static bool SkipWrapperGeneration(ITypeSymbol classSymbol)
     {
-        return classSymbol switch
+        if (classSymbol is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsBlittable())
         {
-            INamedTypeSymbol namedTypeSymbol when namedTypeSymbol.IsBlittable() => true,
-            { SpecialType: SpecialType.System_String } => true,
-            _ => false,
-        };
+            return true;
+        }
+        if (MethodBuilder.GetBlittableExternalTypeAssignment(classSymbol) is not null)
+        {
+            return true;
+        }
+        return false;
     }
 }
