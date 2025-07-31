@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using DotWrap.Generator.Extensions;
 using DotWrap.MSBuild;
 using Microsoft.CodeAnalysis;
 using static DotWrap.Internal.Constants;
@@ -105,6 +106,17 @@ namespace {Context.Namespace}
     )
     {
         ExportedClassInfo cls = classMetadataBuilder.ClassInfo;
+        // get icollection<T> interface symbol if implemented by context.ClassSymbol
+        var iCollectionSymbol = context.ClassSymbol.AllInterfaces.FirstOrDefault(i =>
+            i.Name == "ICollection" || i.Name == "IReadOnlyCollection"
+        );
+
+        if (iCollectionSymbol is not { TypeArguments: [var typeArg] })
+        {
+            return;
+        }
+        context.GlobalContext.AddInferedType(typeArg);
+
         if (
             cls.TryGetICollectionType(out var collectionType)
             || cls.TryGetIReadonlyCollectionType(out collectionType)
@@ -165,27 +177,25 @@ namespace {Context.Namespace}
         "
             );
 
-            string array;
+            bool isBlitable = typeArg.SpecialType.IsBlittable();
+            var blittable = isBlitable ? "Blittable" : "NonBlittable";
+            string collectionTypeName;
             if (
-                context.ClassSymbol is IArrayTypeSymbol arrayTypeSymbol
-                && arrayTypeSymbol.ElementType.ToDisplayString() == collectionType
+                isBlitable
+                && context.ClassSymbol is IArrayTypeSymbol arrayTypeSymbol
+                && SymbolEqualityComparer.Default.Equals(arrayTypeSymbol.ElementType, typeArg)
             )
             {
-                array = Obj;
+                collectionTypeName = "Array";
             }
             else
             {
-                classBody.AppendLine(
-                    @$"            
-            var arr = {Obj}.ToArray();
-            "
-                );
-                array = $"arr";
+                collectionTypeName = "Enumerable";
             }
 
             classBody.AppendLine(
                 @$"
-            global::DotWrap.Operations.Ops.CopyArrayInfoToNumpyArray({array}, numpyArrPtr, collectionCount);
+            global::DotWrap.Operations.Ops.Copy{blittable}{collectionTypeName}InfoToNumpyArray({Obj}, numpyArrPtr, collectionCount);
         }}
         "
             );

@@ -10,6 +10,8 @@ using DotWrap;
     nameof(IReadOnlyCollection<>.Count)
 )]
 [assembly: DotWrapExternalPropertyMeta(typeof(IDictionary<,>), nameof(IDictionary<,>.Keys))]
+[assembly: DotWrapExternalPropertyMeta(typeof(KeyValuePair<,>), nameof(KeyValuePair<,>.Key))]
+[assembly: DotWrapExternalPropertyMeta(typeof(KeyValuePair<,>), nameof(KeyValuePair<,>.Value))]
 
 namespace DotWrap.TestLib;
 
@@ -62,64 +64,4 @@ public struct ArrayInfo
 {
     public IntPtr Ptr;
     public int Length;
-}
-
-// [DotWrapGenerated]
-[DotWrapExpose]
-public static class Hello
-{
-    public static void CopyArrayInfoToNumpyArray(ArrayInfo arrayInfo, IntPtr numpyArrayPtr)
-    {
-        int length = arrayInfo.Length;
-        IntPtr srcPtr = arrayInfo.Ptr;
-        IntPtr dstPtr = numpyArrayPtr;
-
-        unsafe
-        {
-            IntPtr* src = (IntPtr*)srcPtr;
-            IntPtr* dst = (IntPtr*)dstPtr;
-
-            for (int i = 0; i < length; i++)
-            {
-                dst[i] = src[i];
-            }
-        }
-    }
-
-    public static void hi() { }
-
-    // private static string __dotwrapMetadata = JsonSerializer.Serialize(
-    //     new ExportedClassInfo
-    //     {
-    //         Namespace = "DotWrap.TestLib",
-    //         EntryPrefix = "DotWrap_TestLib_",
-    //         ClassName = nameof(ReturnTypesSimpleCollection),
-    //         Methods = new List<ExportedMethodInfo>
-    //         {
-    //             new ExportedMethodInfo
-    //             {
-    //                 OriginalName = nameof(ReturnTypesSimpleCollection.GetInt32Array),
-    //                 ExposedTypeIfDifferent = null,
-    //                 OriginalType = "void",
-    //                 IsStatic = true,
-    //                 Parameters = new List<ExportedParameterInfo>()
-    //                 {
-    //                     new ExportedParameterInfo
-    //                     {
-    //                         Name = "arrayInfo",
-    //                         OriginalType = "ArrayInfo",
-    //                         ExposedTypeIfDifferent = null,
-    //                     },
-    //                     new ExportedParameterInfo
-    //                     {
-    //                         Name = "numpyArrayPtr",
-    //                         OriginalType = "IntPtr",
-    //                         ExposedTypeIfDifferent = null,
-    //                     },
-    //                 },
-    //             },
-    //         },
-    //     },
-    //     DotWrapSerializerOptions.Default
-    // );
 }

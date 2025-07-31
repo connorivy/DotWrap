@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using DotWrap.Internal;
 using static DotWrap.Internal.Constants;
 using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
 
@@ -104,7 +105,7 @@ public class CffiApiClassBuilder(
             var genericParam = PythonUtils.MapTypeToPython(genericType);
             mainPy.AppendLine(
                 @$"
-    def to_list(self) -> list[{genericParam}]:
+    def to_list(self) -> list[""{genericParam}""]:
         pass
         "
             );
@@ -179,22 +180,75 @@ public class CffiApiClassBuilder(
         )
         {
             var genericArg = PythonUtils.MapTypeToPython(genericType);
+            var exposedType = DotWrapUtils.GetExposedTypeFromCsType(
+                genericType,
+                out bool isOriginalType
+            );
+            var numpyType = PythonUtils.MapTypeToNumpy(exposedType);
             mainPy.AppendLine(
                 @$"
-    def to_list(self) -> list[{genericArg}]:
+    def to_list(self) -> list[""{genericArg}""]:
         """"""
         Converts the array data to a list of the specified dtype.
         """"""
         length = {Lib}.{classInfo.EntryPrefix}{GetCount}(self.{Ptr})
-        arr = np.empty(length, dtype={PythonUtils.MapTypeToNumpy(genericType)})
+        arr = np.empty(length, dtype={numpyType})
 
         # get stable pointer to the array data
         arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
         {Lib}.{classInfo.EntryPrefix}{FillArr}(self.{Ptr}, arr_ptr, length)
-
-        return arr.tolist()
         "
             );
+
+            if (isOriginalType)
+            {
+                mainPy.AppendLine(
+                    @$"
+        return arr.tolist()
+        "
+                );
+            }
+            else
+            {
+                OriginalAndExposedTypeInfo genericTypeInfo = new(
+                    genericType,
+                    isOriginalType ? null : exposedType
+                );
+
+                var (prefix, suffix) = CffiApiMethodBuilder.GetToPythonTransformation(
+                    genericTypeInfo
+                );
+                mainPy.AppendLine(
+                    @$"
+        final_list = []
+        for i in range(length):"
+                );
+
+                if (numpyType == "np.intp")
+                {
+                    mainPy.AppendLine(
+                        @$"
+            val = _dotwrap_ffi.cast(""void *"", arr[i])"
+                    );
+                }
+                else
+                {
+                    mainPy.AppendLine(
+                        @$"
+            val = arr[i]"
+                    );
+                }
+                mainPy.AppendLine(
+                    @$"
+            final_list.append({prefix}val{suffix})
+
+        return final_list
+        "
+                );
+            }
         }
     }
 }
+
+public record OriginalAndExposedTypeInfo(string OriginalType, string? ExposedTypeIfDifferent = null)
+    : IHasOriginalAndExposedTypes { };

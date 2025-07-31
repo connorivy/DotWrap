@@ -111,10 +111,10 @@ public class MethodBuilder(
 
     private void AddInferedTypes(MethodBuilderContext context)
     {
-        classContext.AddInferedType(context.ReturnType);
+        classContext.GlobalContext.AddInferedType(context.ReturnType);
         foreach (var param in context.MethodSymbol.Parameters)
         {
-            classContext.AddInferedType(param.Type);
+            classContext.GlobalContext.AddInferedType(param.Type);
         }
     }
 
@@ -206,7 +206,7 @@ public class MethodBuilder(
             throw new NotSupportedException($"Unsupported return type: {returnType}");
         }
 
-        var newContext = classContext with { ClassSymbol = namedType, Alias = null };
+        ClassBuilderContext newContext = new(classContext.GlobalContext, namedType);
         return newContext.FullyQualifiedWrapperName;
     }
 }

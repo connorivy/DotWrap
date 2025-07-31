@@ -118,7 +118,7 @@ public static class PythonUtils
             "half" => "np.float16",
             "float" => "np.float32",
             "double" => "np.float64",
-            _ => "np.object_",
+            _ => "np.intp",
             // _ => throw new NotSupportedException($"Unsupported type: {t}"),
         };
     }

@@ -30,6 +30,22 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
         this.GenerateSingleMethod(context, returnWrapPrefix, returnWrapSuffix);
     }
 
+    public static (string prefix, string suffix) GetToPythonTransformation(
+        IHasOriginalAndExposedTypes method
+    )
+    {
+        return method switch
+        {
+            { OriginalType: "string" } => ($"str(CString(", "))"),
+            { OriginalType: "bool" } => ($"bool(", ")"),
+            { ExposedTypeIfDifferent: not null } => (
+                $"{method.OriginalTypeWrapper}.{FromPtr}(",
+                ")"
+            ),
+            _ => ("", ""),
+        };
+    }
+
     public void GenerateSingleMethod(
         MethodBuilderContext context,
         string? resultToExportTypePrefix,

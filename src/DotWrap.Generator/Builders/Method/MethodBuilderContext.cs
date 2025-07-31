@@ -99,11 +99,10 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
                 continue;
             }
             hasConverted = true;
-            var paramTypeClassContext = this.ClassContext with
-            {
-                ClassSymbol = param.OriginalTypeIfDifferent,
-                Alias = null,
-            };
+            var paramTypeClassContext = new ClassBuilderContext(
+                ClassContext.GlobalContext,
+                param.OriginalTypeIfDifferent
+            );
             sb.Append(
                 $"            var {param.Name}{Typed} = {paramTypeClassContext.WrapperName}.{Get}({param.Name});"
             );

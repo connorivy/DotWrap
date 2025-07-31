@@ -1,6 +1,7 @@
 using System.Text;
 using DotWrap.Generator.Builders.Method;
 using DotWrap.Generator.Extensions;
+using DotWrap.Internal;
 using DotWrap.MSBuild;
 using Microsoft.CodeAnalysis;
 using static DotWrap.Internal.Constants;
@@ -25,42 +26,15 @@ public class ExplicitWrapperBuilder(ClassBuilderContext context)
     }
 }
 
-public record ClassBuilderContext
+public class ClassBuilderContext(
+    GlobalContext globalContext,
+    INamedTypeSymbol classSymbol,
+    string? alias = null
+)
 {
-    public ClassBuilderContext(
-        INamedTypeSymbol classSymbol,
-        HashSet<ITypeSymbol> allExplicitTypes,
-        HashSet<ITypeSymbol> allInferedTypes,
-        List<ITypeSymbol> inferedTypesToWrap,
-        string? alias = null
-    )
-    {
-        this.ClassSymbol = classSymbol;
-        this.allExplicitTypes = allExplicitTypes;
-        this.allInferedTypes = allInferedTypes;
-        this.inferedTypesToWrap = inferedTypesToWrap;
-        Alias = alias;
-    }
-
-    private readonly HashSet<ITypeSymbol> allExplicitTypes;
-    private readonly HashSet<ITypeSymbol> allInferedTypes;
-    private readonly List<ITypeSymbol> inferedTypesToWrap;
-
-    public INamedTypeSymbol ClassSymbol { get; init; }
-
-    public void AddInferedType(ITypeSymbol typeSymbol)
-    {
-        if (
-            !SkipWrapperGeneration(typeSymbol)
-            && !allExplicitTypes.Contains(typeSymbol)
-            && allInferedTypes.Add(typeSymbol)
-        )
-        {
-            inferedTypesToWrap.Add(typeSymbol);
-        }
-    }
-
-    public string? Alias { get; set; }
+    public GlobalContext GlobalContext => globalContext;
+    public INamedTypeSymbol ClassSymbol => classSymbol;
+    public string? Alias => alias;
     public string ClassNameWithoutGenerics => Alias ?? ClassSymbol.Name;
     public string ClassName =>
         ClassNameWithoutGenerics
@@ -75,8 +49,7 @@ public record ClassBuilderContext
     public bool IsStatic => ClassSymbol.IsStatic;
     public string FullyQualifiedWrapperName => $"{Namespace}.{WrapperName}";
     public string FullyQualifiedClassName => ClassSymbol.ToDisplayString();
-    public string EntryPrefix =>
-        $"{Namespace.Replace(".", "_")}_{ClassName.Replace('<', '_').Replace('>', '_')}_";
+    public string EntryPrefix => field ??= $"c{DotWrapUtils.GetStamp(FullyQualifiedClassName)}_";
 
     public ClassSpecialCaseFlags SpecialCaseFlags
     {
@@ -105,6 +78,25 @@ public record ClassBuilderContext
                 }
             }
             return flags;
+        }
+    }
+}
+
+public class GlobalContext(
+    HashSet<ITypeSymbol> allExplicitTypes,
+    HashSet<ITypeSymbol> allInferedTypes,
+    List<ITypeSymbol> inferedTypesToWrap
+)
+{
+    public void AddInferedType(ITypeSymbol typeSymbol)
+    {
+        if (
+            !SkipWrapperGeneration(typeSymbol)
+            && !allExplicitTypes.Contains(typeSymbol)
+            && allInferedTypes.Add(typeSymbol)
+        )
+        {
+            inferedTypesToWrap.Add(typeSymbol);
         }
     }
 

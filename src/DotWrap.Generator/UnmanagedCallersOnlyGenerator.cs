@@ -45,6 +45,11 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                 HashSet<ITypeSymbol> allExplicitTypes = [];
                 HashSet<ITypeSymbol> allInferedTypes = [];
                 List<ITypeSymbol> inferedTypesToWrap = [];
+                GlobalContext globalContext = new(
+                    allExplicitTypes,
+                    allInferedTypes,
+                    inferedTypesToWrap
+                );
 
                 // System.Diagnostics.Debugger.Launch();
 
@@ -69,10 +74,8 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
 
                     allExplicitTypes.Add(classSymbol.typeSymbol);
                     var context = new ClassBuilderContext(
+                        globalContext,
                         classSymbol.typeSymbol,
-                        allExplicitTypes,
-                        allInferedTypes,
-                        inferedTypesToWrap,
                         classSymbol.Alias
                     );
                     string sourceText = new ExplicitWrapperBuilder(context).GenerateClassFile();
@@ -110,12 +113,7 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                         {
                             continue;
                         }
-                        var context = new ClassBuilderContext(
-                            namedTypeSymbol,
-                            allExplicitTypes,
-                            allInferedTypes,
-                            inferedTypesToWrap
-                        );
+                        var context = new ClassBuilderContext(globalContext, namedTypeSymbol);
                         string sourceText = new ImplicitWrapperBuilder(
                             context,
                             externalMethodExposes
@@ -172,7 +170,6 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
             spc.AddSource("DotWrap.BuiltIn.CString.g.cs", sourceText);
         });
     }
-
 }
 
 public record DotWrapExposeData(INamedTypeSymbol typeSymbol, string? Alias = null)
