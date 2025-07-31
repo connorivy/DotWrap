@@ -38,11 +38,11 @@ public class CffiApiClassBuilder(
             PythonUtils.GetGenericBaseNameOrNull(cls.ClassName)
             ?? throw new ArgumentException("Class name must be a generic type with '<' and '>'");
         string className = PythonUtils.PythonizeClassName(cls.ClassName);
-        var genericParams = cls.GenericTypeParametersToArguments.Select(kvp => kvp.Key).ToList();
+        var genericParams = cls.GenericTypeArgumentsToParameters.Select(kvp => kvp.Value).ToList();
 
-        foreach (var kvp in cls.GenericTypeParametersToArguments)
+        foreach (var param in genericParams)
         {
-            mainPy.AppendLine($"{kvp.Key} = TypeVar('{kvp.Key}')");
+            mainPy.AppendLine($"{param} = TypeVar('{param}')");
         }
         mainPy.AppendLine(
             $"class {genericClassName}(Generic[{string.Join(", ", genericParams)}]):"
@@ -70,7 +70,9 @@ public class CffiApiClassBuilder(
 
             var context = new MethodBuilderContext(classContext, method);
             methodBuilder.AddClassToMainAndInitPy(method);
-            var pyReturnType = context.MethodInfo.GenericTypeName ?? context.GetReturnType();
+            var pyReturnType =
+                context.MethodInfo.GenericTypeName
+                ?? context.GetReturnType(cls.GenericTypeArgumentsToParameters);
             var methodName = context.GetMethodName(methodNames);
             var paramListWithHints = context.PythonMethodGenericParamListWithHints();
             if (method.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.PropertyGetter))
@@ -98,11 +100,14 @@ public class CffiApiClassBuilder(
             || cls.TryGetIReadonlyCollectionType(out genericType)
         )
         {
-            foreach (var kvp in cls.GenericTypeParametersToArguments)
-            {
-                genericType = genericType.Replace(kvp.Value, kvp.Key);
-            }
-            var genericParam = PythonUtils.MapTypeToPython(genericType);
+            // foreach (var kvp in cls.GenericTypeArgumentsToParameters)
+            // {
+            //     genericType = genericType.Replace(kvp.Value, kvp.Key);
+            // }
+            var genericParam = PythonUtils.MapTypeToPython(
+                genericType,
+                cls.GenericTypeArgumentsToParameters
+            );
             mainPy.AppendLine(
                 @$"
     def to_list(self) -> list[""{genericParam}""]:
@@ -129,8 +134,8 @@ public class CffiApiClassBuilder(
 
         var genericDef = string.Join(
             ", ",
-            classInfo.GenericTypeParametersToArguments.Select(kvp =>
-                PythonUtils.MapTypeToPython(kvp.Value)
+            classInfo.GenericTypeArgumentsToParameters.Select(kvp =>
+                PythonUtils.MapTypeToPython(kvp.Key)
             )
         );
         if (!string.IsNullOrEmpty(genericDef))

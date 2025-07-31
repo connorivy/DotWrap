@@ -28,7 +28,8 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
             );
     }
 
-    public string GetReturnType() => this.MethodInfo.MapOriginalTypeToPython();
+    public string GetReturnType(IDictionary<string, string>? genericParamsToArgsDict) =>
+        this.MethodInfo.MapOriginalTypeToPython(genericParamsToArgsDict);
 
     public string GetMethodName(HashSet<string> methodNames)
     {
@@ -48,10 +49,12 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
         return PythonUtils.ToSnakeCase(methodName);
     }
 
-    public IEnumerable<string> PythonMethodParamListWithHints()
+    public IEnumerable<string> PythonMethodParamListWithHints(
+        IDictionary<string, string>? genericParamsToArgsDict = null
+    )
     {
         var paramListWithHints = this.MethodInfo.Parameters.Select(p =>
-            $"{p.Name}: {p.MapOriginalTypeToPython()}"
+            $"{p.Name}: {p.MapOriginalTypeToPython(genericParamsToArgsDict)}"
         );
 
         if (!this.MethodInfo.IsStatic)
@@ -61,10 +64,12 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
         return paramListWithHints;
     }
 
-    public string PythonMethodGenericParamListWithHints()
+    public string PythonMethodGenericParamListWithHints(
+        IDictionary<string, string>? genericParamsToArgsDict = null
+    )
     {
         var paramListWithHints = this.MethodInfo.Parameters.Select(p =>
-            $"{p.Name}: {p.GenericTypeName ?? p.MapOriginalTypeToPython()}"
+            $"{p.Name}: {p.GenericTypeName ?? p.MapOriginalTypeToPython(genericParamsToArgsDict)}"
         );
 
         if (!this.MethodInfo.IsStatic)

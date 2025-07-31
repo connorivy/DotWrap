@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Extensions;
@@ -9,9 +10,9 @@ public static class DotWrapObjectExtensions
     {
         public string OriginalTypeSimple => typeInfo.OriginalType.Split('.').Last();
 
-        public string OriginalTypeWrapper => PythonUtils.PythonizeClassName(typeInfo.OriginalType.Split('.').Last());
+        public string OriginalTypeWrapper => PythonUtils.PythonizeClassName(typeInfo.OriginalType);
 
-        public string MapOriginalTypeToPython()
+        public string MapOriginalTypeToPython(IDictionary<string, string>? genericParamsToArgsDict)
         {
             var t = typeInfo.OriginalType.ToLowerInvariant().Replace("system.", "");
             return t switch
@@ -29,7 +30,7 @@ public static class DotWrapObjectExtensions
                 "void" => "None",
                 "string" => "str",
                 "int[]" => "list[int]",
-                _ => $"\"{PythonUtils.PythonizeTypeName(typeInfo.OriginalType.Split('.').Last())}\"",
+                _ => $"\"{PythonUtils.PythonizeTypeName(typeInfo.OriginalType, genericParamsToArgsDict)}\"",
             };
         }
 

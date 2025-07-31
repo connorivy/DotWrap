@@ -26,7 +26,7 @@ public class ReturnTypesSimpleCollection
 
     // public static ushort[] GetUInt16Array() => new[] { ushort.MaxValue, ushort.MinValue };
 
-    public static int[] GetInt32Array() => new[] { int.MaxValue, int.MinValue };
+    // public static int[] GetInt32Array() => new[] { int.MaxValue, int.MinValue };
 
     // [DotWrapMeta(alias: "Int32List")]
     public static List<int> GetInt32List() => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -41,6 +41,16 @@ public class ReturnTypesSimpleCollection
             { 1, "One" },
             { 2, "Two" },
             { 3, "Three" },
+        };
+    }
+
+    public static Dictionary<int, long> GetIntLongDictionary()
+    {
+        return new Dictionary<int, long>
+        {
+            { 1, 10000000000 },
+            { 2, 20000000000 },
+            { 3, 30000000000 },
         };
     }
 

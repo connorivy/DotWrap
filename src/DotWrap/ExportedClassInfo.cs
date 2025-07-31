@@ -11,7 +11,7 @@ public class ExportedClassInfo
     public required string ClassName { get; set; }
     public required string EntryPrefix { get; set; }
     public required bool IsStatic { get; set; }
-    public required Dictionary<string, string> GenericTypeParametersToArguments { get; set; }
+    public required Dictionary<string, string> GenericTypeArgumentsToParameters { get; set; }
     public required List<string> Interfaces { get; set; }
     public required ClassSpecialCaseFlags SpecialCaseFlags { get; set; }
     public string? SummaryComment { get; set; }

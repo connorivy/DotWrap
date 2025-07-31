@@ -55,7 +55,7 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
         var methodInfo = context.MethodInfo;
         var cLibMethodArgs = context.GetCMethodCallArgumentsString();
 
-        var pyReturnType = context.GetReturnType();
+        var pyReturnType = context.GetReturnType(null);
         var methodName = context.GetMethodName(this.methodNames);
         var paramListWithHints = context.PythonMethodParamListWithHints();
 

@@ -36,12 +36,19 @@ def test_int_to_string_dict_keys():
 def test_int_to_string_dict():
     x = test_lib.ReturnTypesSimpleCollection.get_int_string_dictionary()
     y = x.to_list()
-    for item in y:
-        z = item.key
-        a = item.value
-    assert y == {1: "one", 2: "two"}, (
-        f"Expected dict {{0: 'zero', 1: 'one', 2: 'two'}}, got {y}"
-    )
+
+    assert y[0].key == 1 and y[0].value == "One"
+    assert y[1].key == 2 and y[1].value == "Two"
+    assert y[2].key == 3 and y[2].value == "Three"
+
+
+def test_int_to_long_dict():
+    x = test_lib.ReturnTypesSimpleCollection.get_int_long_dictionary()
+    y = x.to_list()
+
+    assert y[0].key == 1 and y[0].value == 10000000000
+    assert y[1].key == 2 and y[1].value == 20000000000
+    assert y[2].key == 3 and y[2].value == 30000000000
 
 
 # test_int32_array()

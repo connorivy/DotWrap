@@ -1,68 +1,127 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python;
 
 public static class PythonUtils
 {
     /// <summary>
-    /// Converts c# class name to a Pythonic class name in a few different ways.
-    /// - Changes List<int> to ListOfInt
+    /// Cases to handle:
+    /// - System.Collections.Generic.List<int> -> ListOfint
+    /// - System.Collections.Generic.List<List<int>> -> ListOfListOfint
+    /// - System.Collections.Generic.Dictionary<string, int>.KeyCollection -> KeyCollectionOfstrAndint
+    /// - System.Collections.Generic.List<(string, List<(string, int)>)> -> ListOfTupleOfstrAndListOfTupleOfstrAndint
     /// </summary>
-    /// <param name="className"></param>
+    /// <param name="fullTypeName"></param>
     /// <returns></returns>
-    public static string PythonizeClassName(string className)
+    public static string PythonizeClassName(string fullTypeName)
     {
-        while (className.Contains('<'))
-        {
-            // split on first < and last >
-            var startIndex = className.IndexOf('<');
-            var endIndex = className.LastIndexOf('>');
-            if (startIndex < 0 || endIndex < 0 || startIndex >= endIndex)
-            {
-                break; // no valid generic type found
-            }
-            var genericPart = className
-                .Substring(startIndex + 1, endIndex - startIndex - 1)
-                .Replace(", ", "And")
-                .Replace(",", "And");
-            className =
-                className.Substring(0, startIndex)
-                + $"Of{genericPart}"
-                + className.Substring(endIndex + 1);
-        }
+        // Handle generic types in the original type
+        // e.g., typeName = "System.Collections.Generic.Dictionary<string, int>.KeyCollection"
+        var innerGenerics = fullTypeName
+            .Split('.')
+            .SelectMany(GetTopLevelGenerics)
+            .Select(PythonizeClassName)
+            .ToList();
 
-        if (className.Length > 0 && char.IsLower(className[0]))
-        {
-            className = char.ToUpperInvariant(className[0]) + className.Substring(1);
-        }
+        var typeName = fullTypeName.Split('.').Last();
+        var nonGenericTypeName = GetGenericBaseNameOrNull(typeName) ?? typeName;
 
-        return className;
+        return nonGenericTypeName
+            + (innerGenerics.Count > 0 ? $"Of{string.Join("And", innerGenerics)}" : "");
     }
 
-    public static string PythonizeTypeName(string typeName)
+    /// <summary>
+    /// Cases to handle:
+    /// - System.Collections.Generic.List<int> -> List[int]
+    /// - System.Collections.Generic.List<List<int>> -> List[List[int]]
+    /// - System.Collections.Generic.Dictionary<string, int>.KeyCollection -> KeyCollection[str, int]
+    /// - System.Collections.Generic.List<(string, List<(string, int)>)> -> List[Tuple[str, List[Tuple[str, int]]]]
+    /// </summary>
+    /// <param name="fullTypeName"></param>
+    /// <returns></returns>
+    public static string PythonizeTypeName(
+        string fullTypeName,
+        IDictionary<string, string>? genericParamsToArgsDict = null
+    )
     {
-        // split on first < and last >
+        // Handle generic types in the original type
+        // e.g., typeName = "System.Collections.Generic.Dictionary<string, int>.KeyCollection"
+        var innerGenerics = fullTypeName
+            .Split('.')
+            .SelectMany(GetTopLevelGenerics)
+            .Select(g => MapTypeToPython(g, genericParamsToArgsDict))
+            .ToList();
+
+        var typeName = fullTypeName.Split('.').Last();
+        var nonGenericTypeName = GetGenericBaseNameOrNull(typeName) ?? typeName;
+
+        return nonGenericTypeName
+            + (innerGenerics.Count > 0 ? $"[{string.Join(", ", innerGenerics)}]" : "");
+    }
+
+    public static IEnumerable<string> GetTopLevelGenerics(string input)
+    {
+        var startIndex = input.IndexOf('<');
+        var endIndex = input.LastIndexOf('>');
+        if (startIndex < 0 || endIndex < 0 || startIndex >= endIndex)
+        {
+            yield break;
+        }
+
+        var genericString = input.Substring(startIndex + 1, endIndex - startIndex - 1);
+        foreach (var genericType in SplitGenericStringIntoTopLevelList(genericString))
+        {
+            yield return genericType;
+        }
+    }
+
+    /// <summary>
+    /// Splits a generic argument string into its top-level arguments, handling nested generics.
+    /// For example:
+    ///   "int, string"                => ["int", "string"]
+    ///   "List<int>, string"          => ["List<int>", "string"]
+    ///   "Dictionary<string, int>"    => ["Dictionary<string, int>"]
+    ///   "List<Dictionary<int, str>>" => ["List<Dictionary<int, str>>"]
+    ///   "string, List<int>, Tuple<int, List<string>>"
+    ///                                => ["string", "List<int>", "Tuple<int, List<string>>"]
+    /// </summary>
+    /// <param name="input">The generic argument string (e.g., "int, List<string>")</param>
+    /// <returns>List of top-level argument strings</returns>
+    static IEnumerable<string> SplitGenericStringIntoTopLevelList(string input)
+    {
+        int depth = 0;
+        int lastPos = 0;
+        for (int i = 0; i < input.Length; i++)
+        {
+            if (input[i] == '<')
+                depth++;
+            else if (input[i] == '>')
+                depth--;
+            else if (input[i] == ',' && depth == 0)
+            {
+                yield return input.Substring(lastPos, i - lastPos).Trim();
+                lastPos = i + 1;
+            }
+        }
+        if (lastPos < input.Length)
+            yield return input.Substring(lastPos).Trim();
+    }
+
+    public static IEnumerable<string> GetPythonGenericTypes(string typeName)
+    {
         var startIndex = typeName.IndexOf('<');
         var endIndex = typeName.LastIndexOf('>');
-        if (startIndex >= 0 && endIndex >= 0 && startIndex < endIndex)
+        while (startIndex >= 0 && endIndex >= 0 && startIndex < endIndex)
         {
-            var genericPart = MapTypeToPython(
-                typeName.Substring(startIndex + 1, endIndex - startIndex - 1)
-            );
-            typeName =
-                typeName.Substring(0, startIndex)
-                + $"[{MapTypeToPython(genericPart)}]"
-                + typeName.Substring(endIndex + 1);
+            var genericString = typeName.Substring(startIndex + 1, endIndex - startIndex - 1);
+            foreach (var genericType in genericString.Split(',').Select(t => t.Trim()))
+            {
+                yield return MapTypeToPython(genericType);
+            }
         }
-
-        var parts = typeName.Split(',').Select(p => p.Trim()).ToList();
-        if (parts.Count > 1)
-        {
-            return string.Join(", ", parts.Select(MapTypeToPython));
-        }
-
-        return typeName;
     }
 
     public static string? GetGenericBaseNameOrNull(string className)
@@ -77,8 +136,15 @@ public static class PythonUtils
         return className.Substring(0, startIndex);
     }
 
-    public static string MapTypeToPython(string t)
+    public static string MapTypeToPython(
+        string t,
+        IDictionary<string, string>? genericParamsToArgsDict = null
+    )
     {
+        if (genericParamsToArgsDict?.TryGetValue(t, out var mappedType) == true)
+        {
+            return mappedType;
+        }
         return t switch
         {
             "sbyte"
@@ -98,7 +164,7 @@ public static class PythonUtils
             "void" => "None",
             "string" => "str",
             "int[]" => "list[int]",
-            _ => PythonizeTypeName(t.Split('.').Last()),
+            _ => PythonizeTypeName(t, genericParamsToArgsDict),
         };
     }
 

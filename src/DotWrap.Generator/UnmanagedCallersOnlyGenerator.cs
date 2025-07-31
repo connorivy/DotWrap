@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text;
+using DotWrap.Generator.Builders;
 using DotWrap.Generator.Builders.Class;
 using DotWrap.Generator.Builders.Method;
 using DotWrap.Generator.Extensions;
