@@ -33,12 +33,14 @@ public class DotWrapExternalMethodMeta(
     Type containingType,
     string methodName,
     Type[]? parameters = null,
-    string? alias = null
+    string? alias = null,
+    bool ignore = false
 ) : DotWrapMetaAttribute(alias)
 {
     public Type containingType { get; } = containingType;
     public string methodName { get; } = methodName;
     public Type[]? parameters { get; } = parameters;
+    public bool ignore { get; } = ignore;
 }
 
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
@@ -46,14 +48,12 @@ public class DotWrapExternalPropertyMeta(
     Type containingType,
     string propertyName,
     PropertyType propertyType = PropertyType.GetAndSet,
-    Type[]? parameters = null,
     string? alias = null
 ) : DotWrapMetaAttribute(alias)
 {
     public Type containingType { get; } = containingType;
     public string propertyName { get; } = propertyName;
     public PropertyType propertyType { get; } = propertyType;
-    public Type[]? parameters { get; } = parameters;
 }
 
 [Flags]

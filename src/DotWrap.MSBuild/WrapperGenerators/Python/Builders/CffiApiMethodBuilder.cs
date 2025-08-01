@@ -72,12 +72,18 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
         {
             mainPy.AppendLine($"    @staticmethod");
         }
-        else if (methodInfo.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.PropertyGetter))
+        else if (
+            methodInfo.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.PropertyGetter)
+            && !methodInfo.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.Indexer)
+        )
         {
             methodName = methodName["get_".Length..];
             mainPy.AppendLine($"    @property");
         }
-        else if (methodInfo.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.PropertySetter))
+        else if (
+            methodInfo.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.PropertySetter)
+            && !methodInfo.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.Indexer)
+        )
         {
             methodName = methodName["set_".Length..];
             mainPy.AppendLine($"    @{methodName}.setter");

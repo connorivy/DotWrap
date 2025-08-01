@@ -46,6 +46,21 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
             methodName = "__init__";
         }
 
+        if (this.MethodInfo.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.PropertyGetter))
+        {
+            if (this.MethodInfo.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.Indexer))
+            {
+                methodName = "__getitem__";
+            }
+        }
+        else if (this.MethodInfo.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.PropertySetter))
+        {
+            if (this.MethodInfo.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.Indexer))
+            {
+                methodName = "__setitem__";
+            }
+        }
+
         return PythonUtils.ToSnakeCase(methodName);
     }
 

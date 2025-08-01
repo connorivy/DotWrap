@@ -52,7 +52,7 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                     inferedTypesToWrap
                 );
 
-                System.Diagnostics.Debugger.Launch();
+                // System.Diagnostics.Debugger.Launch();
 
                 foreach (var classDecl in classes)
                 {
@@ -195,7 +195,8 @@ public record DotWrapExternalMethodMeta(
     ITypeSymbol containingType,
     string methodName,
     ImmutableArray<TypedConstant>? parameters = null,
-    string? alias = null
+    string? alias = null,
+    bool ignore = false
 )
 {
     public static DotWrapExternalMethodMeta FromAttributeData(AttributeData attribute)
@@ -210,7 +211,8 @@ public record DotWrapExternalMethodMeta(
                 2,
                 nameof(DotWrap.DotWrapExternalMethodMeta.parameters)
             ),
-            attribute.GetCtorArg<string>(3, nameof(DotWrap.DotWrapExternalMethodMeta.alias))
+            attribute.GetCtorArg<string>(3, nameof(DotWrap.DotWrapExternalMethodMeta.alias)),
+            attribute.GetCtorArg<bool>(4, nameof(DotWrap.DotWrapExternalMethodMeta.ignore))
         );
     }
 }
@@ -229,43 +231,33 @@ public record DotWrapExternalPropertyMeta(
             2,
             nameof(DotWrap.DotWrapExternalPropertyMeta.propertyType)
         );
+        var containingType =
+            attribute.GetCtorArg<ITypeSymbol>(
+                0,
+                nameof(DotWrap.DotWrapExternalPropertyMeta.containingType)
+            ) ?? throw new ArgumentException("Containing type cannot be null", nameof(attribute));
+        var methodName = attribute.GetCtorArg<string>(
+            1,
+            nameof(DotWrap.DotWrapExternalPropertyMeta.propertyName)
+        );
+        var alias = attribute.GetCtorArg<string>(
+            3,
+            nameof(DotWrap.DotWrapExternalPropertyMeta.alias)
+        );
+
         if (propertyType is PropertyType.None)
         {
+            yield return new(containingType, $"get_{methodName}", alias: alias, ignore: true);
+            yield return new(containingType, $"set_{methodName}", alias: alias, ignore: true);
             yield break;
         }
         if (propertyType.HasFlag(PropertyType.Get))
         {
-            yield return new(
-                attribute.GetCtorArg<ITypeSymbol>(
-                    0,
-                    nameof(DotWrap.DotWrapExternalPropertyMeta.containingType)
-                ),
-                $"get_{attribute.GetCtorArg<string>(
-                    1,
-                    nameof(DotWrap.DotWrapExternalPropertyMeta.propertyName)
-                )}",
-                alias: attribute.GetCtorArg<string>(
-                    4,
-                    nameof(DotWrap.DotWrapExternalPropertyMeta.alias)
-                )
-            );
+            yield return new(containingType, $"get_{methodName}", alias: alias);
         }
         if (propertyType.HasFlag(PropertyType.Set))
         {
-            yield return new(
-                attribute.GetCtorArg<ITypeSymbol>(
-                    0,
-                    nameof(DotWrap.DotWrapExternalPropertyMeta.containingType)
-                ),
-                $"set_{attribute.GetCtorArg<string>(
-                    1,
-                    nameof(DotWrap.DotWrapExternalPropertyMeta.propertyName)
-                )}",
-                alias: attribute.GetCtorArg<string>(
-                    4,
-                    nameof(DotWrap.DotWrapExternalPropertyMeta.alias)
-                )
-            );
+            yield return new(containingType, $"set_{methodName}", alias: alias);
         }
     }
 }

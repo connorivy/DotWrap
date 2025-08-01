@@ -122,6 +122,7 @@ public enum MethodSpecialCaseFlags
     PropertyGetter = 1 << 0,
     PropertySetter = 1 << 1,
     Static = 1 << 2,
+    Indexer = 1 << 3,
 }
 
 public interface IHasOriginalAndExposedTypes

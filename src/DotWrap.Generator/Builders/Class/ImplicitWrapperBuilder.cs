@@ -43,56 +43,88 @@ public class ImplicitWrapperBuilder(
             );
         }
 
-        var applicableExposes = GetExternalMethodExposeContext(Context, externalMethodMeta)
+        var applicableMetaMethods = GetExternalMethodExposeContext(Context, externalMethodMeta)
+            .GroupBy(meta => meta.methodName)
             .ToList();
 
-        if (applicableExposes.Count == 0)
+        var applicableNamedTypeSymbolsList = applicableNamedTypeSymbols
+            .OrderByDescending(sym =>
+                sym is INamedTypeSymbol namedType ? namedType.TypeArguments.Length : 0
+            )
+            .ToList();
+
+        if (applicableMetaMethods.Count == 0)
         {
             return;
         }
 
-        HashSet<IMethodSymbol> visitedMethodSymbols = [];
-        foreach (var exposeContext in applicableExposes)
+        HashSet<IMethodSymbol> visitedSymbols = new(new NameParamReturnComparer());
+        foreach (var metaMethodGroup in applicableMetaMethods)
         {
-            IMethodSymbol? methodSymbol = null;
-            foreach (
-                var namedTypeSymbol in applicableNamedTypeSymbols.OrderByDescending(sym =>
-                    sym is INamedTypeSymbol namedType ? namedType.TypeArguments.Length : 0
+            if (
+                metaMethodGroup.Any(m =>
+                    (m.parameters is null || m.parameters == default) && m.ignore
                 )
             )
-            {
-                methodSymbol = namedTypeSymbol
-                    .GetMembers(exposeContext.methodName)
-                    .OfType<IMethodSymbol>()
-                    .OrderByDescending(m => m.TypeParameters.Length)
-                    .FirstOrDefault();
-
-                if (methodSymbol is not null)
-                {
-                    break; // Found a matching method symbol, exit the loop
-                }
-            }
-            // var methodSymbols = classSymbol
-            //     .GetMembers(exposeContext.methodName)
-            //     // .Where(m =>
-            //     // {
-            //     //     if (exposeContext.Parameters is null)
-            //     //     {
-            //     //         return true;
-            //     //     }
-            //     //     return exposeContext.Parameters.Length == m.P
-            //     // })
-            //     .OfType<IMethodSymbol>()
-            //     .FirstOrDefault();
-
-            if (methodSymbol is null || !visitedMethodSymbols.Add(methodSymbol))
             {
                 continue;
             }
 
-            // If we have a method symbol, we can use it to generate the method
-            var methodBuilder = new MethodBuilder(methodsSource, classMetadataBuilder, Context);
-            methodBuilder.GenerateSingleMethod(Context, methodSymbol);
+            foreach (var methodMeta in metaMethodGroup.GroupBy(m => m.parameters))
+            {
+                if (methodMeta.Any(m => m.ignore))
+                {
+                    continue;
+                }
+
+                IMethodSymbol? methodSymbol = null;
+                foreach (var namedTypeSymbol in applicableNamedTypeSymbolsList)
+                {
+                    var methodSymbols = namedTypeSymbol
+                        .GetMembers(metaMethodGroup.Key)
+                        .OfType<IMethodSymbol>()
+                        .ToList();
+
+                    methodSymbol = methodSymbols
+                        .Where(m =>
+                        {
+                            if (methodMeta.Key is null || methodMeta.Key == default)
+                            {
+                                return true;
+                            }
+                            for (int i = 0; i < methodMeta.Key.Value.Length; i++)
+                            {
+                                if (
+                                    !SymbolEqualityComparer.Default.Equals(
+                                        methodMeta.Key.Value[i].Type,
+                                        m.Parameters[i].Type
+                                    )
+                                )
+                                {
+                                    return false;
+                                }
+                            }
+                            return true;
+                        })
+                        .OrderByDescending(m => m.TypeParameters.Length)
+                        .FirstOrDefault();
+
+                    if (methodSymbol is not null)
+                    {
+                        // if we found a method symbol, we can stop looking for it in other named type symbols
+                        break;
+                    }
+                }
+
+                if (methodSymbol is null || !visitedSymbols.Add(methodSymbol))
+                {
+                    continue;
+                }
+
+                // If we have a method symbol, we can use it to generate the method
+                var methodBuilder = new MethodBuilder(methodsSource, classMetadataBuilder, Context);
+                methodBuilder.GenerateSingleMethod(Context, methodSymbol);
+            }
         }
     }
 
@@ -199,5 +231,59 @@ public class ImplicitWrapperBuilder(
             baseSymbol = baseSymbol.BaseType;
         }
         return false;
+    }
+}
+
+internal class NameParamReturnComparer : IEqualityComparer<IMethodSymbol>
+{
+    /// <summary>
+    /// Checks if two method symbols are equal based on their name, parameters, and return type.
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <returns></returns>
+    public bool Equals(IMethodSymbol? x, IMethodSymbol? y)
+    {
+        if (x is null && y is null)
+        {
+            return true;
+        }
+        if (x is null || y is null)
+        {
+            return false;
+        }
+        if (x.Name != y.Name || !SymbolEqualityComparer.Default.Equals(x.ReturnType, y.ReturnType))
+        {
+            return false;
+        }
+        if (x.Parameters.Length != y.Parameters.Length)
+        {
+            return false;
+        }
+        for (int i = 0; i < x.Parameters.Length; i++)
+        {
+            if (!SymbolEqualityComparer.Default.Equals(x.Parameters[i].Type, y.Parameters[i].Type))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public int GetHashCode(IMethodSymbol obj)
+    {
+        if (obj is null)
+        {
+            return 0;
+        }
+
+        int hash = 17;
+        hash = hash * 31 + obj.Name.GetHashCode();
+        hash = hash * 31 + obj.ReturnType.GetHashCode();
+        foreach (var parameter in obj.Parameters)
+        {
+            hash = hash * 31 + parameter.Type.GetHashCode();
+        }
+        return hash;
     }
 }

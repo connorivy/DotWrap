@@ -37,6 +37,9 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
             ? ClassContext.ClassSymbol
             : MethodSymbol.ReturnType;
 
+    public bool IsIndexer =>
+        MethodSymbol.AssociatedSymbol is IPropertySymbol propertySymbol && propertySymbol.IsIndexer;
+
     public ExportedMethodInfo GetExportedMethodInfo(
         string? xmlDoc,
         List<ExportedParameterInfo> parameters
@@ -133,9 +136,13 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
         {
             flags |= MethodSpecialCaseFlags.PropertyGetter;
         }
-        else if (this.MethodSymbol.MethodKind is MethodKind.PropertySet)
+        if (this.MethodSymbol.MethodKind is MethodKind.PropertySet)
         {
             flags |= MethodSpecialCaseFlags.PropertySetter;
+        }
+        if (this.IsIndexer)
+        {
+            flags |= MethodSpecialCaseFlags.Indexer;
         }
 
         return flags;

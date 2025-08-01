@@ -14,6 +14,9 @@ using DotWrap;
 [assembly: DotWrapExternalPropertyMeta(typeof(KeyValuePair<,>), nameof(KeyValuePair<,>.Value))]
 [assembly: DotWrapExternalPropertyMeta(typeof(System.Array), nameof(System.Array.Length))]
 [assembly: DotWrapExternalIndexerMeta(typeof(System.Array))]
+[assembly: DotWrapExternalMethodMeta(typeof(System.Array), "Add", ignore: true)]
+[assembly: DotWrapExternalMethodMeta(typeof(System.Array), "Remove", ignore: true)]
+[assembly: DotWrapExternalPropertyMeta(typeof(System.Array), "Count", PropertyType.None)]
 
 namespace DotWrap.TestLib;
 

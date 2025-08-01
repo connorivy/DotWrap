@@ -2,13 +2,25 @@ import DotWrap_TestLib as test_lib
 import numpy as np
 
 
-def test_int32_array():
+def test_int32_array_tolist():
     x = test_lib.ReturnTypesSimpleCollection.get_int32_array()
     y = x.to_list()
 
     assert y == [2147483647, -2147483648], (
         f"Expected list [2147483647, -2147483648], got {y}"
     )
+
+
+def test_int32_array_indexer():
+    x = test_lib.ReturnTypesSimpleCollection.get_int32_array()
+
+    assert x[0] == 2147483647, f"Expected 2147483647, got {x[0]}"
+    assert x[1] == -2147483648, f"Expected -2147483648, got {x[1]}"
+
+    x[0] = 100
+    x[1] = -100
+    assert x[0] == 100, f"Expected 100, got {x[0]}"
+    assert x[1] == -100, f"Expected -100, got {x[1]}"
 
 
 def test_int32_list():
