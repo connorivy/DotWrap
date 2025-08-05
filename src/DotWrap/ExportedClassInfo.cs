@@ -115,6 +115,15 @@ public class ExportedPropertyInfo : IHasOriginalAndExposedTypes
     public string? Comment { get; set; }
 }
 
+public class ExportedEnumInfo : IHasOriginalAndExposedTypes
+{
+    public required string Namespace { get; set; }
+    public required string Name { get; set; }
+    public required string OriginalType { get; set; }
+    public required string? ExposedTypeIfDifferent { get; set; }
+    public required Dictionary<string, long> Options { get; set; }
+}
+
 [Flags]
 public enum MethodSpecialCaseFlags
 {

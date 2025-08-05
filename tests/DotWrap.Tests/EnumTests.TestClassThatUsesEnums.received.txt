@@ -1,0 +1,55 @@
+﻿{
+  Language: C#,
+  IsCaseSensitive: true,
+  Options: {
+    AllowUnsafe: false,
+    Usings: null,
+    Language: C#,
+    ScriptClassName: Script,
+    CryptoPublicKey: null,
+    PublicSign: false,
+    CheckOverflow: false,
+    WarningLevel: 4,
+    ConcurrentBuild: true,
+    Deterministic: false,
+    ReportSuppressedDiagnostics: false,
+    AssemblyIdentityComparer: {},
+    Errors: null
+  },
+  LanguageVersion: CSharp13,
+  SyntaxTrees: [
+    {
+      FilePath: ,
+      Length: 411,
+      HasCompilationUnitRoot: true,
+      Options: {
+        LanguageVersion: CSharp13,
+        Language: C#,
+        DocumentationMode: Parse,
+        Errors: null
+      }
+    },
+    {
+      FilePath: DotWrap.Generator\DotWrap.Generator.UnmanagedCallersOnlyGenerator\DotWrap.BuiltIn.CString.g.cs,
+      Encoding: utf-8,
+      Length: 681,
+      HasCompilationUnitRoot: true,
+      Options: {
+        LanguageVersion: CSharp13,
+        Language: C#,
+        DocumentationMode: Parse,
+        Errors: null
+      }
+    }
+  ],
+  DirectiveReferences: null,
+  ReferencedAssemblyNames: [],
+  AssemblyName: DotWrap.Generator,
+  ExternalReferences: null,
+  References: [],
+  Assembly: {},
+  SourceModule: {},
+  GlobalNamespace: {},
+  ObjectType: {},
+  DynamicType: {}
+}

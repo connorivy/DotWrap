@@ -40,6 +40,31 @@ public class MethodBuilder(
     public void GenerateSingleMethod(ClassBuilderContext classContext, IMethodSymbol method)
     {
         var context = new MethodBuilderContext(method, classContext);
+        ExportedMethodInfo exportedMethodInfo = GenerateMetadata(method, context);
+
+        string? exportedResultAssignment;
+        if (context.ReturnType.SpecialType.IsBlittable())
+        {
+            exportedResultAssignment = null;
+        }
+        else if (
+            GetBlittableExternalTypeAssignment(context.ReturnType, classContext.GlobalContext)
+            is string assignment
+        )
+        {
+            exportedResultAssignment = assignment;
+        }
+        else
+        {
+            exportedResultAssignment =
+                @$"
+            var {ExportedResult} = {GetWrapperName(context.ReturnType)}.{Create}({InternalResult});";
+        }
+        GenerateSingleMethod(context, exportedMethodInfo, exportedResultAssignment);
+    }
+
+    private ExportedMethodInfo GenerateMetadata(IMethodSymbol method, MethodBuilderContext context)
+    {
         var methodXml = method.GetDocumentationCommentXml();
         this.AddInferedTypes(context);
 
@@ -60,36 +85,7 @@ public class MethodBuilder(
         }
         var exportedMethodInfo = context.GetExportedMethodInfo(methodXml, parameters);
         classMetadataBuilder.AddMethod(exportedMethodInfo);
-
-        string? exportedResultAssignment;
-        if (context.ReturnType.SpecialType.IsBlittable())
-        {
-            exportedResultAssignment = null;
-        }
-        else if (GetBlittableExternalTypeAssignment(context.ReturnType) is string assignment)
-        {
-            exportedResultAssignment = assignment;
-        }
-        // else if (context.ReturnType is IArrayTypeSymbol arrayTypeSymbol)
-        // {
-        //     exportedResultAssignment =
-        //         @$"
-        //     var {InternalPrefix}Arr = System.Runtime.InteropServices.Marshal.AllocHGlobal(sizeof({arrayTypeSymbol.ElementType.ToDisplayString()}) * {InternalResult}.Length);
-        //     System.Runtime.InteropServices.Marshal.Copy({InternalResult}, 0, {InternalPrefix}Arr, {InternalResult}.Length);
-        //     var {ExportedResult} = new ArrayInfo
-        //     {{
-        //         Ptr = {InternalPrefix}Arr,
-        //         Length = {InternalResult}.Length
-        //     }};
-        // ";
-        // }
-        else
-        {
-            exportedResultAssignment =
-                @$"
-            var {ExportedResult} = {GetWrapperName(context.ReturnType)}.{Create}({InternalResult});";
-        }
-        GenerateSingleMethod(context, exportedMethodInfo, exportedResultAssignment);
+        return exportedMethodInfo;
     }
 
     private void AddInferedTypes(MethodBuilderContext context)
@@ -206,7 +202,10 @@ public class MethodBuilder(
         return newContext.FullyQualifiedWrapperName;
     }
 
-    public static string? GetBlittableExternalTypeAssignment(ITypeSymbol typeSymbol)
+    public static string? GetBlittableExternalTypeAssignment(
+        ITypeSymbol typeSymbol,
+        GlobalContext globalContext
+    )
     {
         if (typeSymbol is null)
         {
@@ -228,7 +227,20 @@ public class MethodBuilder(
             return @$"
             var {ExportedResult} = {InternalResult} ? 1 : 0;";
         }
-
+        else if (typeSymbol.TypeKind == TypeKind.Enum)
+        {
+            var namedType =
+                typeSymbol as INamedTypeSymbol
+                ?? throw new ArgumentException(
+                    "Expected typeSymbol to be a named type symbol for enum handling.",
+                    nameof(typeSymbol)
+                );
+            var underlyingType =
+                namedType.EnumUnderlyingType
+                ?? throw new InvalidOperationException("Enum underlying type is null.");
+            return @$"
+            var {ExportedResult} = ({underlyingType.ToDisplayString()}){InternalResult};";
+        }
         return null;
     }
 }

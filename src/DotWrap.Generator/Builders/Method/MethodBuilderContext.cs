@@ -32,10 +32,20 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
     public bool IsStatic =>
         MethodSymbol.IsStatic || MethodSymbol.MethodKind is MethodKind.Constructor;
 
-    public ITypeSymbol ReturnType =>
-        MethodSymbol.MethodKind is MethodKind.Constructor
-            ? ClassContext.ClassSymbol
-            : MethodSymbol.ReturnType;
+    public ITypeSymbol ReturnType
+    {
+        get
+        {
+            if (ClassContext.ClassSymbol.GetUnderlyingEnumType() is INamedTypeSymbol underlyingType)
+            {
+                return underlyingType;
+            }
+
+            return MethodSymbol.MethodKind is MethodKind.Constructor
+                ? ClassContext.ClassSymbol
+                : MethodSymbol.ReturnType;
+        }
+    }
 
     public bool IsIndexer =>
         MethodSymbol.AssociatedSymbol is IPropertySymbol propertySymbol && propertySymbol.IsIndexer;

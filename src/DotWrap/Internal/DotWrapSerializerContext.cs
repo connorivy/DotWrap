@@ -7,6 +7,7 @@ namespace DotWrap;
 [JsonSerializable(typeof(ExportedClassInfo))]
 [JsonSerializable(typeof(ExportedMethodInfo))]
 [JsonSerializable(typeof(ExportedParameterInfo))]
+[JsonSerializable(typeof(ExportedEnumInfo))]
 internal partial class DotWrapSerializerContext : JsonSerializerContext { }
 
 public static class DotWrapSerializerOptions

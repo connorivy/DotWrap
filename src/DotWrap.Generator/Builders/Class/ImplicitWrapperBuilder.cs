@@ -35,13 +35,20 @@ public class ImplicitWrapperBuilder(
         }
 
         // certain properties, like `Length` are defined on the base type of the array
-        if (classSymbol.TypeKind is TypeKind.Array)
+        var baseSymbol = classSymbol.BaseType;
+        while (baseSymbol is not null)
         {
-            applicableNamedTypeSymbols = applicableNamedTypeSymbols.Append(
-                classSymbol.BaseType
-                    ?? throw new InvalidOperationException("Array type must have a base type.")
-            );
+            applicableNamedTypeSymbols = applicableNamedTypeSymbols.Append(baseSymbol);
+            baseSymbol = baseSymbol.BaseType;
         }
+
+        // if (classSymbol.TypeKind is TypeKind.Array)
+        // {
+        //     applicableNamedTypeSymbols = applicableNamedTypeSymbols.Append(
+        //         classSymbol.BaseType
+        //             ?? throw new InvalidOperationException("Array type must have a base type.")
+        //     );
+        // }
 
         var applicableMetaMethods = GetExternalMethodExposeContext(Context, externalMethodMeta)
             .GroupBy(meta => meta.methodName)

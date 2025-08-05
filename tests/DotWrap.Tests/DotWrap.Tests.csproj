@@ -6,5 +6,13 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="TUnit" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" />
+    <PackageReference Include="Verify.SourceGenerators" />
+    <PackageReference Include="Verify.TUnit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DotWrap.Generator\DotWrap.Generator.csproj" />
+    <ProjectReference Include="..\..\src\DotWrap\DotWrap.csproj" />
   </ItemGroup>
 </Project>

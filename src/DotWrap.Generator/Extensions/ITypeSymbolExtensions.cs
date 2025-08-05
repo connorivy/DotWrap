@@ -25,14 +25,14 @@ public static class ITypedSymbolExtensions
                 case { SpecialType: SpecialType.System_UInt32 }:
                     return "uint";
                 case { SpecialType: SpecialType.System_Int64 }:
-                    return "long"; 
+                    return "long";
                 case { SpecialType: SpecialType.System_UInt64 }:
-                    return "ulong"; 
+                    return "ulong";
                 case { SpecialType: SpecialType.System_Single }:
                     return "float";
                 case { SpecialType: SpecialType.System_Double }:
                     return "double";
-                
+
                 case { SpecialType: SpecialType.System_IntPtr }:
                     return "IntPtr";
                 case { SpecialType: SpecialType.System_Void }:
@@ -56,6 +56,22 @@ public static class ITypedSymbolExtensions
                     isOriginalType = false;
                     return "IntPtr"; // Default to IntPtr for unsupported types
             }
+        }
+
+        public INamedTypeSymbol? GetUnderlyingEnumType()
+        {
+            if (symbol.TypeKind != TypeKind.Enum)
+            {
+                return null;
+            }
+
+            var namedType = symbol as INamedTypeSymbol
+                ?? throw new ArgumentException(
+                    "Expected symbol to be a named type symbol for enum handling.",
+                    nameof(symbol)
+                );
+
+            return namedType.EnumUnderlyingType;
         }
     }
 }

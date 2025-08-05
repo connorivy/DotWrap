@@ -15,6 +15,12 @@ public class DotWrapIgnoreAttribute : Attribute { }
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public class DotWrapGeneratedAttribute : Attribute { }
 
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+public class DotWrapGeneratedEnumMetaAttribute : DotWrapGeneratedAttribute { }
+
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+public class DotWrapGeneratedClassWrapperAttribute : DotWrapGeneratedAttribute { }
+
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 public class DotWrapMetaAttribute(string? alias = null) : Attribute
 {

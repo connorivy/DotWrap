@@ -37,7 +37,7 @@ namespace {Context.Namespace}
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
     [global::System.CodeDom.Compiler.GeneratedCode(""DotWrap"", ""1.0.0"")]
-    [global::{nameof(DotWrap)}.{nameof(DotWrap.DotWrapGeneratedAttribute).Replace("Attribute", "")}]
+    [global::{nameof(DotWrap)}.{nameof(DotWrap.DotWrapGeneratedClassWrapperAttribute).Replace("Attribute", "")}]
     internal static class {Context.WrapperName}
     {{
 {classBody.ToString().TrimEnd()}

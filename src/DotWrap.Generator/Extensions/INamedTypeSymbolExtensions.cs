@@ -17,7 +17,12 @@ public static class INamedTypeSymbolExtensions
         {
             return classSymbol
                 .GetAttributes()
-                .FirstOrDefault(a => a.AttributeClass?.Name == nameof(DotWrapExposeAttribute));
+                .FirstOrDefault(a => {
+                    var comparison = a.AttributeClass?.Name.EndsWith("Attribute") == true
+                        ? a.AttributeClass?.Name
+                        : a.AttributeClass?.Name + "Attribute";
+                    return comparison == nameof(DotWrapExposeAttribute);
+                });
         }
 
         /// <summary>
