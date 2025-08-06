@@ -1,55 +1,98 @@
-﻿{
-  Language: C#,
-  IsCaseSensitive: true,
-  Options: {
-    AllowUnsafe: false,
-    Usings: null,
-    Language: C#,
-    ScriptClassName: Script,
-    CryptoPublicKey: null,
-    PublicSign: false,
-    CheckOverflow: false,
-    WarningLevel: 4,
-    ConcurrentBuild: true,
-    Deterministic: false,
-    ReportSuppressedDiagnostics: false,
-    AssemblyIdentityComparer: {},
-    Errors: null
-  },
-  LanguageVersion: CSharp13,
-  SyntaxTrees: [
+﻿
+using System;
+using System.Runtime.InteropServices;
+
+namespace DotWrap.Tests
+{
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
+    [global::System.CodeDom.Compiler.GeneratedCode("DotWrap", "1.0.0")]
+    [global::DotWrap.DotWrapGeneratedClassWrapper]
+    internal static class DotWrap.Tests.ClassWithEnumsDotWrapWrapper
     {
-      FilePath: ,
-      Length: 411,
-      HasCompilationUnitRoot: true,
-      Options: {
-        LanguageVersion: CSharp13,
-        Language: C#,
-        DocumentationMode: Parse,
-        Errors: null
-      }
-    },
-    {
-      FilePath: DotWrap.Generator\DotWrap.Generator.UnmanagedCallersOnlyGenerator\DotWrap.BuiltIn.CString.g.cs,
-      Encoding: utf-8,
-      Length: 681,
-      HasCompilationUnitRoot: true,
-      Options: {
-        LanguageVersion: CSharp13,
-        Language: C#,
-        DocumentationMode: Parse,
-        Errors: null
-      }
+
+        internal static IntPtr __dotwrapCreate(DotWrap.Tests.ClassWithEnums __dotwrapObj)
+        {
+            var handle = GCHandle.Alloc(__dotwrapObj, GCHandleType.Normal);
+            return GCHandle.ToIntPtr(handle);
+        }
+
+        internal static DotWrap.Tests.ClassWithEnums __dotwrapGet(IntPtr __dotwrapSelfPtr)
+        {
+            var handle = GCHandle.FromIntPtr(__dotwrapSelfPtr);
+            if (!handle.IsAllocated) throw new System.ArgumentException($"Invalid handle: {__dotwrapSelfPtr}");
+            var __dotwrapObj = (DotWrap.Tests.ClassWithEnums)handle.Target;
+            return __dotwrapObj;
+        }
+
+
+        [UnmanagedCallersOnly(EntryPoint = "c44AD4CEC___dotwrapDestroy")]
+        public static void __dotwrapDestroy(IntPtr __dotwrapSelfPtr)
+        {
+            var handle = GCHandle.FromIntPtr(__dotwrapSelfPtr);
+            if (handle.IsAllocated)
+            {
+                handle.Free();
+            }
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "c44AD4CEC_get_EnumProperty")]
+        public static long get_EnumProperty(IntPtr __dotwrapSelfPtr)
+        {
+            var __dotwrapObj = __dotwrapGet(__dotwrapSelfPtr);
+            var __dotwrapResult = __dotwrapObj.EnumProperty;
+
+            var __dotwrapExResult = (long)__dotwrapResult;
+            return __dotwrapExResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "c44AD4CEC_set_EnumProperty_0EE98ABB")]
+        public static void set_EnumProperty_0EE98ABB(IntPtr __dotwrapSelfPtr, long value)
+        {
+            var __dotwrapObj = __dotwrapGet(__dotwrapSelfPtr);
+            var value__dotwrapTyped = (DotWrap.Tests.TestEnum)value;
+
+            __dotwrapObj.EnumProperty = value__dotwrapTyped;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "c44AD4CEC_GetEnum_0EE98ABB")]
+        public static long GetEnum_0EE98ABB(IntPtr __dotwrapSelfPtr, long input)
+        {
+            var __dotwrapObj = __dotwrapGet(__dotwrapSelfPtr);
+            var input__dotwrapTyped = (DotWrap.Tests.TestEnum)input;
+
+            var __dotwrapResult = __dotwrapObj.GetEnum(input__dotwrapTyped);
+
+            var __dotwrapExResult = (long)__dotwrapResult;
+            return __dotwrapExResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "c44AD4CEC_GetValueFive")]
+        public static long GetValueFive(IntPtr __dotwrapSelfPtr)
+        {
+            var __dotwrapObj = __dotwrapGet(__dotwrapSelfPtr);
+            var __dotwrapResult = __dotwrapObj.GetValueFive();
+
+            var __dotwrapExResult = (long)__dotwrapResult;
+            return __dotwrapExResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "c44AD4CEC_Constructor")]
+        public static IntPtr Constructor()
+        {
+            var __dotwrapResult = new DotWrap.Tests.ClassWithEnums();
+
+            var __dotwrapExResult = DotWrap.Tests.ClassWithEnumsDotWrapWrapper.__dotwrapCreate(__dotwrapResult);
+            return __dotwrapExResult;
+        }
+
+
+#pragma warning disable CS0414 // Field is assigned to but its value is never used
+        private static readonly string __dotwrapMetadata =  
+        """
+        {"Namespace":"DotWrap.Tests","ClassName":"DotWrap.Tests.ClassWithEnums","EntryPrefix":"c44AD4CEC_","IsStatic":false,"GenericTypeArgumentsToParameters":{},"Interfaces":[],"SpecialCaseFlags":0,"SummaryComment":null,"Methods":[{"OriginalName":"get_EnumProperty","StampedName":"get_EnumProperty","OriginalType":"DotWrap.Tests.TestEnum","ExposedTypeIfDifferent":"long","GenericTypeName":null,"IsStatic":false,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":1,"Parameters":[]},{"OriginalName":"set_EnumProperty","StampedName":"set_EnumProperty_0EE98ABB","OriginalType":"void","ExposedTypeIfDifferent":null,"GenericTypeName":null,"IsStatic":false,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":2,"Parameters":[{"Name":"value","OriginalType":"DotWrap.Tests.TestEnum","ExposedTypeIfDifferent":"long","GenericTypeName":null,"Comment":null}]},{"OriginalName":"GetEnum","StampedName":"GetEnum_0EE98ABB","OriginalType":"DotWrap.Tests.TestEnum","ExposedTypeIfDifferent":"long","GenericTypeName":null,"IsStatic":false,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":0,"Parameters":[{"Name":"input","OriginalType":"DotWrap.Tests.TestEnum","ExposedTypeIfDifferent":"long","GenericTypeName":null,"Comment":null}]},{"OriginalName":"GetValueFive","StampedName":"GetValueFive","OriginalType":"DotWrap.Tests.TestEnum","ExposedTypeIfDifferent":"long","GenericTypeName":null,"IsStatic":false,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":0,"Parameters":[]},{"OriginalName":"Constructor","StampedName":"Constructor","OriginalType":"DotWrap.Tests.ClassWithEnums","ExposedTypeIfDifferent":"IntPtr","GenericTypeName":null,"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":0,"Parameters":[]}],"Properties":[]}
+        """;
+#pragma warning restore CS0414 // Field is assigned to but its value is never used
     }
-  ],
-  DirectiveReferences: null,
-  ReferencedAssemblyNames: [],
-  AssemblyName: DotWrap.Generator,
-  ExternalReferences: null,
-  References: [],
-  Assembly: {},
-  SourceModule: {},
-  GlobalNamespace: {},
-  ObjectType: {},
-  DynamicType: {}
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

@@ -10,6 +10,12 @@ public static class ITypedSymbolExtensions
         {
             isOriginalType = true;
 
+            if (symbol.GetUnderlyingEnumType() is INamedTypeSymbol underlyingType)
+            {
+                isOriginalType = false;
+                symbol = underlyingType;
+            }
+
             switch (symbol)
             {
                 case { SpecialType: SpecialType.System_SByte }:

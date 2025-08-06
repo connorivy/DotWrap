@@ -48,6 +48,8 @@ public class ExportedClassInfo
 
 public class ExportedMethodInfo : IHasOriginalAndExposedTypes
 {
+    string IHasOriginalAndExposedTypes.Name => OriginalName;
+
     public required string OriginalName { get; set; }
 
     private string? stampedName;
@@ -132,10 +134,12 @@ public enum MethodSpecialCaseFlags
     PropertySetter = 1 << 1,
     Static = 1 << 2,
     Indexer = 1 << 3,
+    EnumReturnType = 1 << 4,
 }
 
 public interface IHasOriginalAndExposedTypes
 {
+    public string Name { get; }
     public string OriginalType { get; }
     public string? ExposedTypeIfDifferent { get; }
 }

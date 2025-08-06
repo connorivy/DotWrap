@@ -32,20 +32,10 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
     public bool IsStatic =>
         MethodSymbol.IsStatic || MethodSymbol.MethodKind is MethodKind.Constructor;
 
-    public ITypeSymbol ReturnType
-    {
-        get
-        {
-            if (ClassContext.ClassSymbol.GetUnderlyingEnumType() is INamedTypeSymbol underlyingType)
-            {
-                return underlyingType;
-            }
-
-            return MethodSymbol.MethodKind is MethodKind.Constructor
-                ? ClassContext.ClassSymbol
-                : MethodSymbol.ReturnType;
-        }
-    }
+    public ITypeSymbol OriginalReturnType =>
+        MethodSymbol.MethodKind is MethodKind.Constructor
+            ? ClassContext.ClassSymbol
+            : MethodSymbol.ReturnType;
 
     public bool IsIndexer =>
         MethodSymbol.AssociatedSymbol is IPropertySymbol propertySymbol && propertySymbol.IsIndexer;
@@ -55,11 +45,13 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
         List<ExportedParameterInfo> parameters
     )
     {
-        var exposedCType = this.ReturnType.GetExposedType(out var isOriginalType);
+        var exposedCType = this.OriginalReturnType.GetExposedType(out var isOriginalType);
         return new ExportedMethodInfo
         {
             OriginalName = MethodName,
-            OriginalType = isOriginalType ? exposedCType : this.ReturnType.ToDisplayString(),
+            OriginalType = isOriginalType
+                ? exposedCType
+                : this.OriginalReturnType.ToDisplayString(),
             IsStatic = this.IsStatic,
             ExposedTypeIfDifferent = isOriginalType ? null : exposedCType,
             GenericTypeName = (
@@ -112,13 +104,23 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
                 continue;
             }
             hasConverted = true;
-            var paramTypeClassContext = new ClassBuilderContext(
-                ClassContext.GlobalContext,
-                param.OriginalTypeIfDifferent
-            );
-            sb.Append(
-                $"            var {param.Name}{Typed} = {paramTypeClassContext.WrapperName}.{Get}({param.Name});"
-            );
+
+            if (param.OriginalTypeIfDifferent.TypeKind is TypeKind.Enum)
+            {
+                sb.AppendLine(
+                    $"            var {param.Name}{Typed} = ({param.OriginalTypeIfDifferent.ToDisplayString()}){param.Name};"
+                );
+            }
+            else
+            {
+                var paramTypeClassContext = new ClassBuilderContext(
+                    ClassContext.GlobalContext,
+                    param.OriginalTypeIfDifferent
+                );
+                sb.Append(
+                    $"            var {param.Name}{Typed} = {paramTypeClassContext.WrapperName}.{Get}({param.Name});"
+                );
+            }
         }
 
         return hasConverted ? sb.ToString() : null;
@@ -153,6 +155,10 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
         if (this.IsIndexer)
         {
             flags |= MethodSpecialCaseFlags.Indexer;
+        }
+        if (this.OriginalReturnType.TypeKind is TypeKind.Enum)
+        {
+            flags |= MethodSpecialCaseFlags.EnumReturnType;
         }
 
         return flags;

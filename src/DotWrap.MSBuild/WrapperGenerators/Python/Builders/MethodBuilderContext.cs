@@ -23,7 +23,7 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
             + string.Join(
                 ", ",
                 this.MethodInfo.Parameters.Select(p =>
-                    p.ExposedTypeIfDifferent is null ? p.Name : $"{p.Name}.{Ptr}"
+                    p.ExposedTypeIfDifferent is null ? p.Name : $"{p.Name}{Typed}"
                 )
             );
     }
@@ -92,5 +92,31 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
             paramListWithHints = paramListWithHints.Prepend("self");
         }
         return string.Join(", ", paramListWithHints);
+    }
+
+    public string? ConvertPythonParamsToCParams()
+    {
+        var sb = new System.Text.StringBuilder();
+        bool hasConverted = false;
+        foreach (var param in this.MethodInfo.Parameters)
+        {
+            if (param.ExposedTypeIfDifferent is null)
+            {
+                continue;
+            }
+            hasConverted = true;
+
+            if (param.OriginalType is "Enum")
+            {
+                sb.AppendLine(
+                    $"        {param.Name}{Typed} = {param.ExposedTypeIfDifferent}({param.Name})"
+                );
+            }
+            else
+            {
+                sb.AppendLine($"        {param.Name}{Typed} = {param.Name}.{Ptr}");
+            }
+        }
+        return hasConverted ? sb.ToString() : null;
     }
 };

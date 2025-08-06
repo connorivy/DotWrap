@@ -43,12 +43,15 @@ public class MethodBuilder(
         ExportedMethodInfo exportedMethodInfo = GenerateMetadata(method, context);
 
         string? exportedResultAssignment;
-        if (context.ReturnType.SpecialType.IsBlittable())
+        if (context.OriginalReturnType.SpecialType.IsBlittable())
         {
             exportedResultAssignment = null;
         }
         else if (
-            GetBlittableExternalTypeAssignment(context.ReturnType, classContext.GlobalContext)
+            GetBlittableExternalTypeAssignment(
+                context.OriginalReturnType,
+                classContext.GlobalContext
+            )
             is string assignment
         )
         {
@@ -58,7 +61,7 @@ public class MethodBuilder(
         {
             exportedResultAssignment =
                 @$"
-            var {ExportedResult} = {GetWrapperName(context.ReturnType)}.{Create}({InternalResult});";
+            var {ExportedResult} = {GetWrapperName(context.OriginalReturnType)}.{Create}({InternalResult});";
         }
         GenerateSingleMethod(context, exportedMethodInfo, exportedResultAssignment);
     }
@@ -90,7 +93,7 @@ public class MethodBuilder(
 
     private void AddInferedTypes(MethodBuilderContext context)
     {
-        classContext.GlobalContext.AddInferedType(context.ReturnType);
+        classContext.GlobalContext.AddInferedType(context.OriginalReturnType);
         foreach (var param in context.MethodSymbol.Parameters)
         {
             classContext.GlobalContext.AddInferedType(param.Type);
@@ -106,7 +109,7 @@ public class MethodBuilder(
         var entryPrefix = methodContext.ClassContext.EntryPrefix;
         var methodName = exportedMethodInfo.StampedName;
         var OriginalMethodName = methodContext.OriginalMethodName;
-        var returnType = methodContext.ReturnType.GetExposedType(out _);
+        var returnType = methodContext.OriginalReturnType.GetExposedType(out _);
         var methodSignature = methodContext.GetExposedMethodSignatureString();
         var internalMethodCallArgs = methodContext.GetInternalMethodCallArgumentsString();
         var convertParamsToInternal =
@@ -171,7 +174,7 @@ public class MethodBuilder(
         }
 
         string? internalResultAssignment;
-        if (methodContext.ReturnType.SpecialType == SpecialType.System_Void)
+        if (methodContext.OriginalReturnType.SpecialType == SpecialType.System_Void)
         {
             internalResultAssignment = null;
         }

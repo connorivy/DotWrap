@@ -252,4 +252,7 @@ public class CffiApiClassBuilder(
 }
 
 public record OriginalAndExposedTypeInfo(string OriginalType, string? ExposedTypeIfDifferent = null)
-    : IHasOriginalAndExposedTypes { };
+    : IHasOriginalAndExposedTypes
+{
+    public string Name => OriginalType;
+};
