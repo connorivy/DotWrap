@@ -27,8 +27,8 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
     {
         return method switch
         {
-            { OriginalType: "string" } => ($"str(CString(", "))"),
-            { OriginalType: "bool" } => ($"bool(", ")"),
+            { OriginalTypeName: "string" } => ($"str(CString(", "))"),
+            { OriginalTypeName: "bool" } => ($"bool(", ")"),
             { ExposedTypeIfDifferent: not null } => (
                 $"{method.OriginalTypeWrapper}.{FromPtr}(",
                 ")"
@@ -41,11 +41,11 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
     {
         return method switch
         {
-            { OriginalType: "string" } =>
+            { OriginalTypeName: "string" } =>
                 $"        {ExportedResult} = str(CString({InternalResult}))",
-            { OriginalType: "bool" } => $"        {ExportedResult} = bool({InternalResult})",
+            { OriginalTypeName: "bool" } => $"        {ExportedResult} = bool({InternalResult})",
             _ when method.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.EnumReturnType) =>
-                $"        {ExportedResult} = {PythonUtils.PythonizeClassName(method.OriginalType)}({InternalResult})",
+                $"        {ExportedResult} = {PythonUtils.PythonizeClassName(method.OriginalTypeName)}({InternalResult})",
             { ExposedTypeIfDifferent: not null } => (
                 $"        {ExportedResult} = {method.OriginalTypeWrapper}.{FromPtr}({InternalResult})"
             ),

@@ -2,8 +2,8 @@ import DotWrap_TestLib as test_lib
 import numpy as np
 
 
-def test_int32_array_tolist():
-    x = test_lib.ReturnTypesSimpleCollection.get_int32_array()
+def test_int_32_array_tolist():
+    x = test_lib.ReturnTypesSimpleCollection.get_int_32_array()
     y = x.to_list()
 
     assert y == [2147483647, -2147483648], (
@@ -11,8 +11,8 @@ def test_int32_array_tolist():
     )
 
 
-def test_int32_array_indexer():
-    x = test_lib.ReturnTypesSimpleCollection.get_int32_array()
+def test_int_32_array_indexer():
+    x = test_lib.ReturnTypesSimpleCollection.get_int_32_array()
 
     assert x[0] == 2147483647, f"Expected 2147483647, got {x[0]}"
     assert x[1] == -2147483648, f"Expected -2147483648, got {x[1]}"
@@ -23,16 +23,16 @@ def test_int32_array_indexer():
     assert x[1] == -100, f"Expected -100, got {x[1]}"
 
 
-def test_int32_list():
-    x = test_lib.ReturnTypesSimpleCollection.get_int32_list()
+def test_int_32_list():
+    x = test_lib.ReturnTypesSimpleCollection.get_int_32_list()
     y = x.to_list()
     assert y == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], (
         f"Expected list [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], got {y}"
     )
 
 
-def test_read_only_int32_list():
-    x = test_lib.ReturnTypesSimpleCollection.get_read_only_int32_list()
+def test_read_only_int_32_list():
+    x = test_lib.ReturnTypesSimpleCollection.get_read_only_int_32_list()
     y = x.to_list()
     assert y == [0, 1, 2, 3, 4, 5], f"Expected list [0, 1, 2, 3, 4, 5], got {y}"
 
@@ -61,7 +61,7 @@ def test_int_to_long_dict():
     assert y[2].key == 3 and y[2].value == 30000000000
 
 
-# test_int32_array()
-# test_int32_list()
+# test_int_32_array()
+# test_int_32_list()
 # test_int_to_string_dict()
 # test_int_to_string_dict_keys()

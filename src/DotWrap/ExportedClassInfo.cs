@@ -2,21 +2,149 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text.Json.Serialization;
+using DotWrap.Internal;
 
 namespace DotWrap.MSBuild;
 
-public class ExportedClassInfo
+// public class ExportedTypeDefinitionInfo
+// {
+//     public required string Namespace { get; set; }
+//     public required string TypeName { get; set; }
+//     public required string EntryPrefix { get; set; }
+//     public required bool IsStatic { get; set; }
+//     public required Dictionary<string, string> GenericTypeArgumentsToParameters { get; set; }
+//     public required List<string> Interfaces { get; set; }
+//     public required ClassSpecialCaseFlags SpecialCaseFlags { get; set; }
+//     public string? SummaryComment { get; set; }
+//     public List<ExportedMethodInfo> Methods { get; set; } = new();
+//     public List<ExportedPropertyInfo> Properties { get; set; } = new();
+
+//     public bool TryGetICollectionType([NotNullWhen(true)] out string? collectionType) =>
+//         this.TryGetSingleGenericInterfaceType(
+//             "System.Collections.Generic.ICollection<",
+//             out collectionType
+//         );
+
+//     public bool TryGetIReadonlyCollectionType([NotNullWhen(true)] out string? collectionType) =>
+//         this.TryGetSingleGenericInterfaceType(
+//             "System.Collections.Generic.IReadOnlyCollection<",
+//             out collectionType
+//         );
+
+//     public bool TryGetSingleGenericInterfaceType(
+//         string interfaceStart,
+//         [NotNullWhen(true)] out string? collectionType
+//     )
+//     {
+//         var collectionInter = this.Interfaces.FirstOrDefault(i => i.StartsWith(interfaceStart));
+//         if (collectionInter is not null)
+//         {
+//             collectionType = collectionInter[interfaceStart.Length..^1];
+//             return true;
+//         }
+//         collectionType = null;
+//         return false;
+//     }
+// }
+
+public class ExportedMethodInfo : IHasOriginalAndExposedTypes
+{
+    public required string OriginalName { get; set; }
+
+    private string? stampedName;
+    public string StampedName => stampedName ??= this.OriginalName + this.GetParameterStamp();
+
+    /// <summary>
+    /// The original type of the method's return value.
+    /// </summary>
+    [Obsolete("Use ReturnType instead.")]
+    public required string OriginalTypeName { get; set; }
+
+    /// <summary>
+    /// The return type exposed by the C API.
+    /// If the original type is the same as the exposed type, this will be null.
+    /// </summary>
+    public required string? ExposedTypeIfDifferent { get; set; }
+    public required string? GenericTypeName { get; set; }
+    public required ExportedTypeInstanceInfo ReturnType { get; set; }
+    public required bool IsStatic { get; set; }
+    public string? SummaryComment { get; set; }
+    public string? ReturnsComment { get; set; }
+    public required MethodSpecialCaseFlags SpecialCaseFlags { get; set; }
+    public required List<ExportedParameterInfo> Parameters { get; set; } = new();
+
+    /// <summary>
+    /// Generates a unique stamp for the method based on the original type of it's parameters.
+    /// </summary>
+    /// <returns></returns>
+    public string GetParameterStamp()
+    {
+        if (Parameters.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        string Key = string.Join("", Parameters.Select(p => p.OriginalTypeName));
+        unchecked
+        {
+            const int seed = 0x811C9DC;
+            const int prime = 16777619;
+            int hash = seed;
+
+            foreach (char c in Key)
+                hash = (hash ^ c) * prime;
+
+            return $"_{Math.Abs(hash):X8}";
+        }
+    }
+}
+
+public class ExportedParameterInfo : IHasOriginalAndExposedTypes
+{
+    public required string Name { get; set; }
+    public required ExportedTypeInstanceInfo Type { get; set; }
+    public required string OriginalTypeName { get; set; }
+    public required string? ExposedTypeIfDifferent { get; set; }
+    public required string? GenericTypeName { get; set; }
+    public string? Comment { get; set; }
+}
+
+public class ExportedPropertyInfo : IHasOriginalAndExposedTypes
+{
+    public required string Name { get; set; }
+    public required string OriginalTypeName { get; set; }
+    public required string? ExposedTypeIfDifferent { get; set; }
+    public required bool HasGetter { get; set; }
+    public required bool HasSetter { get; set; }
+    public string? Comment { get; set; }
+}
+
+public class ExportedEnumInfo : IHasOriginalAndExposedTypes
 {
     public required string Namespace { get; set; }
-    public required string ClassName { get; set; }
+    public required string Name { get; set; }
+    public required string OriginalTypeName { get; set; }
+    public required string? ExposedTypeIfDifferent { get; set; }
+    public required Dictionary<string, long> Options { get; set; }
+}
+
+public class ExportedTypeDefinitionInfo
+{
+    public ExportedTypeId Id => new(Namespace, TypeName, GenericTypeArgumentsToParameters.Values);
+
+    // public string EntryPrefix => field ??= $"c{DotWrapUtils.GetStamp(this.Id.ToString())}_";
     public required string EntryPrefix { get; set; }
-    public required bool IsStatic { get; set; }
+
+    // public required string[]? GenericParameters { get; set; }
     public required Dictionary<string, string> GenericTypeArgumentsToParameters { get; set; }
     public required List<string> Interfaces { get; set; }
-    public required ClassSpecialCaseFlags SpecialCaseFlags { get; set; }
+    public required string Namespace { get; set; }
+    public required string TypeName { get; set; }
+    public required ExportedType ExportedType { get; set; }
+    public required TypeSpecialCaseFlags SpecialCaseFlags { get; set; }
     public string? SummaryComment { get; set; }
-    public List<ExportedMethodInfo> Methods { get; set; } = new();
-    public List<ExportedPropertyInfo> Properties { get; set; } = new();
+    public List<ExportedMethodInfo>? Methods { get; set; }
 
     public bool TryGetICollectionType([NotNullWhen(true)] out string? collectionType) =>
         this.TryGetSingleGenericInterfaceType(
@@ -46,84 +174,54 @@ public class ExportedClassInfo
     }
 }
 
-public class ExportedMethodInfo : IHasOriginalAndExposedTypes
+public class ExportedTypeInstanceInfo
 {
-    string IHasOriginalAndExposedTypes.Name => OriginalName;
+    public required ExportedTypeId DefinitionId { get; set; }
+    public required string[]? DefinitionGenericArgs { get; set; }
+    public required string? GenericName { get; set; }
+    public bool IsNullable { get; set; }
+}
 
-    public required string OriginalName { get; set; }
+public record ExportedTypeId
+{
+    public string Id { get; }
 
-    private string? stampedName;
-    public string StampedName => stampedName ??= this.OriginalName + this.GetParameterStamp();
-
-    /// <summary>
-    /// The original type of the method's return value.
-    /// </summary>
-    public required string OriginalType { get; set; }
-
-    /// <summary>
-    /// The return type exposed by the C API.
-    /// If the original type is the same as the exposed type, this will be null.
-    /// </summary>
-    public required string? ExposedTypeIfDifferent { get; set; }
-    public required string? GenericTypeName { get; set; }
-    public required bool IsStatic { get; set; }
-    public string? SummaryComment { get; set; }
-    public string? ReturnsComment { get; set; }
-    public required MethodSpecialCaseFlags SpecialCaseFlags { get; set; }
-    public required List<ExportedParameterInfo> Parameters { get; set; } = new();
-
-    /// <summary>
-    /// Generates a unique stamp for the method based on the original type of it's parameters.
-    /// </summary>
-    /// <returns></returns>
-    public string GetParameterStamp()
+    [Obsolete("Use the constructor with namespace, typeName, and typeParams instead.")]
+    [JsonConstructor]
+    public ExportedTypeId(string id)
     {
-        if (Parameters.Count == 0)
-        {
-            return string.Empty;
-        }
-
-        string Key = string.Join("", Parameters.Select(p => p.OriginalType));
-        unchecked
-        {
-            const int seed = 0x811C9DC;
-            const int prime = 16777619;
-            int hash = seed;
-
-            foreach (char c in Key)
-                hash = (hash ^ c) * prime;
-
-            return $"_{Math.Abs(hash):X8}";
-        }
+        Id = id;
     }
+
+    public ExportedTypeId(string @namespace, string typeName, params IEnumerable<string> typeArgs)
+    {
+        var genericPart = string.Join("_", typeArgs);
+        if (!string.IsNullOrEmpty(genericPart))
+        {
+            genericPart = $"_{genericPart}";
+        }
+        Id = $"{@namespace}.{typeName}{genericPart}";
+    }
+
+    public override string ToString() => Id;
 }
 
-public class ExportedParameterInfo : IHasOriginalAndExposedTypes
+public enum ExportedType
 {
-    public required string Name { get; set; }
-    public required string OriginalType { get; set; }
-    public required string? ExposedTypeIfDifferent { get; set; }
-    public required string? GenericTypeName { get; set; }
-    public string? Comment { get; set; }
-}
-
-public class ExportedPropertyInfo : IHasOriginalAndExposedTypes
-{
-    public required string Name { get; set; }
-    public required string OriginalType { get; set; }
-    public required string? ExposedTypeIfDifferent { get; set; }
-    public required bool HasGetter { get; set; }
-    public required bool HasSetter { get; set; }
-    public string? Comment { get; set; }
-}
-
-public class ExportedEnumInfo : IHasOriginalAndExposedTypes
-{
-    public required string Namespace { get; set; }
-    public required string Name { get; set; }
-    public required string OriginalType { get; set; }
-    public required string? ExposedTypeIfDifferent { get; set; }
-    public required Dictionary<string, long> Options { get; set; }
+    Undefined = 0,
+    Sbyte,
+    Byte,
+    Short,
+    Ushort,
+    Int,
+    Uint,
+    Long,
+    Ulong,
+    Float,
+    Double,
+    IntPtr,
+    Void,
+    Char,
 }
 
 [Flags]
@@ -137,10 +235,20 @@ public enum MethodSpecialCaseFlags
     EnumReturnType = 1 << 4,
 }
 
+[Flags]
+public enum TypeSpecialCaseFlags
+{
+    None = 0,
+    Class = 1 << 0,
+    Interface = 1 << 1,
+    Struct = 1 << 2,
+    Enum = 1 << 3,
+    Static = 1 << 4,
+}
+
 public interface IHasOriginalAndExposedTypes
 {
-    public string Name { get; }
-    public string OriginalType { get; }
+    public string OriginalTypeName { get; }
     public string? ExposedTypeIfDifferent { get; }
 }
 

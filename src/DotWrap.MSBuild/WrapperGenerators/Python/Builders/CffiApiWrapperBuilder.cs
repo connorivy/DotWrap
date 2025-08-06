@@ -6,10 +6,10 @@ using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 
-public class CffiApiWrapperBuilder(CSharpProjectInfo projectInfo)
+public class CffiApiWrapperBuilder(GlobalContext globalContext, CSharpProjectInfo projectInfo)
 {
     public void BuildWrapper(
-        IList<ExportedClassInfo> classes,
+        IList<ExportedTypeDefinitionInfo> classes,
         IReadOnlyList<ExportedEnumInfo> enums
     )
     {
@@ -40,7 +40,7 @@ public class CffiApiWrapperBuilder(CSharpProjectInfo projectInfo)
 
         StringBuilder mainPy = CreateMainPy(pythonProjectInfo);
         var initPy = new StringBuilder();
-        CffiApiClassBuilder classBuilder = new(pythonProjectInfo, mainPy, initPy);
+        CffiApiClassBuilder classBuilder = new(globalContext, pythonProjectInfo, mainPy, initPy);
         classBuilder.AddClassesToMainAndInitPy(classes);
         CffiApiEnumBuilder enumBuilder = new(pythonProjectInfo, mainPy, initPy);
         enumBuilder.AddClassesToMainAndInitPy(enums);

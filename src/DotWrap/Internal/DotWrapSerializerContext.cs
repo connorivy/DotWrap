@@ -4,7 +4,7 @@ using DotWrap.MSBuild;
 
 namespace DotWrap;
 
-[JsonSerializable(typeof(ExportedClassInfo))]
+[JsonSerializable(typeof(ExportedTypeDefinitionInfo))]
 [JsonSerializable(typeof(ExportedMethodInfo))]
 [JsonSerializable(typeof(ExportedParameterInfo))]
 [JsonSerializable(typeof(ExportedEnumInfo))]

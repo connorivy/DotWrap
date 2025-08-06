@@ -225,20 +225,34 @@ public static class PythonUtils
         if (string.IsNullOrEmpty(input))
             return input;
 
-        var result = string.Concat(
-            input.Select(
-                (c, i) =>
-                    i > 0
-                    && char.IsUpper(c)
+        var result = new StringBuilder();
+        for (int i = 0; i < input.Length; i++)
+        {
+            char c = input[i];
+
+            if (i > 0)
+            {
+                // Underscore before uppercase (existing logic)
+                if (
+                    char.IsUpper(c)
                     && (
                         char.IsLower(input[i - 1])
                         || (i + 1 < input.Length && char.IsLower(input[i + 1]))
                     )
                     && input[i - 1] != '_'
-                        ? "_" + char.ToLowerInvariant(c)
-                        : char.ToLowerInvariant(c).ToString()
-            )
-        );
-        return result;
+                )
+                {
+                    result.Append('_');
+                }
+                // Underscore before digit if previous is a letter and not already underscored
+                else if (char.IsDigit(c) && char.IsLetter(input[i - 1]) && input[i - 1] != '_')
+                {
+                    result.Append('_');
+                }
+            }
+
+            result.Append(char.ToLowerInvariant(c));
+        }
+        return result.ToString();
     }
 }

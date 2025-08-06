@@ -16,8 +16,8 @@ public class WrapperGeneratorFromEmbeddedMetadata(Logger logger)
         var assembly = Assembly.LoadFrom(libFullPath);
 
         CSharpProjectInfo projectInfo = new(libFullPath);
-        var exportedClasses = new List<ExportedClassInfo>();
         List<ExportedEnumInfo> exportedEnums = [];
+        Dictionary<string, ExportedTypeDefinitionInfo> exportedTypes = [];
 
         // reflection strangely represents static classes as abstract sealed classes
         foreach (
@@ -30,31 +30,43 @@ public class WrapperGeneratorFromEmbeddedMetadata(Logger logger)
                 continue;
             }
 
+            var classInfoString = (string)(
+                type.GetField(Metadata, BindingFlags.NonPublic | BindingFlags.Static)
+                    ?.GetValue(null)
+                ?? throw new InvalidOperationException(
+                    $"Type {type.FullName} does not have a static field '{Metadata}'."
+                )
+            );
             if (attr is DotWrapGeneratedEnumMetaAttribute enumAttr)
             {
-                AddEnumWrapperInfo(exportedEnums, type);
+                AddEnumWrapperInfo(exportedEnums, type, classInfoString);
             }
-            else if (attr is DotWrapGeneratedClassWrapperAttribute classAttr)
+            // else if (attr is DotWrapGeneratedClassWrapperAttribute classAttr)
+            // {
+            //     AddClassWrapperInfo(exportedClasses, type, classInfoString);
+            // }
+            else if (attr is DotWrapGeneratedClassWrapperAttribute)
             {
-                AddClassWrapperInfo(exportedClasses, type);
+                AddExportedTypeInfo(exportedTypes, type, classInfoString);
             }
         }
 
-        CffiApiWrapperBuilder pythonWrapperBuilder = new(projectInfo);
-        pythonWrapperBuilder.BuildWrapper(exportedClasses, exportedEnums);
+        GlobalContext globalContext = new(
+            exportedTypes,
+            [.. exportedEnums.Select(e => $"{e.Namespace}.{e.Name}")]
+        );
+        CffiApiWrapperBuilder pythonWrapperBuilder = new(globalContext, projectInfo);
+        pythonWrapperBuilder.BuildWrapper(exportedTypes.Values.ToList(), exportedEnums);
     }
 
-    private static void AddClassWrapperInfo(List<ExportedClassInfo> exportedClasses, Type type)
+    private static void AddClassWrapperInfo(
+        List<ExportedTypeDefinitionInfo> exportedClasses,
+        Type type,
+        string classInfoString
+    )
     {
-        string classInfoString = (string)(
-            type.GetField(ClassMetadata, BindingFlags.NonPublic | BindingFlags.Static)
-                ?.GetValue(null)
-            ?? throw new InvalidOperationException(
-                $"Type {type.FullName} does not have a static field '{ClassMetadata}'."
-            )
-        );
-        ExportedClassInfo classInfo =
-            JsonSerializer.Deserialize<ExportedClassInfo>(
+        ExportedTypeDefinitionInfo classInfo =
+            JsonSerializer.Deserialize<ExportedTypeDefinitionInfo>(
                 classInfoString,
                 DotWrapSerializerOptions.Default
             )
@@ -65,15 +77,12 @@ public class WrapperGeneratorFromEmbeddedMetadata(Logger logger)
         exportedClasses.Add(classInfo);
     }
 
-    private static void AddEnumWrapperInfo(List<ExportedEnumInfo> exportedEnums, Type type)
+    private static void AddEnumWrapperInfo(
+        List<ExportedEnumInfo> exportedEnums,
+        Type type,
+        string classInfoString
+    )
     {
-        string classInfoString = (string)(
-            type.GetField(ClassMetadata, BindingFlags.NonPublic | BindingFlags.Static)
-                ?.GetValue(null)
-            ?? throw new InvalidOperationException(
-                $"Type {type.FullName} does not have a static field '{ClassMetadata}'."
-            )
-        );
         ExportedEnumInfo enumInfo =
             JsonSerializer.Deserialize<ExportedEnumInfo>(
                 classInfoString,
@@ -84,5 +93,23 @@ public class WrapperGeneratorFromEmbeddedMetadata(Logger logger)
             );
 
         exportedEnums.Add(enumInfo);
+    }
+
+    private static void AddExportedTypeInfo(
+        Dictionary<string, ExportedTypeDefinitionInfo> exportedTypes,
+        Type type,
+        string classInfoString
+    )
+    {
+        var typeInfo =
+            JsonSerializer.Deserialize<ExportedTypeDefinitionInfo>(
+                classInfoString,
+                DotWrapSerializerOptions.Default
+            )
+            ?? throw new InvalidOperationException(
+                $"Failed to deserialize class info for {type.FullName}."
+            );
+
+        exportedTypes[typeInfo.Id.ToString()] = typeInfo;
     }
 }

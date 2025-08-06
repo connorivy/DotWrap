@@ -106,10 +106,10 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
             }
             hasConverted = true;
 
-            if (param.OriginalType is "Enum")
+            if (ClassContext.GlobalContext.EnumNames.Contains(param.Type.DefinitionId.ToString()))
             {
                 sb.AppendLine(
-                    $"        {param.Name}{Typed} = {param.ExposedTypeIfDifferent}({param.Name})"
+                    $"        {param.Name}{Typed} = {PythonUtils.MapTypeToPython(param.ExposedTypeIfDifferent)}({param.Name}.value)"
                 );
             }
             else

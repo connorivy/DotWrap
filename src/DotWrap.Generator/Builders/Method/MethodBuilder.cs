@@ -75,11 +75,13 @@ public class MethodBuilder(
         foreach (var param in method.Parameters)
         {
             var exposedCType = param.Type.GetExposedType(out var isOriginalType);
+            var genericName = (param.OriginalDefinition.Type as ITypeParameterSymbol)?.Name;
             parameters.Add(
                 new ExportedParameterInfo
                 {
                     Name = param.Name,
-                    OriginalType = isOriginalType ? exposedCType : param.Type.ToDisplayString(),
+                    Type = param.Type.GetExportedTypeInstance(genericName),
+                    OriginalTypeName = isOriginalType ? exposedCType : param.Type.ToDisplayString(),
                     ExposedTypeIfDifferent = isOriginalType ? null : exposedCType,
                     GenericTypeName = (param.OriginalDefinition.Type as ITypeParameterSymbol)?.Name,
                     Comment = XmlParser.ParseParamComment(methodXml, param.Name),

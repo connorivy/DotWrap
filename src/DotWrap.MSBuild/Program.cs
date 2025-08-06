@@ -4,7 +4,7 @@ using DotWrap.MSBuild;
 using DotWrap.MSBuild.WrapperGenerators;
 
 #if DEBUG
-// System.Diagnostics.Debugger.Launch();
+System.Diagnostics.Debugger.Launch();
 #endif
 
 string dllPath = args[0];

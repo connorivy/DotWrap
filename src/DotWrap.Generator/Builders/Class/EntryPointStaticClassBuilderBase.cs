@@ -105,7 +105,7 @@ namespace {Context.Namespace}
         ClassBuilderContext context
     )
     {
-        ExportedClassInfo cls = classMetadataBuilder.ClassInfo;
+        ExportedTypeDefinitionInfo cls = classMetadataBuilder.TypeInfo;
         // get icollection<T> interface symbol if implemented by context.ClassSymbol
         var iCollectionSymbol = context.ClassSymbol.AllInterfaces.FirstOrDefault(i =>
             i.ContainingNamespace.ToDisplayString().Contains("System.Collections.Generic")
@@ -126,19 +126,26 @@ namespace {Context.Namespace}
             ExportedMethodInfo getCount = new()
             {
                 OriginalName = GetCount,
-                OriginalType = "int",
+                OriginalTypeName = "int",
                 IsStatic = false,
                 ExposedTypeIfDifferent = null,
                 GenericTypeName = null,
                 SpecialCaseFlags = MethodSpecialCaseFlags.None,
                 Parameters = [],
+                ReturnType = new ExportedTypeInstanceInfo
+                {
+                    DefinitionId = new ExportedTypeId("System", "Int32"),
+                    DefinitionGenericArgs = null,
+                    GenericName = null,
+                    IsNullable = false,
+                },
             };
             classMetadataBuilder.AddMethod(getCount);
 
             ExportedMethodInfo fillArr = new()
             {
                 OriginalName = FillArr,
-                OriginalType = "void",
+                OriginalTypeName = "void",
                 IsStatic = false,
                 ExposedTypeIfDifferent = null,
                 GenericTypeName = null,
@@ -148,18 +155,39 @@ namespace {Context.Namespace}
                     new ExportedParameterInfo
                     {
                         Name = "numpyArrPtr",
-                        OriginalType = "IntPtr",
+                        Type = new ExportedTypeInstanceInfo
+                        {
+                            DefinitionId = new ExportedTypeId("System", "IntPtr"),
+                            DefinitionGenericArgs = null,
+                            GenericName = null,
+                            IsNullable = false,
+                        },
+                        OriginalTypeName = "IntPtr",
                         ExposedTypeIfDifferent = null,
                         GenericTypeName = null,
                     },
                     new ExportedParameterInfo
                     {
                         Name = "collectionCount",
-                        OriginalType = "int",
+                        Type = new ExportedTypeInstanceInfo
+                        {
+                            DefinitionId = new ExportedTypeId("System", "Int32"),
+                            DefinitionGenericArgs = null,
+                            GenericName = null,
+                            IsNullable = false,
+                        },
+                        OriginalTypeName = "int",
                         ExposedTypeIfDifferent = null,
                         GenericTypeName = null,
                     },
                 ],
+                ReturnType = new ExportedTypeInstanceInfo
+                {
+                    DefinitionId = new ExportedTypeId("System", "Void"),
+                    DefinitionGenericArgs = null,
+                    GenericName = null,
+                    IsNullable = false,
+                },
             };
             classMetadataBuilder.AddMethod(fillArr);
             classBody.AppendLine(
@@ -208,10 +236,10 @@ namespace {Context.Namespace}
         var jsonMeta =
             @$"
 #pragma warning disable CS0414 // Field is assigned to but its value is never used
-        private static readonly string {ClassMetadata} =  
+        private static readonly string {Internal.Constants.Metadata} =  
         """"""
         {JsonSerializer.Serialize(
-            classMetadataBuilder.ClassInfo,
+            classMetadataBuilder.TypeInfo,
             DotWrapSerializerOptions.Default
         )}
         """""";

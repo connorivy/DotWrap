@@ -32,7 +32,7 @@ public class GlobalContext(
                 new()
                 {
                     Name = namedTypeSymbol.Name,
-                    OriginalType = "Enum",
+                    OriginalTypeName = "Enum",
                     ExposedTypeIfDifferent = underlyingType.ToDisplayString(),
                     Namespace = namedTypeSymbol.ContainingNamespace.ToDisplayString(),
                     Options = namedTypeSymbol

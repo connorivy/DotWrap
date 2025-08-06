@@ -8,13 +8,13 @@ public static class DotWrapObjectExtensions
 {
     extension(IHasOriginalAndExposedTypes typeInfo)
     {
-        public string OriginalTypeSimple => typeInfo.OriginalType.Split('.').Last();
+        public string OriginalTypeSimple => typeInfo.OriginalTypeName.Split('.').Last();
 
-        public string OriginalTypeWrapper => PythonUtils.PythonizeClassName(typeInfo.OriginalType);
+        public string OriginalTypeWrapper => PythonUtils.PythonizeClassName(typeInfo.OriginalTypeName);
 
         public string MapOriginalTypeToPython(IDictionary<string, string>? genericParamsToArgsDict)
         {
-            var t = typeInfo.OriginalType.ToLowerInvariant().Replace("system.", "");
+            var t = typeInfo.OriginalTypeName.ToLowerInvariant().Replace("system.", "");
             return t switch
             {
                 "sbyte" or
@@ -29,13 +29,13 @@ public static class DotWrapObjectExtensions
                 "boolean" or "bool" => "bool",
                 "void" => "None",
                 "string" => "str",
-                _ => $"\"{PythonUtils.PythonizeTypeName(typeInfo.OriginalType, genericParamsToArgsDict)}\"",
+                _ => $"\"{PythonUtils.PythonizeTypeName(typeInfo.OriginalTypeName, genericParamsToArgsDict)}\"",
             };
         }
 
         public string MapExposedTypeToPython()
         {
-            var t = (typeInfo.ExposedTypeIfDifferent ?? typeInfo.OriginalType)
+            var t = (typeInfo.ExposedTypeIfDifferent ?? typeInfo.OriginalTypeName)
                 .ToLowerInvariant()
                 .Replace("system.", "");
             return t switch
@@ -45,13 +45,13 @@ public static class DotWrapObjectExtensions
                 "boolean" or "bool" => "bool",
                 "void" => "None",
                 "string" => "CString", // use CString wrapper for strings
-                _ => $"\"{PythonUtils.PythonizeTypeName(typeInfo.OriginalType.Split('.').Last())}\"",
+                _ => $"\"{PythonUtils.PythonizeTypeName(typeInfo.OriginalTypeName.Split('.').Last())}\"",
             };
         }
 
         public string MapExposedTypeToC()
         {
-            var t = (typeInfo.ExposedTypeIfDifferent ?? typeInfo.OriginalType)
+            var t = (typeInfo.ExposedTypeIfDifferent ?? typeInfo.OriginalTypeName)
                 .ToLowerInvariant()
                 .Replace("system.", "");
 

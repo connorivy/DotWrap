@@ -22,62 +22,62 @@ def test_min_byte():
 
 
 def test_max_int16():
-    x = test_lib.max_int16()
+    x = test_lib.max_int_16()
     assert x == 32767, f"Expected 32767, got {x}"
 
 
 def test_min_int16():
-    x = test_lib.min_int16()
+    x = test_lib.min_int_16()
     assert x == -32768, f"Expected -32768, got {x}"
 
 
 def test_max_uint16():
-    x = test_lib.max_u_int16()
+    x = test_lib.max_u_int_16()
     assert x == 65535, f"Expected 65535, got {x}"
 
 
 def test_min_uint16():
-    x = test_lib.min_u_int16()
+    x = test_lib.min_u_int_16()
     assert x == 0, f"Expected 0, got {x}"
 
 
 def test_max_int32():
-    x = test_lib.max_int32()
+    x = test_lib.max_int_32()
     assert x == 2147483647, f"Expected 2147483647, got {x}"
 
 
 def test_min_int32():
-    x = test_lib.min_int32()
+    x = test_lib.min_int_32()
     assert x == -2147483648, f"Expected -2147483648, got {x}"
 
 
 def test_max_u_int32():
-    x = test_lib.max_u_int32()
+    x = test_lib.max_u_int_32()
     assert x == 4294967295, f"Expected 4294967295, got {x}"
 
 
 def test_min_u_int32():
-    x = test_lib.min_u_int32()
+    x = test_lib.min_u_int_32()
     assert x == 0, f"Expected 0, got {x}"
 
 
 def test_max_int64():
-    x = test_lib.max_int64()
+    x = test_lib.max_int_64()
     assert x == 9223372036854775807, f"Expected 9223372036854775807, got {x}"
 
 
 def test_min_int64():
-    x = test_lib.min_int64()
+    x = test_lib.min_int_64()
     assert x == -9223372036854775808, f"Expected -9223372036854775808, got {x}"
 
 
 def test_max_u_int64():
-    x = test_lib.max_u_int64()
+    x = test_lib.max_u_int_64()
     assert x == 18446744073709551615, f"Expected 18446744073709551615, got {x}"
 
 
 def test_min_u_int64():
-    x = test_lib.min_u_int64()
+    x = test_lib.min_u_int_64()
     assert x == 0, f"Expected 0, got {x}"
 
 

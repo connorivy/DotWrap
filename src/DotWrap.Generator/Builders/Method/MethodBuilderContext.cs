@@ -46,10 +46,13 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
     )
     {
         var exposedCType = this.OriginalReturnType.GetExposedType(out var isOriginalType);
+        var genericName = (
+            this.MethodSymbol.OriginalDefinition.ReturnType as ITypeParameterSymbol
+        )?.Name;
         return new ExportedMethodInfo
         {
             OriginalName = MethodName,
-            OriginalType = isOriginalType
+            OriginalTypeName = isOriginalType
                 ? exposedCType
                 : this.OriginalReturnType.ToDisplayString(),
             IsStatic = this.IsStatic,
@@ -57,6 +60,7 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
             GenericTypeName = (
                 this.MethodSymbol.OriginalDefinition.ReturnType as ITypeParameterSymbol
             )?.Name,
+            ReturnType = this.OriginalReturnType.GetExportedTypeInstance(genericName),
             SpecialCaseFlags = this.GetSpecialCaseFlags(),
             SummaryComment = XmlParser.ParseSummary(xmlDoc),
             ReturnsComment = XmlParser.ParseReturns(xmlDoc),

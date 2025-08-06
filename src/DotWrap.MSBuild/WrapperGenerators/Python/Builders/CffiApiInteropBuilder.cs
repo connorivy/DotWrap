@@ -64,7 +64,9 @@ setup(
 
     private const string CSelfPtrType = "void*";
 
-    public (StringBuilder, StringBuilder) CreateBuildPyAndHeader(IList<ExportedClassInfo> classes)
+    public (StringBuilder, StringBuilder) CreateBuildPyAndHeader(
+        IList<ExportedTypeDefinitionInfo> classes
+    )
     {
         var libName = pythonProjectInfo.CSharpProjectInfo.LibName;
         var projectName = pythonProjectInfo.ProjectName;
@@ -95,7 +97,7 @@ typedef struct {
         headerContent.AppendLine(arrayType);
         foreach (var cls in classes)
         {
-            if (!cls.IsStatic)
+            if (!cls.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.Static))
             {
                 var destroyMethod = $"void {cls.EntryPrefix}{Destroy}({CSelfPtrType} ptr);";
                 build.AppendLine(destroyMethod);
@@ -123,23 +125,23 @@ typedef struct {
                 build.AppendLine(cDef);
                 headerContent.AppendLine(cDef);
             }
-            foreach (var prop in cls.Properties)
-            {
-                if (prop.HasGetter)
-                {
-                    var cDef =
-                        $@"{prop.MapExposedTypeToC()} {cls.EntryPrefix}get_{prop.Name}({CSelfPtrType} ptr);";
-                    build.AppendLine(cDef);
-                    headerContent.AppendLine(cDef);
-                }
-                if (prop.HasSetter)
-                {
-                    var cDef =
-                        $@"void {cls.EntryPrefix}set_{prop.Name}({CSelfPtrType} ptr, {prop.MapExposedTypeToC()} value);";
-                    build.AppendLine(cDef);
-                    headerContent.AppendLine(cDef);
-                }
-            }
+            // foreach (var prop in cls.Properties)
+            // {
+            //     if (prop.HasGetter)
+            //     {
+            //         var cDef =
+            //             $@"{prop.MapExposedTypeToC()} {cls.EntryPrefix}get_{prop.Name}({CSelfPtrType} ptr);";
+            //         build.AppendLine(cDef);
+            //         headerContent.AppendLine(cDef);
+            //     }
+            //     if (prop.HasSetter)
+            //     {
+            //         var cDef =
+            //             $@"void {cls.EntryPrefix}set_{prop.Name}({CSelfPtrType} ptr, {prop.MapExposedTypeToC()} value);";
+            //         build.AppendLine(cDef);
+            //         headerContent.AppendLine(cDef);
+            //     }
+            // }
         }
         build.Append("\"\"\")");
         build.AppendLine();

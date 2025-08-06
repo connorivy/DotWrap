@@ -148,7 +148,7 @@ namespace {exportedEnum.Namespace}
     internal static class {exportedEnum.Name}DotWrapMetadata
     {{
 #pragma warning disable CS0414 // Field is assigned to but its value is never used
-        private static readonly string {ClassMetadata} =  
+        private static readonly string {DotWrap.Internal.Constants.Metadata} =  
         """"""
         {JsonSerializer.Serialize(
             exportedEnum,

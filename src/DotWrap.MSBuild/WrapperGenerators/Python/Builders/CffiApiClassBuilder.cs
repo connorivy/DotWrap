@@ -12,6 +12,7 @@ using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 
 public class CffiApiClassBuilder(
+    GlobalContext globalContext,
     PythonProjectInfo pythonProjectInfo,
     StringBuilder mainPy,
     StringBuilder initPy
@@ -19,11 +20,11 @@ public class CffiApiClassBuilder(
 {
     private HashSet<string> classNames = new();
 
-    public void AddClassesToMainAndInitPy(IEnumerable<ExportedClassInfo> classes)
+    public void AddClassesToMainAndInitPy(IEnumerable<ExportedTypeDefinitionInfo> classes)
     {
         foreach (var cls in classes)
         {
-            string? genericClassName = PythonUtils.GetGenericBaseNameOrNull(cls.ClassName);
+            string? genericClassName = PythonUtils.GetGenericBaseNameOrNull(cls.TypeName);
             if (genericClassName is not null && this.classNames.Add(genericClassName))
             {
                 this.AddInheritedClassToMainAndInit(cls);
@@ -32,12 +33,12 @@ public class CffiApiClassBuilder(
         }
     }
 
-    private void AddInheritedClassToMainAndInit(ExportedClassInfo cls)
+    private void AddInheritedClassToMainAndInit(ExportedTypeDefinitionInfo cls)
     {
         string genericClassName =
-            PythonUtils.GetGenericBaseNameOrNull(cls.ClassName)
+            PythonUtils.GetGenericBaseNameOrNull(cls.TypeName)
             ?? throw new ArgumentException("Class name must be a generic type with '<' and '>'");
-        string className = PythonUtils.PythonizeClassName(cls.ClassName);
+        string className = PythonUtils.PythonizeClassName(cls.TypeName);
         var genericParams = cls.GenericTypeArgumentsToParameters.Select(kvp => kvp.Value).ToList();
 
         foreach (var param in genericParams)
@@ -57,7 +58,7 @@ public class CffiApiClassBuilder(
             );
         }
 
-        var classContext = new ClassBuilderContext(pythonProjectInfo, cls);
+        var classContext = new ClassBuilderContext(globalContext, pythonProjectInfo, cls);
         StringBuilder dummy = new();
         var methodNames = new HashSet<string>();
         var methodBuilder = new CffiApiMethodBuilder(classContext, dummy);
@@ -121,10 +122,10 @@ public class CffiApiClassBuilder(
         );
     }
 
-    public void AddClassToMainAndInitPy(ExportedClassInfo classInfo)
+    public void AddClassToMainAndInitPy(ExportedTypeDefinitionInfo classInfo)
     {
-        var baseClassName = PythonUtils.GetGenericBaseNameOrNull(classInfo.ClassName);
-        string className = PythonUtils.PythonizeClassName(classInfo.ClassName);
+        var baseClassName = PythonUtils.GetGenericBaseNameOrNull(classInfo.TypeName);
+        string className = PythonUtils.PythonizeClassName(classInfo.TypeName);
 
         initPy.AppendLine($"from .main import {className}");
 
@@ -151,7 +152,7 @@ public class CffiApiClassBuilder(
             );
         }
 
-        var classContext = new ClassBuilderContext(pythonProjectInfo, classInfo);
+        var classContext = new ClassBuilderContext(globalContext, pythonProjectInfo, classInfo);
         var methodBuilder = new CffiApiMethodBuilder(classContext, mainPy);
         foreach (var method in classInfo.Methods)
         {
@@ -162,7 +163,7 @@ public class CffiApiClassBuilder(
             methodBuilder.AddClassToMainAndInitPy(method);
         }
 
-        if (!classInfo.IsStatic)
+        if (!classInfo.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.Static))
         {
             mainPy.AppendLine($"    @classmethod");
             mainPy.AppendLine($"    def {FromPtr}(cls, ptr: int):");
@@ -251,8 +252,10 @@ public class CffiApiClassBuilder(
     }
 }
 
-public record OriginalAndExposedTypeInfo(string OriginalType, string? ExposedTypeIfDifferent = null)
-    : IHasOriginalAndExposedTypes
+public record OriginalAndExposedTypeInfo(
+    string OriginalTypeName,
+    string? ExposedTypeIfDifferent = null
+) : IHasOriginalAndExposedTypes
 {
-    public string Name => OriginalType;
+    public string Name => OriginalTypeName;
 };
