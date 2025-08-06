@@ -1,9 +1,9 @@
 using System;
 using System.Text;
 
-namespace DotWrap.Internal;
+namespace DotWrap.Utils;
 
-internal abstract class IndentedStringBuilder
+public abstract class IndentedStringBuilder
 {
     private readonly StringBuilder _sb = new();
     private int _indentLevel = 0;

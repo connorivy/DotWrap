@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 
@@ -13,5 +15,6 @@ public record ClassBuilderContext(
 
 public record GlobalContext(
     Dictionary<string, ExportedTypeDefinitionInfo> TypeDefinitions,
-    HashSet<string> EnumNames
+    HashSet<string> EnumNames,
+    Dictionary<Type, DotWrapPythonTypeConfig> Configs
 );

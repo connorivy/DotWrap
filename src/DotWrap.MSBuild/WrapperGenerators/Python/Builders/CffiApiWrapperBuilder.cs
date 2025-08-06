@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using DotWrap.Internal;
+using DotWrap.Utils;
 using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
@@ -50,7 +48,7 @@ public class CffiApiWrapperBuilder(GlobalContext globalContext, CSharpProjectInf
         File.WriteAllText(Path.Combine(dotWrapRoot, "__init__.py"), initPy.ToString());
     }
 
-    private static IndentedPythonStringBuilder CreateMainPy(PythonProjectInfo pythonProjectInfo)
+    private IndentedPythonStringBuilder CreateMainPy(PythonProjectInfo pythonProjectInfo)
     {
         var projectName = pythonProjectInfo.ProjectName;
         var mainPy = new IndentedPythonStringBuilder();
@@ -61,6 +59,11 @@ public class CffiApiWrapperBuilder(GlobalContext globalContext, CSharpProjectInf
         mainPy.AppendLine("import numpy as np");
         mainPy.AppendLine($"from ._{projectName} import lib as {Lib}");
         mainPy.AppendLine($"from ._{projectName} import ffi as {Ffi}");
+
+        foreach (var config in globalContext.Configs.Values)
+        {
+            config.ConfigureImports(mainPy);
+        }
 
         mainPy.AppendLine(
             @$"

@@ -43,20 +43,20 @@ public class ClassMetadataBuilder
         //         classContext.ClassSymbol.GetDocumentationCommentXml()
         //     ),
         // };
-
         TypeInfo = new ExportedTypeDefinitionInfo()
         {
             Namespace = classContext.Namespace,
+            FullyQualifiedName = classContext.ClassSymbol.GetAssemblyQualifiedName(),
             TypeName = classContext.ClassName,
             EntryPrefix = classContext.EntryPrefix,
             ExportedType = classContext.ClassSymbol.GetExportedType(out _),
             GenericTypeArgumentsToParameters = genericTypeArgumentsToParameters,
             // GenericParameters = classContext.TypeParameters.Select(tp => tp.Name).ToArray(),
             Interfaces = classContext
-                .ClassSymbol.AllInterfaces.Select(i => i.ToDisplayString())
+                .ClassSymbol.AllInterfaces.Select(i => i.GetAssemblyQualifiedName())
                 .Append(
                     classContext.ClassSymbol.TypeKind == TypeKind.Interface
-                        ? classContext.ClassSymbol.ToDisplayString()
+                        ? classContext.ClassSymbol.GetAssemblyQualifiedName()
                         : null
                 )
                 .OfType<string>()
@@ -71,7 +71,7 @@ public class ClassMetadataBuilder
     public void AddMethod(ExportedMethodInfo methodInfo)
     {
         // ClassInfo.Methods.Add(methodInfo);
-        TypeInfo.Methods ??= [];
+        // TypeInfo.Methods ??= [];
         TypeInfo.Methods.Add(methodInfo);
     }
 }

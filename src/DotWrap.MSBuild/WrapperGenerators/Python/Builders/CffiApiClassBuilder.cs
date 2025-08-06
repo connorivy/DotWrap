@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Text.Json;
 using DotWrap.Internal;
+using DotWrap.Utils;
 using static DotWrap.Internal.Constants;
 using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
 
@@ -24,112 +21,92 @@ internal class CffiApiClassBuilder(
     {
         foreach (var cls in classes)
         {
+            IndentedPythonStringBuilder classBodyBuilder = new();
+
             string? genericClassName = PythonUtils.GetGenericBaseNameOrNull(cls.TypeName);
+            IndentedPythonStringBuilder? genericClassBodyBuilder = null;
             if (genericClassName is not null && this.classNames.Add(genericClassName))
             {
-                this.AddInheritedClassToMainAndInit(cls);
+                genericClassBodyBuilder = this.CreateGenericClassBodyBuilder(cls);
             }
-            AddClassToMainAndInitPy(cls);
+
+            using var indentGeneric = genericClassBodyBuilder?.IndentUntilDispose();
+            AddClassToMainAndInitPy(cls, classBodyBuilder, genericClassBodyBuilder);
+
+            using var indent = classBodyBuilder.IndentUntilDispose();
+            foreach (var config in GetApplicableConfigs(globalContext.Configs, cls))
+            {
+                if (genericClassBodyBuilder is not null)
+                {
+                    config.Item2.ConfigureGenericClassBody(config.Item1, genericClassBodyBuilder);
+                }
+                config.Item2.ConfigureClassBody(config.Item1, classBodyBuilder);
+            }
+
+            if (genericClassBodyBuilder is not null)
+            {
+                mainPy.AppendLine("");
+                mainPy.AppendLine(genericClassBodyBuilder.ToString());
+            }
+            mainPy.AppendLine(classBodyBuilder.ToString());
         }
     }
 
-    private void AddInheritedClassToMainAndInit(ExportedTypeDefinitionInfo cls)
+    private IndentedPythonStringBuilder CreateGenericClassBodyBuilder(
+        ExportedTypeDefinitionInfo cls
+    )
     {
+        IndentedPythonStringBuilder genericClassBuilder = new();
         string genericClassName =
             PythonUtils.GetGenericBaseNameOrNull(cls.TypeName)
             ?? throw new ArgumentException("Class name must be a generic type with '<' and '>'");
-        string className = PythonUtils.PythonizeClassName(cls.TypeName);
         var genericParams = cls.GenericTypeArgumentsToParameters.Select(kvp => kvp.Value).ToList();
 
         foreach (var param in genericParams)
         {
-            mainPy.AppendLine($"{param} = TypeVar('{param}')");
+            genericClassBuilder.AppendLine($"{param} = TypeVar('{param}')");
         }
-        mainPy.AppendLine(
+        genericClassBuilder.AppendLine(
             $"class {genericClassName}(Generic[{string.Join(", ", genericParams)}]):"
         );
-        using var _ = mainPy.IndentUntilDispose();
+        using var _ = genericClassBuilder.IndentUntilDispose();
 
         if (!string.IsNullOrWhiteSpace(cls.SummaryComment))
         {
-            mainPy.AppendLine(
+            genericClassBuilder.AppendLine(
                 @$"    
 """"""
 {cls.SummaryComment}
 """""""
             );
         }
-
-        var classContext = new ClassBuilderContext(globalContext, pythonProjectInfo, cls);
-        IndentedCSharpStringBuilder dummy = new();
-        var methodNames = new HashSet<string>();
-        var methodBuilder = new CffiApiMethodBuilder(classContext, dummy);
-        foreach (var method in cls.Methods)
-        {
-            if (method.OriginalName.StartsWith(InternalPrefix))
-            {
-                continue;
-            }
-
-            var context = new MethodBuilderContext(classContext, method);
-            methodBuilder.AddClassToMainAndInitPy(method);
-            var pyReturnType =
-                context.MethodInfo.GenericTypeName
-                ?? context.GetReturnType(cls.GenericTypeArgumentsToParameters);
-            var methodName = context.GetMethodName(methodNames);
-            var paramListWithHints = context.PythonMethodGenericParamListWithHints();
-            if (method.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.PropertyGetter))
-            {
-                methodName = methodName["get_".Length..];
-                mainPy.AppendLine($"@property");
-            }
-            else if (method.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.PropertySetter))
-            {
-                methodName = methodName["set_".Length..];
-                mainPy.AppendLine($"@{methodName}.setter");
-            }
-
-            mainPy.AppendLine(
-                @$"    
-@abstractmethod
-def {methodName}({paramListWithHints}){$" -> {pyReturnType}"}:
-    pass
-    "
-            );
-        }
-
-        if (
-            cls.TryGetICollectionType(out var genericType)
-            || cls.TryGetIReadonlyCollectionType(out genericType)
-        )
-        {
-            var genericParam = PythonUtils.MapTypeToPython(
-                genericType,
-                cls.GenericTypeArgumentsToParameters
-            );
-            mainPy.AppendLine(
-                @$"
-def to_list(self) -> list[""{genericParam}""]:
-    pass
-        "
-            );
-        }
-
-        mainPy.AppendLine(
-            @$"    
-@abstractmethod
+        genericClassBuilder.AppendLine(
+            @$"
 def __del__(self) -> None:
     pass
-    "
+        "
         );
+
+        return genericClassBuilder;
     }
 
-    public void AddClassToMainAndInitPy(ExportedTypeDefinitionInfo classInfo)
+    private void AddClassToMainAndInitPy(
+        ExportedTypeDefinitionInfo classInfo,
+        IndentedPythonStringBuilder classBodyBuilder,
+        IndentedPythonStringBuilder? genericClassBodyBuilder
+    )
     {
         var baseClassName = PythonUtils.GetGenericBaseNameOrNull(classInfo.TypeName);
         string className = PythonUtils.PythonizeClassName(classInfo.TypeName);
 
-        initPy.AppendLine($"from .main import {className}");
+        if (genericClassBodyBuilder is not null)
+        {
+            initPy.AppendLine($"from .main import {baseClassName}");
+        }
+        else
+        {
+            initPy.AppendLine($"from .main import {className}");
+        }
 
         var genericDef = string.Join(
             ", ",
@@ -142,12 +119,12 @@ def __del__(self) -> None:
             genericDef = $"({baseClassName}[{genericDef}])";
         }
 
-        mainPy.AppendLine($"class {className}{genericDef}:");
-        using var _ = mainPy.IndentUntilDispose();
+        classBodyBuilder.AppendLine($"class {className}{genericDef}:");
+        using var _ = classBodyBuilder.IndentUntilDispose();
 
         if (!string.IsNullOrWhiteSpace(classInfo.SummaryComment))
         {
-            mainPy.AppendLine(
+            classBodyBuilder.AppendLine(
                 @$"    
 """"""
 {classInfo.SummaryComment}
@@ -156,19 +133,19 @@ def __del__(self) -> None:
         }
 
         var classContext = new ClassBuilderContext(globalContext, pythonProjectInfo, classInfo);
-        var methodBuilder = new CffiApiMethodBuilder(classContext, mainPy);
+        var methodBuilder = new CffiApiMethodBuilder(classContext, classBodyBuilder);
         foreach (var method in classInfo.Methods)
         {
             if (method.OriginalName.StartsWith(InternalPrefix))
             {
                 continue;
             }
-            methodBuilder.AddClassToMainAndInitPy(method);
+            methodBuilder.AddClassToMainAndInitPy(method, genericClassBodyBuilder);
         }
 
         if (!classInfo.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.Static))
         {
-            mainPy.AppendLine(
+            classBodyBuilder.AppendLine(
                 @$"
 @classmethod
 def {FromPtr}(cls, ptr: int):
@@ -193,9 +170,12 @@ def __del__(self):
                 out bool isOriginalType
             );
             var numpyType = PythonUtils.MapTypeToNumpy(exposedType);
-            mainPy.AppendLine($"def to_list(self) -> list[\"{genericArg}\"]:");
-            using var indent1 = mainPy.IndentUntilDispose();
-            mainPy.AppendLine(
+            var tolistMethodDef = $"def to_list(self) -> list[\"{genericArg}\"]:";
+            classBodyBuilder.AppendLine(tolistMethodDef);
+            genericClassBodyBuilder?.AppendLine(tolistMethodDef);
+            genericClassBodyBuilder?.AppendLine("    pass");
+            using var indent1 = classBodyBuilder.IndentUntilDispose();
+            classBodyBuilder.AppendLine(
                 @$"
 """"""
 Converts the array data to a list of the specified dtype.
@@ -211,7 +191,7 @@ arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
 
             if (isOriginalType)
             {
-                mainPy.AppendLine("return arr.tolist()");
+                classBodyBuilder.AppendLine("return arr.tolist()");
             }
             else
             {
@@ -223,20 +203,81 @@ arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
                 var (prefix, suffix) = CffiApiMethodBuilder.GetToPythonTransformation(
                     genericTypeInfo
                 );
-                mainPy.AppendLine("final_list = []");
-                using (var forBlock = mainPy.AppendLineWithNewBlock("for i in range(length):"))
+                classBodyBuilder.AppendLine("final_list = []");
+                using (
+                    var forBlock = classBodyBuilder.AppendLineWithNewBlock(
+                        "for i in range(length):"
+                    )
+                )
                 {
                     if (numpyType == "np.intp")
                     {
-                        mainPy.AppendLine($"val = {Ffi}.cast('void *', arr[i])");
+                        classBodyBuilder.AppendLine($"val = {Ffi}.cast('void *', arr[i])");
                     }
                     else
                     {
-                        mainPy.AppendLine($"val = arr[i]");
+                        classBodyBuilder.AppendLine($"val = arr[i]");
                     }
-                    mainPy.AppendLine($"final_list.append({prefix}val{suffix})");
+                    classBodyBuilder.AppendLine($"final_list.append({prefix}val{suffix})");
                 }
-                mainPy.AppendLine("return final_list");
+                classBodyBuilder.AppendLine("return final_list");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the applicable config objects for a type info object.
+    /// </summary>
+    /// <param name="configs"></param>
+    /// <param name="typeInfo"></param>
+    /// <returns></returns>
+    public IEnumerable<(Type, DotWrapPythonTypeConfig)> GetApplicableConfigs(
+        Dictionary<Type, DotWrapPythonTypeConfig> configs,
+        ExportedTypeDefinitionInfo typeInfo
+    )
+    {
+        foreach (var strongType in GetTypesThatCouldHaveConfigs(typeInfo))
+        {
+            if (configs.TryGetValue(strongType, out var config))
+            {
+                yield return (strongType, config);
+            }
+
+            if (strongType.IsGenericType)
+            {
+                var genericTypeDef = strongType.GetGenericTypeDefinition();
+                if (configs.TryGetValue(genericTypeDef, out var genericConfig))
+                {
+                    yield return (genericTypeDef, genericConfig);
+                }
+            }
+        }
+    }
+
+    private static IEnumerable<Type> GetTypesThatCouldHaveConfigs(
+        ExportedTypeDefinitionInfo typeInfo
+    )
+    {
+        foreach (var typeString in typeInfo.Interfaces.Prepend(typeInfo.FullyQualifiedName))
+        {
+            // Logger.LogDebug($"Checking for config for type {typeString}");
+            var strongType = Type.GetType(typeString);
+
+            if (strongType is null)
+            {
+                Logger.LogWarning(
+                    $"Could not find type {typeString} for class {typeInfo.TypeName}."
+                );
+                continue;
+            }
+
+            yield return strongType;
+
+            var baseType = strongType.BaseType;
+            while (baseType is not null && baseType != typeof(object))
+            {
+                yield return baseType;
+                baseType = baseType.BaseType;
             }
         }
     }

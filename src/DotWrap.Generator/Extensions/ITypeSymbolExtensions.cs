@@ -213,5 +213,124 @@ public static class ITypedSymbolExtensions
                 IsNullable = symbol.NullableAnnotation == NullableAnnotation.Annotated
             };
         }
+
+        /// <summary>
+        /// returns the assembly qualified name of the type symbol.
+        /// </summary>
+        /// <returns></returns>
+        public string GetAssemblyQualifiedName()
+        {
+            if (symbol is IArrayTypeSymbol arrayType)
+            {
+                // Handle arrays: e.g. System.Int32[], System.Runtime, ...
+                string elementTypeName = GetTypeName(arrayType.ElementType);
+                var assembly = symbol.ContainingAssembly;
+                if (assembly == null || assembly.Identity == null)
+                    return $"{elementTypeName}[]";
+                var identity = assembly.Identity;
+                var publicKeyToken = identity.PublicKeyToken != null && identity.PublicKeyToken.Length > 0
+                    ? string.Concat(identity.PublicKeyToken.Select(b => b.ToString("x2")))
+                    : "null";
+                var assemblyDetails = $"{identity.Name}, Version={identity.Version}, Culture={(string.IsNullOrEmpty(identity.CultureName) ? "neutral" : identity.CultureName)}, PublicKeyToken={publicKeyToken}";
+                return $"{elementTypeName}[], {assemblyDetails}";
+            }
+            else if (symbol is INamedTypeSymbol namedType)
+            {
+                string typeName = GetFullTypeName(namedType);
+                var assembly = symbol.ContainingAssembly;
+                if (assembly == null || assembly.Identity == null)
+                    return typeName;
+                var identity = assembly.Identity;
+                var publicKeyToken = identity.PublicKeyToken != null && identity.PublicKeyToken.Length > 0
+                    ? string.Concat(identity.PublicKeyToken.Select(b => b.ToString("x2")))
+                    : "null";
+                var assemblyDetails = $"{identity.Name}, Version={identity.Version}, Culture={(string.IsNullOrEmpty(identity.CultureName) ? "neutral" : identity.CultureName)}, PublicKeyToken={publicKeyToken}";
+                if (namedType.TypeArguments.Length > 0)
+                {
+                    var genericArgs = string.Join(",", namedType.TypeArguments.Select(GetGenericArg));
+                    return $"{typeName}[{genericArgs}], {assemblyDetails}";
+                }
+                else
+                {
+                    return $"{typeName}, {assemblyDetails}";
+                }
+            }
+            else
+            {
+                string typeName = GetTypeName(symbol);
+                var assembly = symbol.ContainingAssembly;
+                if (assembly == null || assembly.Identity == null)
+                    return typeName;
+                var identity = assembly.Identity;
+                var publicKeyToken = identity.PublicKeyToken != null && identity.PublicKeyToken.Length > 0
+                    ? string.Concat(identity.PublicKeyToken.Select(b => b.ToString("x2")))
+                    : "null";
+                var assemblyDetails = $"{identity.Name}, Version={identity.Version}, Culture={(string.IsNullOrEmpty(identity.CultureName) ? "neutral" : identity.CultureName)}, PublicKeyToken={publicKeyToken}";
+                return $"{typeName}, {assemblyDetails}";
+            }
+
+        // Helper: Get full type name for nested types and generics
+        static string GetFullTypeName(INamedTypeSymbol symbol)
+        {
+            var parts = new List<string>();
+            var current = symbol;
+            while (current != null)
+            {
+                var name = current.Name;
+                if (current.TypeArguments.Length > 0)
+                    name += $"`{current.TypeArguments.Length}";
+                parts.Insert(0, name);
+                current = current.ContainingType;
+            }
+            var ns = symbol.ContainingNamespace?.ToDisplayString() ?? "";
+            return string.IsNullOrEmpty(ns) ? string.Join("+", parts) : $"{ns}.{string.Join("+", parts)}";
+        }
+
+        // Helper: Get generic argument string for assembly qualified name
+        static string GetGenericArg(ITypeSymbol arg)
+        {
+            if (arg is INamedTypeSymbol nestedNamedType && nestedNamedType.TypeArguments.Length > 0)
+            {
+                return $"[{nestedNamedType.GetAssemblyQualifiedName()}]";
+            }
+            if (arg is IArrayTypeSymbol arrayType)
+            {
+                return $"[{arrayType.GetAssemblyQualifiedName()}]";
+            }
+            string argTypeName = GetTypeName(arg);
+            var argAssembly = arg.ContainingAssembly?.Identity;
+            if (argAssembly == null)
+                return $"[{argTypeName}]";
+            var argPublicKeyToken = argAssembly.PublicKeyToken != null && argAssembly.PublicKeyToken.Length > 0
+                ? string.Concat(argAssembly.PublicKeyToken.Select(b => b.ToString("x2")))
+                : "null";
+            var argAssemblyDetails = $"{argAssembly.Name}, Version={argAssembly.Version}, Culture={(string.IsNullOrEmpty(argAssembly.CultureName) ? "neutral" : argAssembly.CultureName)}, PublicKeyToken={argPublicKeyToken}";
+            return $"[{argTypeName}, {argAssemblyDetails}]";
+        }
+
+        // Helper: Get type name for primitives and other types
+        static string GetTypeName(ITypeSymbol symbol)
+        {
+            return symbol.SpecialType switch
+            {
+                SpecialType.System_Int32 => "System.Int32",
+                SpecialType.System_Int64 => "System.Int64",
+                SpecialType.System_Int16 => "System.Int16",
+                SpecialType.System_UInt32 => "System.UInt32",
+                SpecialType.System_UInt64 => "System.UInt64",
+                SpecialType.System_UInt16 => "System.UInt16",
+                SpecialType.System_Byte => "System.Byte",
+                SpecialType.System_SByte => "System.SByte",
+                SpecialType.System_Single => "System.Single",
+                SpecialType.System_Double => "System.Double",
+                SpecialType.System_Char => "System.Char",
+                SpecialType.System_Boolean => "System.Boolean",
+                SpecialType.System_String => "System.String",
+                SpecialType.System_Object => "System.Object",
+                _ => symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Replace("global::", "")
+            };
+        }
+        }
+
     }
 }

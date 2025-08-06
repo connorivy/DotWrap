@@ -13,18 +13,16 @@ string dllDirectory =
 
 string logPath = Path.Combine(dllDirectory, $"DotWrapOutput.log");
 
-var logger = new Logger();
-
 try
 {
     switch (args[1])
     {
         case MagicStrings.BuildOperation:
-            var wrapperGenerator = new WrapperGeneratorFromEmbeddedMetadata(logger);
+            var wrapperGenerator = new WrapperGeneratorFromEmbeddedMetadata();
             wrapperGenerator.GenerateWrapper(dllPath);
             break;
         case MagicStrings.PublishOperation:
-            var nativeLibCopier = new NativeLibCopier(logger);
+            var nativeLibCopier = new NativeLibCopier();
             nativeLibCopier.CopyNativeLibs(dllPath);
             break;
         default:
@@ -35,10 +33,10 @@ try
 }
 catch (Exception ex)
 {
-    logger.LogError(ex.ToString());
+    Logger.LogError(ex.ToString());
     throw;
 }
 finally
 {
-    logger.SaveToFile(logPath);
+    Logger.SaveToFile(logPath);
 }

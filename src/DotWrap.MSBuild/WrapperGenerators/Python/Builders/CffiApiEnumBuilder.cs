@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
-using DotWrap.Internal;
+using DotWrap.Utils;
 using static DotWrap.Internal.Constants;
 using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
 

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using DotWrap.Internal;
 using DotWrap.MSBuild.WrapperGenerators.Python.Extensions;
+using DotWrap.Utils;
 using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
@@ -13,13 +13,16 @@ internal class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedSt
 
     public IEnumerable<string> MethodNames => this.methodNames;
 
-    public void AddClassToMainAndInitPy(ExportedMethodInfo method)
+    public void AddClassToMainAndInitPy(
+        ExportedMethodInfo method,
+        IndentedPythonStringBuilder? genericClassBodyBuilder
+    )
     {
         var context = new MethodBuilderContext(classContext, method);
         // var (returnWrapPrefix, returnWrapSuffix) = GetToPythonTransformation(method);
         var exportedResultAssignment = GetExternalResultAssignment(method);
 
-        this.GenerateSingleMethod(context, exportedResultAssignment);
+        this.GenerateSingleMethod(context, exportedResultAssignment, genericClassBodyBuilder);
     }
 
     public static (string prefix, string suffix) GetToPythonTransformation(
@@ -55,9 +58,8 @@ internal class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedSt
 
     public void GenerateSingleMethod(
         MethodBuilderContext context,
-        // string? resultToExportTypePrefix,
-        // string? resultToExportTypeSuffix,
-        string? exportedResultAssignment
+        string? exportedResultAssignment,
+        IndentedPythonStringBuilder? genericClassBodyBuilder
     )
     {
         var methodInfo = context.MethodInfo;
@@ -83,6 +85,7 @@ internal class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedSt
         if (methodInfo.IsStatic && methodName != "__init__")
         {
             mainPy.AppendLine($"@staticmethod");
+            genericClassBodyBuilder?.AppendLine($"@staticmethod");
         }
         else if (
             methodInfo.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.PropertyGetter)
@@ -91,6 +94,7 @@ internal class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedSt
         {
             methodName = methodName["get_".Length..];
             mainPy.AppendLine($"@property");
+            genericClassBodyBuilder?.AppendLine($"@property");
         }
         else if (
             methodInfo.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.PropertySetter)
@@ -99,11 +103,14 @@ internal class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedSt
         {
             methodName = methodName["set_".Length..];
             mainPy.AppendLine($"@{methodName}.setter");
+            genericClassBodyBuilder?.AppendLine($"@{methodName}.setter");
         }
 
-        mainPy.AppendLine(
-            $"def {methodName}({string.Join(", ", paramListWithHints)}){$" -> {pyReturnType}"}:"
-        );
+        var methodDef =
+            $"def {methodName}({string.Join(", ", paramListWithHints)}){$" -> {pyReturnType}"}:";
+        mainPy.AppendLine(methodDef);
+        genericClassBodyBuilder?.AppendLine(methodDef);
+        genericClassBodyBuilder?.AppendLine("    pass");
         using var indent = mainPy.IndentUntilDispose();
 
         var docComment = methodInfo.GetMethodComment();

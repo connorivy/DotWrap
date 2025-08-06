@@ -8,11 +8,11 @@ using static DotWrap.Internal.Constants;
 
 namespace DotWrap.MSBuild.WrapperGenerators;
 
-public class WrapperGeneratorFromEmbeddedMetadata(Logger logger)
+public class WrapperGeneratorFromEmbeddedMetadata
 {
     public void GenerateWrapper(string libFullPath)
     {
-        logger.LogInfo($"Loading assembly from {libFullPath}");
+        Logger.LogInfo($"Loading assembly from {libFullPath}");
         var assembly = Assembly.LoadFrom(libFullPath);
 
         CSharpProjectInfo projectInfo = new(libFullPath);
@@ -51,9 +51,16 @@ public class WrapperGeneratorFromEmbeddedMetadata(Logger logger)
             }
         }
 
+        var configTypes = assembly
+            .GetTypes()
+            .Where(t => t.IsSubclassOf(typeof(DotWrapPythonTypeConfig)))
+            .Select(t => (DotWrapPythonTypeConfig)Activator.CreateInstance(t)!)
+            .ToDictionary(t => t.TypeToConfigure);
+
         GlobalContext globalContext = new(
             exportedTypes,
-            [.. exportedEnums.Select(e => $"{e.Namespace}.{e.Name}")]
+            [.. exportedEnums.Select(e => $"{e.Namespace}.{e.Name}")],
+            configTypes
         );
         CffiApiWrapperBuilder pythonWrapperBuilder = new(globalContext, projectInfo);
         pythonWrapperBuilder.BuildWrapper(exportedTypes.Values.ToList(), exportedEnums);

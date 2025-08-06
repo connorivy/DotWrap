@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using DotWrap;
+using DotWrap.Utils;
 
 // [assembly: DotWrapExternalExpose(typeof(IList<>))]
 [assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<>.Add), alias: "CustomAddName")]
@@ -71,4 +72,30 @@ public struct ArrayInfo
 {
     public IntPtr Ptr;
     public int Length;
+}
+
+public class ICollectionConfig : DotWrapPythonTypeConfig
+{
+    public override Type TypeToConfigure => typeof(ICollection<>);
+
+    public override void ConfigureClassBody(
+        Type matchingType,
+        IndentedStringBuilder? genericClassBodyBuilder
+    )
+    {
+        genericClassBodyBuilder?.AppendLine(
+            @"
+def __await__(self):
+    return self._poll().__await__()
+
+async def _poll(self):
+    while True:
+        if self.is_completed_successfully:
+            return self.result
+        elif self.is_faulted:
+            raise RuntimeError(""Error polling task"")
+        await asyncio.sleep(0.1)
+        "
+        );
+    }
 }

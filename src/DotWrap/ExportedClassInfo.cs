@@ -131,7 +131,8 @@ public class ExportedEnumInfo : IHasOriginalAndExposedTypes
 
 public class ExportedTypeDefinitionInfo
 {
-    public ExportedTypeId Id => new(Namespace, TypeName, GenericTypeArgumentsToParameters.Values);
+    public ExportedTypeId Id => new(Namespace, TypeName, GenericTypeArgumentsToParameters.Keys);
+    public required string FullyQualifiedName { get; set; }
 
     // public string EntryPrefix => field ??= $"c{DotWrapUtils.GetStamp(this.Id.ToString())}_";
     public required string EntryPrefix { get; set; }
@@ -144,7 +145,7 @@ public class ExportedTypeDefinitionInfo
     public required ExportedType ExportedType { get; set; }
     public required TypeSpecialCaseFlags SpecialCaseFlags { get; set; }
     public string? SummaryComment { get; set; }
-    public List<ExportedMethodInfo>? Methods { get; set; }
+    public List<ExportedMethodInfo> Methods { get; set; } = new();
 
     public bool TryGetICollectionType([NotNullWhen(true)] out string? collectionType) =>
         this.TryGetSingleGenericInterfaceType(
