@@ -94,9 +94,8 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
         return string.Join(", ", paramListWithHints);
     }
 
-    public string? ConvertPythonParamsToCParams()
+    public IEnumerable<string> ConvertPythonParamsToCParams()
     {
-        var sb = new System.Text.StringBuilder();
         bool hasConverted = false;
         foreach (var param in this.MethodInfo.Parameters)
         {
@@ -108,15 +107,12 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
 
             if (ClassContext.GlobalContext.EnumNames.Contains(param.Type.DefinitionId.ToString()))
             {
-                sb.AppendLine(
-                    $"        {param.Name}{Typed} = {PythonUtils.MapTypeToPython(param.ExposedTypeIfDifferent)}({param.Name}.value)"
-                );
+                yield return $"{param.Name}{Typed} = {PythonUtils.MapTypeToPython(param.ExposedTypeIfDifferent)}({param.Name}.value)";
             }
             else
             {
-                sb.AppendLine($"        {param.Name}{Typed} = {param.Name}.{Ptr}");
+                yield return $"{param.Name}{Typed} = {param.Name}.{Ptr}";
             }
         }
-        return hasConverted ? sb.ToString() : null;
     }
 };

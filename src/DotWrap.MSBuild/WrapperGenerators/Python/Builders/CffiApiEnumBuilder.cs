@@ -11,10 +11,10 @@ using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 
-public class CffiApiEnumBuilder(
+internal class CffiApiEnumBuilder(
     PythonProjectInfo pythonProjectInfo,
-    StringBuilder mainPy,
-    StringBuilder initPy
+    IndentedStringBuilder mainPy,
+    IndentedStringBuilder initPy
 )
 {
     public void AddClassesToMainAndInitPy(IEnumerable<ExportedEnumInfo> enums)
@@ -31,10 +31,11 @@ public class CffiApiEnumBuilder(
         initPy.AppendLine($"from .main import {className}");
 
         mainPy.AppendLine($"class {className}(Enum):");
+        using var indent = mainPy.IndentUntilDispose();
 
         foreach (var kvp in cls.Options)
         {
-            mainPy.AppendLine($"    {PythonUtils.ToSnakeCase(kvp.Key)} = {kvp.Value}");
+            mainPy.AppendLine($"{PythonUtils.ToSnakeCase(kvp.Key)} = {kvp.Value}");
         }
     }
 }

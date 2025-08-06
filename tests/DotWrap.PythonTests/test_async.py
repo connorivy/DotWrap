@@ -1,3 +1,4 @@
+import pytest
 import DotWrap_TestLib as test_lib
 
 
@@ -9,3 +10,15 @@ def test_task_of_int_result():
 def test_value_task_of_int_result():
     result = test_lib.Async.value_task_of_55()
     assert result.result == 55
+
+
+@pytest.mark.asyncio
+async def test_task_of_int_await():
+    result = test_lib.Async.task_of_42()
+    assert await result == 42
+
+
+@pytest.mark.asyncio
+async def test_value_task_of_int_await():
+    result = test_lib.Async.value_task_of_55()
+    assert await result == 55

@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DotWrap.Internal;
 using DotWrap.MSBuild.WrapperGenerators.Python.Extensions;
 using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 
-public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilder mainPy)
+internal class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStringBuilder mainPy)
 {
     private readonly HashSet<string> methodNames = [];
 
@@ -41,13 +42,12 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
     {
         return method switch
         {
-            { OriginalTypeName: "string" } =>
-                $"        {ExportedResult} = str(CString({InternalResult}))",
-            { OriginalTypeName: "bool" } => $"        {ExportedResult} = bool({InternalResult})",
+            { OriginalTypeName: "string" } => $"{ExportedResult} = str(CString({InternalResult}))",
+            { OriginalTypeName: "bool" } => $"{ExportedResult} = bool({InternalResult})",
             _ when method.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.EnumReturnType) =>
-                $"        {ExportedResult} = {PythonUtils.PythonizeClassName(method.OriginalTypeName)}({InternalResult})",
+                $"{ExportedResult} = {PythonUtils.PythonizeClassName(method.OriginalTypeName)}({InternalResult})",
             { ExposedTypeIfDifferent: not null } => (
-                $"        {ExportedResult} = {method.OriginalTypeWrapper}.{FromPtr}({InternalResult})"
+                $"{ExportedResult} = {method.OriginalTypeWrapper}.{FromPtr}({InternalResult})"
             ),
             _ => null,
         };
@@ -82,7 +82,7 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
 
         if (methodInfo.IsStatic && methodName != "__init__")
         {
-            mainPy.AppendLine($"    @staticmethod");
+            mainPy.AppendLine($"@staticmethod");
         }
         else if (
             methodInfo.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.PropertyGetter)
@@ -90,7 +90,7 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
         )
         {
             methodName = methodName["get_".Length..];
-            mainPy.AppendLine($"    @property");
+            mainPy.AppendLine($"@property");
         }
         else if (
             methodInfo.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.PropertySetter)
@@ -98,28 +98,29 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
         )
         {
             methodName = methodName["set_".Length..];
-            mainPy.AppendLine($"    @{methodName}.setter");
+            mainPy.AppendLine($"@{methodName}.setter");
         }
 
         mainPy.AppendLine(
-            $"    def {methodName}({string.Join(", ", paramListWithHints)}){$" -> {pyReturnType}"}:"
+            $"def {methodName}({string.Join(", ", paramListWithHints)}){$" -> {pyReturnType}"}:"
         );
+        using var indent = mainPy.IndentUntilDispose();
 
-        var docComment = methodInfo.GetMethodComment("        ");
+        var docComment = methodInfo.GetMethodComment();
         if (!string.IsNullOrWhiteSpace(docComment))
         {
             mainPy.AppendLine(docComment);
         }
 
         var pythonParamsToCParams = context.ConvertPythonParamsToCParams();
-        if (pythonParamsToCParams is not null)
+        foreach (var param in pythonParamsToCParams)
         {
-            mainPy.AppendLine(pythonParamsToCParams);
+            mainPy.AppendLine(param);
         }
 
         var libCall = $"{Lib}.{context.ClassContext.ClassInfo.EntryPrefix}{methodInfo.StampedName}";
 
-        mainPy.AppendLine($"        {internalResultAssignment}{libCall}({cLibMethodArgs})");
+        mainPy.AppendLine($"{internalResultAssignment}{libCall}({cLibMethodArgs})");
 
         if (returnCall == string.Empty)
         {
@@ -130,11 +131,11 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, StringBuilde
         if (exportedResultAssignment is not null)
         {
             mainPy.AppendLine(exportedResultAssignment);
-            mainPy.AppendLine($"        return {ExportedResult}");
+            mainPy.AppendLine($"return {ExportedResult}");
         }
         else if (internalResultAssignment is not null)
         {
-            mainPy.AppendLine($"        return {InternalResult}");
+            mainPy.AppendLine($"return {InternalResult}");
         }
 
         // mainPy.AppendLine(

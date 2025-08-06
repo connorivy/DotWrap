@@ -7,44 +7,44 @@ public static class MethodInfoExtensions
 {
     extension(ExportedMethodInfo methodInfo)
     {
-        public string? GetMethodComment(string tabString)
+        public string? GetMethodComment()
         {
             bool hasAnyXmlComments = false;
             StringBuilder commentBuilder = new();
-            commentBuilder.AppendLine(@$"{tabString}""""""");
+            commentBuilder.AppendLine(@$"""""""");
 
             if (!string.IsNullOrEmpty(methodInfo.SummaryComment))
             {
                 commentBuilder.AppendLine(
-                    $"{tabString}{methodInfo.SummaryComment.Trim()}".Replace("\n", $"\n{tabString}")
+                    $"{methodInfo.SummaryComment.Trim()}".Replace("\n", $"\n")
                 );
                 hasAnyXmlComments = true;
             }
 
             if (methodInfo.Parameters.Count > 0)
             {
-                commentBuilder.AppendLine($"{tabString}Args:");
+                commentBuilder.AppendLine($"Args:");
                 foreach (var param in methodInfo.Parameters)
                 {
                     if (!string.IsNullOrEmpty(param.Comment))
                     {
-                        commentBuilder.AppendLine($"{tabString}    {param.Name}: {param.Comment}");
+                        commentBuilder.AppendLine($"    {param.Name}: {param.Comment}");
                         hasAnyXmlComments = true;
                     }
                     else
                     {
-                        commentBuilder.AppendLine($"{tabString}\t{param.Name}");
+                        commentBuilder.AppendLine($"    {param.Name}");
                     }
                 }
             }
 
             if (!string.IsNullOrEmpty(methodInfo.ReturnsComment))
             {
-                commentBuilder.AppendLine($"{tabString}Returns:");
-                commentBuilder.AppendLine($"{tabString}\t{methodInfo.ReturnsComment}");
+                commentBuilder.AppendLine($"Returns:");
+                commentBuilder.AppendLine($"    {methodInfo.ReturnsComment}");
                 hasAnyXmlComments = true;
             }
-            commentBuilder.Append(@$"{tabString}""""""");
+            commentBuilder.Append(@$"""""""");
 
             return hasAnyXmlComments ? commentBuilder.ToString() : null;
         }

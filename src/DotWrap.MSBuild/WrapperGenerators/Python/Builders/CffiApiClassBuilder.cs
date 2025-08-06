@@ -11,11 +11,11 @@ using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 
-public class CffiApiClassBuilder(
+internal class CffiApiClassBuilder(
     GlobalContext globalContext,
     PythonProjectInfo pythonProjectInfo,
-    StringBuilder mainPy,
-    StringBuilder initPy
+    IndentedStringBuilder mainPy,
+    IndentedStringBuilder initPy
 )
 {
     private HashSet<string> classNames = new();
@@ -48,18 +48,20 @@ public class CffiApiClassBuilder(
         mainPy.AppendLine(
             $"class {genericClassName}(Generic[{string.Join(", ", genericParams)}]):"
         );
+        using var _ = mainPy.IndentUntilDispose();
+
         if (!string.IsNullOrWhiteSpace(cls.SummaryComment))
         {
             mainPy.AppendLine(
                 @$"    
-    """"""
-    {cls.SummaryComment}
-    """""""
+""""""
+{cls.SummaryComment}
+"""""""
             );
         }
 
         var classContext = new ClassBuilderContext(globalContext, pythonProjectInfo, cls);
-        StringBuilder dummy = new();
+        IndentedCSharpStringBuilder dummy = new();
         var methodNames = new HashSet<string>();
         var methodBuilder = new CffiApiMethodBuilder(classContext, dummy);
         foreach (var method in cls.Methods)
@@ -79,19 +81,19 @@ public class CffiApiClassBuilder(
             if (method.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.PropertyGetter))
             {
                 methodName = methodName["get_".Length..];
-                mainPy.AppendLine($"    @property");
+                mainPy.AppendLine($"@property");
             }
             else if (method.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.PropertySetter))
             {
                 methodName = methodName["set_".Length..];
-                mainPy.AppendLine($"    @{methodName}.setter");
+                mainPy.AppendLine($"@{methodName}.setter");
             }
 
             mainPy.AppendLine(
                 @$"    
-    @abstractmethod
-    def {methodName}({paramListWithHints}){$" -> {pyReturnType}"}:
-        pass
+@abstractmethod
+def {methodName}({paramListWithHints}){$" -> {pyReturnType}"}:
+    pass
     "
             );
         }
@@ -107,17 +109,17 @@ public class CffiApiClassBuilder(
             );
             mainPy.AppendLine(
                 @$"
-    def to_list(self) -> list[""{genericParam}""]:
-        pass
+def to_list(self) -> list[""{genericParam}""]:
+    pass
         "
             );
         }
 
         mainPy.AppendLine(
             @$"    
-    @abstractmethod
-    def __del__(self) -> None:
-        pass
+@abstractmethod
+def __del__(self) -> None:
+    pass
     "
         );
     }
@@ -141,14 +143,15 @@ public class CffiApiClassBuilder(
         }
 
         mainPy.AppendLine($"class {className}{genericDef}:");
+        using var _ = mainPy.IndentUntilDispose();
 
         if (!string.IsNullOrWhiteSpace(classInfo.SummaryComment))
         {
             mainPy.AppendLine(
                 @$"    
-    """"""
-    {classInfo.SummaryComment}
-    """""""
+""""""
+{classInfo.SummaryComment}
+"""""""
             );
         }
 
@@ -165,15 +168,18 @@ public class CffiApiClassBuilder(
 
         if (!classInfo.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.Static))
         {
-            mainPy.AppendLine($"    @classmethod");
-            mainPy.AppendLine($"    def {FromPtr}(cls, ptr: int):");
-            mainPy.AppendLine($"        instance = object.__new__(cls)");
-            mainPy.AppendLine($"        instance.{Ptr} = ptr");
-            mainPy.AppendLine($"        return instance");
-            mainPy.AppendLine();
-            mainPy.AppendLine("    def __del__(self):");
-            mainPy.AppendLine($"        {Lib}.{classInfo.EntryPrefix}{Destroy}(self.{Ptr})");
-            mainPy.AppendLine();
+            mainPy.AppendLine(
+                @$"
+@classmethod
+def {FromPtr}(cls, ptr: int):
+    instance = object.__new__(cls)
+    instance.{Ptr} = ptr
+    return instance
+
+def __del__(self):
+    {Lib}.{classInfo.EntryPrefix}{Destroy}(self.{Ptr})
+"
+            );
         }
 
         if (
@@ -187,28 +193,25 @@ public class CffiApiClassBuilder(
                 out bool isOriginalType
             );
             var numpyType = PythonUtils.MapTypeToNumpy(exposedType);
+            mainPy.AppendLine($"def to_list(self) -> list[\"{genericArg}\"]:");
+            using var indent1 = mainPy.IndentUntilDispose();
             mainPy.AppendLine(
                 @$"
-    def to_list(self) -> list[""{genericArg}""]:
-        """"""
-        Converts the array data to a list of the specified dtype.
-        """"""
-        length = {Lib}.{classInfo.EntryPrefix}{GetCount}(self.{Ptr})
-        arr = np.empty(length, dtype={numpyType})
+""""""
+Converts the array data to a list of the specified dtype.
+""""""
+length = {Lib}.{classInfo.EntryPrefix}{GetCount}(self.{Ptr})
+arr = np.empty(length, dtype={numpyType})
 
-        # get stable pointer to the array data
-        arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
-        {Lib}.{classInfo.EntryPrefix}{FillArr}(self.{Ptr}, arr_ptr, length)
+# get stable pointer to the array data
+arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
+{Lib}.{classInfo.EntryPrefix}{FillArr}(self.{Ptr}, arr_ptr, length)
         "
             );
 
             if (isOriginalType)
             {
-                mainPy.AppendLine(
-                    @$"
-        return arr.tolist()
-        "
-                );
+                mainPy.AppendLine("return arr.tolist()");
             }
             else
             {
@@ -220,33 +223,20 @@ public class CffiApiClassBuilder(
                 var (prefix, suffix) = CffiApiMethodBuilder.GetToPythonTransformation(
                     genericTypeInfo
                 );
-                mainPy.AppendLine(
-                    @$"
-        final_list = []
-        for i in range(length):"
-                );
-
-                if (numpyType == "np.intp")
+                mainPy.AppendLine("final_list = []");
+                using (var forBlock = mainPy.AppendLineWithNewBlock("for i in range(length):"))
                 {
-                    mainPy.AppendLine(
-                        @$"
-            val = _dotwrap_ffi.cast(""void *"", arr[i])"
-                    );
+                    if (numpyType == "np.intp")
+                    {
+                        mainPy.AppendLine($"val = {Ffi}.cast('void *', arr[i])");
+                    }
+                    else
+                    {
+                        mainPy.AppendLine($"val = arr[i]");
+                    }
+                    mainPy.AppendLine($"final_list.append({prefix}val{suffix})");
                 }
-                else
-                {
-                    mainPy.AppendLine(
-                        @$"
-            val = arr[i]"
-                    );
-                }
-                mainPy.AppendLine(
-                    @$"
-            final_list.append({prefix}val{suffix})
-
-        return final_list
-        "
-                );
+                mainPy.AppendLine("return final_list");
             }
         }
     }
