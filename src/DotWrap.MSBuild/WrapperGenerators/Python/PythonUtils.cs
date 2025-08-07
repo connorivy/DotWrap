@@ -20,15 +20,16 @@ public static class PythonUtils
     public static string PythonizeClassName(string fullTypeName)
     {
         fullTypeName = DotWrapUtils.ReplaceArraySymbols(fullTypeName);
-        // Handle generic types in the original type
-        // e.g., typeName = "System.Collections.Generic.Dictionary<string, int>.KeyCollection"
-        var innerGenerics = fullTypeName
-            .Split('.')
+
+        var topLevelSplit = SplitOnPeriodTopLevel(fullTypeName).ToList();
+
+        var innerGenerics = topLevelSplit
             .SelectMany(GetTopLevelGenerics)
+            .Select(DotWrapUtils.NormalizeCsTypeName)
             .Select(PythonizeClassName)
             .ToList();
 
-        var typeName = fullTypeName.Split('.').Last();
+        var typeName = topLevelSplit.Last();
         var nonGenericTypeName = GetGenericBaseNameOrNull(typeName) ?? typeName;
 
         return nonGenericTypeName
@@ -51,19 +52,48 @@ public static class PythonUtils
     {
         fullTypeName = DotWrapUtils.ReplaceArraySymbols(fullTypeName);
 
-        // Handle generic types in the original type
-        // e.g., typeName = "System.Collections.Generic.Dictionary<string, int>.KeyCollection"
-        var innerGenerics = fullTypeName
-            .Split('.')
+        var topLevelSplit = SplitOnPeriodTopLevel(fullTypeName).ToList();
+
+        var innerGenerics = topLevelSplit
             .SelectMany(GetTopLevelGenerics)
             .Select(g => MapTypeToPython(g, genericParamsToArgsDict))
             .ToList();
 
-        var typeName = fullTypeName.Split('.').Last();
+        var typeName = topLevelSplit.Last();
         var nonGenericTypeName = GetGenericBaseNameOrNull(typeName) ?? typeName;
 
         return nonGenericTypeName
             + (innerGenerics.Count > 0 ? $"[{string.Join(", ", innerGenerics)}]" : "");
+    }
+
+    /// <summary>
+    /// Splits a string on periods, but only at the top level meaning that periods within generic type arguments are ignored.
+    /// For example:
+    ///   "System.Collections.Generic.List<System.Int32>" -> ["System", "Collections", "Generic", "List<System.Int32>"]
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    public static IEnumerable<string> SplitOnPeriodTopLevel(string input)
+    {
+        int splitStartIndex = 0;
+        int numOpenBrackets = 0;
+        for (int i = 0; i < input.Length; i++)
+        {
+            if (input[i] == '<')
+            {
+                numOpenBrackets++;
+            }
+            else if (input[i] == '>')
+            {
+                numOpenBrackets--;
+            }
+            else if (input[i] == '.' && numOpenBrackets == 0)
+            {
+                yield return input.Substring(splitStartIndex, i - splitStartIndex);
+                splitStartIndex = i + 1;
+            }
+        }
+        yield return input.Substring(splitStartIndex);
     }
 
     public static IEnumerable<string> GetTopLevelGenerics(string input)
@@ -149,7 +179,7 @@ public static class PythonUtils
         {
             return mappedType;
         }
-        return t switch
+        return t.ToLowerInvariant().Replace("system.", "") switch
         {
             "sbyte"
             or "byte"
@@ -168,6 +198,26 @@ public static class PythonUtils
             "void" => "None",
             "string" => "str",
             _ => PythonizeTypeName(t, genericParamsToArgsDict),
+        };
+    }
+
+    public static string MapTypeToNumpy(ExportedType t)
+    {
+        return t switch
+        {
+            ExportedType.Byte => "np.uint8",
+            ExportedType.SByte => "np.int8",
+            ExportedType.Int16 => "np.int16",
+            ExportedType.UInt16 => "np.uint16",
+            ExportedType.Int32 => "np.int32",
+            ExportedType.UInt32 => "np.uint32",
+            ExportedType.Int64 => "np.int64",
+            ExportedType.UInt64 => "np.uint64",
+            ExportedType.Float => "np.float32",
+            ExportedType.Double => "np.float64",
+            ExportedType.IntPtr => "np.intp",
+            ExportedType.Void => "np.void",
+            _ => "np.intp",
         };
     }
 

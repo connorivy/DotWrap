@@ -78,21 +78,21 @@ public static class ITypedSymbolExtensions
             switch (symbol)
             {
                 case { SpecialType: SpecialType.System_SByte }:
-                    return ExportedType.Sbyte;
+                    return ExportedType.SByte;
                 case { SpecialType: SpecialType.System_Byte }:
                     return ExportedType.Byte;
                 case { SpecialType: SpecialType.System_Int16 }:
-                    return ExportedType.Short;
+                    return ExportedType.Int16;
                 case { SpecialType: SpecialType.System_UInt16 }:
-                    return ExportedType.Ushort;
+                    return ExportedType.UInt16;
                 case { SpecialType: SpecialType.System_Int32 }:
-                    return ExportedType.Int;
+                    return ExportedType.Int32;
                 case { SpecialType: SpecialType.System_UInt32 }:
-                    return ExportedType.Uint;
+                    return ExportedType.UInt32;
                 case { SpecialType: SpecialType.System_Int64 }:
-                    return ExportedType.Long;
+                    return ExportedType.Int64;
                 case { SpecialType: SpecialType.System_UInt64 }:
-                    return ExportedType.Ulong;
+                    return ExportedType.UInt64;
                 case { SpecialType: SpecialType.System_Single }:
                     return ExportedType.Float;
                 case { SpecialType: SpecialType.System_Double }:
@@ -113,7 +113,7 @@ public static class ITypedSymbolExtensions
                 // Begin types that don't match original type
                 case { SpecialType: SpecialType.System_Boolean }:
                     isOriginalType = false;
-                    return ExportedType.Int;
+                    return ExportedType.Int32;
                 case { SpecialType: SpecialType.System_String }:
                     isOriginalType = false;
                     return ExportedType.IntPtr;

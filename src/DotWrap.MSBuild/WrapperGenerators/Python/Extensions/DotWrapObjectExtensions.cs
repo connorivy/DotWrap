@@ -76,4 +76,11 @@ public static class DotWrapObjectExtensions
             };
         }
     }
+
+    extension(ExportedTypeDefinitionInfo type)
+    {
+        public string PythonWrapperName() =>
+            PythonUtils.PythonizeClassName(type.TypeName);
+
+    }
 }

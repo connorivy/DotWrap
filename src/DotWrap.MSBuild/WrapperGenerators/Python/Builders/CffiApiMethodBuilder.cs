@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +8,7 @@ using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 
-internal class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStringBuilder mainPy)
+public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStringBuilder mainPy)
 {
     private readonly HashSet<string> methodNames = [];
 
@@ -15,11 +16,10 @@ internal class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedSt
 
     public void AddClassToMainAndInitPy(
         ExportedMethodInfo method,
-        IndentedPythonStringBuilder? genericClassBodyBuilder
+        IndentedStringBuilder? genericClassBodyBuilder
     )
     {
         var context = new MethodBuilderContext(classContext, method);
-        // var (returnWrapPrefix, returnWrapSuffix) = GetToPythonTransformation(method);
         var exportedResultAssignment = GetExternalResultAssignment(method);
 
         this.GenerateSingleMethod(context, exportedResultAssignment, genericClassBodyBuilder);
@@ -45,12 +45,29 @@ internal class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedSt
     {
         return method switch
         {
-            { OriginalTypeName: "string" } => $"{ExportedResult} = str(CString({InternalResult}))",
-            { OriginalTypeName: "bool" } => $"{ExportedResult} = bool({InternalResult})",
+            { OriginalTypeName: "string" } =>
+                $"{ExportedPyResult} = str(CString({InternalPyResult}))",
+            { OriginalTypeName: "bool" } => $"{ExportedPyResult} = bool({InternalPyResult})",
             _ when method.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.EnumReturnType) =>
-                $"{ExportedResult} = {PythonUtils.PythonizeClassName(method.OriginalTypeName)}({InternalResult})",
+                $"{ExportedPyResult} = {PythonUtils.PythonizeClassName(method.OriginalTypeName)}({InternalPyResult})",
             { ExposedTypeIfDifferent: not null } => (
-                $"{ExportedResult} = {method.OriginalTypeWrapper}.{FromPtr}({InternalResult})"
+                $"{ExportedPyResult} = {method.OriginalTypeWrapper}.{FromPtr}({InternalPyResult})"
+            ),
+            _ => null,
+        };
+    }
+
+    public static string? GetExternalResultAssignment(IHasOriginalAndExposedTypes type)
+    {
+        return type switch
+        {
+            { OriginalTypeName: "string" } =>
+                $"{ExportedPyResult} = str(CString({InternalPyResult}))",
+            { OriginalTypeName: "bool" } => $"{ExportedPyResult} = bool({InternalPyResult})",
+            // _ when type.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.Enum) =>
+            //     $"{ExportedPyResult} = {PythonUtils.PythonizeClassName(type.TypeName)}({InternalPyResult})",
+            { ExposedTypeIfDifferent: not null } => (
+                $"{ExportedPyResult} = {type.OriginalTypeWrapper}.{FromPtr}({InternalPyResult})"
             ),
             _ => null,
         };
@@ -59,7 +76,7 @@ internal class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedSt
     public void GenerateSingleMethod(
         MethodBuilderContext context,
         string? exportedResultAssignment,
-        IndentedPythonStringBuilder? genericClassBodyBuilder
+        IndentedStringBuilder? genericClassBodyBuilder
     )
     {
         var methodInfo = context.MethodInfo;
@@ -70,7 +87,7 @@ internal class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedSt
         var paramListWithHints = context.PythonMethodParamListWithHints();
 
         string? internalResultAssignment;
-        internalResultAssignment = $"{InternalResult} = ";
+        internalResultAssignment = $"{InternalPyResult} = ";
         var returnCall = "return ";
         if (methodName == "__init__")
         {
@@ -138,11 +155,11 @@ internal class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedSt
         if (exportedResultAssignment is not null)
         {
             mainPy.AppendLine(exportedResultAssignment);
-            mainPy.AppendLine($"return {ExportedResult}");
+            mainPy.AppendLine($"return {ExportedPyResult}");
         }
         else if (internalResultAssignment is not null)
         {
-            mainPy.AppendLine($"return {InternalResult}");
+            mainPy.AppendLine($"return {InternalPyResult}");
         }
 
         // mainPy.AppendLine(

@@ -1,6 +1,12 @@
 using System.Runtime.InteropServices;
 using DotWrap;
+using DotWrap.Internal;
+using DotWrap.MSBuild;
+using DotWrap.MSBuild.WrapperGenerators.Python;
+using DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 using DotWrap.Utils;
+using static DotWrap.Internal.Constants;
+using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
 
 // [assembly: DotWrapExternalExpose(typeof(IList<>))]
 [assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<>.Add), alias: "CustomAddName")]
@@ -78,24 +84,101 @@ public class ICollectionConfig : DotWrapPythonTypeConfig
 {
     public override Type TypeToConfigure => typeof(ICollection<>);
 
-    public override void ConfigureClassBody(
+    public override void ConfigureGenericClassBody(
+        ExportedTypeDefinitionInfo exportedType,
         Type matchingType,
-        IndentedStringBuilder? genericClassBodyBuilder
+        IndentedStringBuilder genericClassBodyBuilder
     )
     {
-        genericClassBodyBuilder?.AppendLine(
-            @"
-def __await__(self):
-    return self._poll().__await__()
+        var assemblyName =
+            matchingType.GenericTypeArguments[0].FullName
+            ?? matchingType.GenericTypeArguments[0].Name;
 
-async def _poll(self):
-    while True:
-        if self.is_completed_successfully:
-            return self.result
-        elif self.is_faulted:
-            raise RuntimeError(""Error polling task"")
-        await asyncio.sleep(0.1)
+        var originalTypeString = DotWrapUtils.GetOriginalTypeString(assemblyName);
+        var genericArg = PythonUtils.MapTypeToPython(originalTypeString);
+        genericClassBodyBuilder?.AppendLine(
+            $@"
+def to_list(self) -> list[""{genericArg}""]:
+    pass
         "
         );
     }
+
+    public override void ConfigureClassBody(
+        ExportedTypeDefinitionInfo typeInfo,
+        Type matchingType,
+        IndentedStringBuilder classBody
+    )
+    {
+        var assemblyName =
+            matchingType.GenericTypeArguments[0].FullName
+            ?? matchingType.GenericTypeArguments[0].Name;
+
+        var originalTypeString = DotWrapUtils.GetOriginalTypeString(assemblyName);
+        var genericArg = PythonUtils.MapTypeToPython(originalTypeString);
+        var exposedType = DotWrapUtils.GetExposedTypeFromCsType(
+            genericArg,
+            out bool isOriginalType
+        );
+        classBody.AppendLine($"def to_list(self) -> list[\"{genericArg}\"]:");
+        using var indent1 = classBody.IndentUntilDispose();
+
+        var numpyType = PythonUtils.MapTypeToNumpy(genericArg);
+        classBody.AppendLine(
+            @$"
+""""""
+Converts the array data to a list of the specified dtype.
+""""""
+length = {Lib}.{typeInfo.EntryPrefix}{GetCount}(self.{Ptr})
+arr = np.empty(length, dtype={numpyType})
+
+# get stable pointer to the array data
+arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
+{Lib}.{typeInfo.EntryPrefix}{FillArr}(self.{Ptr}, arr_ptr, length)
+        "
+        );
+
+        if (isOriginalType)
+        {
+            classBody.AppendLine("return arr.tolist()");
+        }
+        else
+        {
+            OriginalAndExposedTypeInfo genericTypeInfo = new(
+                originalTypeString,
+                isOriginalType ? null : exposedType
+            );
+
+            var externalTypeAssignment = CffiApiMethodBuilder.GetExternalResultAssignment(
+                genericTypeInfo
+            );
+            classBody.AppendLine("final_list = []");
+            using (var forBlock = classBody.AppendLineWithNewBlock("for i in range(length):"))
+            {
+                if (numpyType == "np.intp")
+                {
+                    classBody.AppendLine($"{InternalPyResult} = {Ffi}.cast('void *', arr[i])");
+                }
+                else
+                {
+                    classBody.AppendLine($"{InternalPyResult} = arr[i]");
+                }
+                if (externalTypeAssignment != null)
+                {
+                    classBody.AppendLine($"{externalTypeAssignment}");
+                    classBody.AppendLine($"final_list.append({ExportedPyResult})");
+                }
+                else
+                {
+                    classBody.AppendLine($"final_list.append({InternalPyResult})");
+                }
+            }
+            classBody.AppendLine("return final_list");
+        }
+    }
+}
+
+public class IReadOnlyCollectionConfig : ICollectionConfig
+{
+    public override Type TypeToConfigure => typeof(IReadOnlyCollection<>);
 }

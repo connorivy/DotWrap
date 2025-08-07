@@ -1,4 +1,5 @@
 using System;
+using DotWrap.MSBuild;
 using DotWrap.Utils;
 
 namespace DotWrap;
@@ -9,9 +10,14 @@ public abstract class DotWrapPythonTypeConfig
 
     public virtual void ConfigureImports(IndentedStringBuilder sb) { }
 
-    public virtual void ConfigureClassBody(Type matchingType, IndentedStringBuilder classBody) { }
+    public virtual void ConfigureClassBody(
+        ExportedTypeDefinitionInfo exportedType,
+        Type matchingType,
+        IndentedStringBuilder classBody
+    ) { }
 
     public virtual void ConfigureGenericClassBody(
+        ExportedTypeDefinitionInfo exportedType,
         Type matchingType,
         IndentedStringBuilder genericClassBodyBuilder
     ) { }

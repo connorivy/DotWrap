@@ -38,9 +38,13 @@ internal class CffiApiClassBuilder(
             {
                 if (genericClassBodyBuilder is not null)
                 {
-                    config.Item2.ConfigureGenericClassBody(config.Item1, genericClassBodyBuilder);
+                    config.Item2.ConfigureGenericClassBody(
+                        cls,
+                        config.Item1,
+                        genericClassBodyBuilder
+                    );
                 }
-                config.Item2.ConfigureClassBody(config.Item1, classBodyBuilder);
+                config.Item2.ConfigureClassBody(cls, config.Item1, classBodyBuilder);
             }
 
             if (genericClassBodyBuilder is not null)
@@ -248,7 +252,7 @@ arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
                 var genericTypeDef = strongType.GetGenericTypeDefinition();
                 if (configs.TryGetValue(genericTypeDef, out var genericConfig))
                 {
-                    yield return (genericTypeDef, genericConfig);
+                    yield return (strongType, genericConfig);
                 }
             }
         }

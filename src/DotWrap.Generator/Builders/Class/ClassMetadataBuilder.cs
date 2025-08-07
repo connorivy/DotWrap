@@ -43,6 +43,7 @@ public class ClassMetadataBuilder
         //         classContext.ClassSymbol.GetDocumentationCommentXml()
         //     ),
         // };
+        var exportedType = classContext.ClassSymbol.GetExportedType(out var isOriginalType);
         TypeInfo = new ExportedTypeDefinitionInfo()
         {
             Namespace = classContext.Namespace,
@@ -51,6 +52,7 @@ public class ClassMetadataBuilder
             EntryPrefix = classContext.EntryPrefix,
             ExportedType = classContext.ClassSymbol.GetExportedType(out _),
             GenericTypeArgumentsToParameters = genericTypeArgumentsToParameters,
+            IsSameAsExposedType = isOriginalType,
             // GenericParameters = classContext.TypeParameters.Select(tp => tp.Name).ToArray(),
             Interfaces = classContext
                 .ClassSymbol.AllInterfaces.Select(i => i.GetAssemblyQualifiedName())

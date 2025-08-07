@@ -145,6 +145,7 @@ public class ExportedTypeDefinitionInfo
     public required ExportedType ExportedType { get; set; }
     public required TypeSpecialCaseFlags SpecialCaseFlags { get; set; }
     public string? SummaryComment { get; set; }
+    public required bool IsSameAsExposedType { get; set; }
     public List<ExportedMethodInfo> Methods { get; set; } = new();
 
     public bool TryGetICollectionType([NotNullWhen(true)] out string? collectionType) =>
@@ -210,14 +211,14 @@ public record ExportedTypeId
 public enum ExportedType
 {
     Undefined = 0,
-    Sbyte,
+    SByte,
     Byte,
-    Short,
-    Ushort,
-    Int,
-    Uint,
-    Long,
-    Ulong,
+    Int16,
+    UInt16,
+    Int32,
+    UInt32,
+    Int64,
+    UInt64,
     Float,
     Double,
     IntPtr,

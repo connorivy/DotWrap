@@ -118,80 +118,75 @@ namespace {Context.Namespace}
         }
         context.GlobalContext.AddInferedType(typeArg);
 
-        if (
-            cls.TryGetICollectionType(out var collectionType)
-            || cls.TryGetIReadonlyCollectionType(out collectionType)
-        )
+        ExportedMethodInfo getCount = new()
         {
-            ExportedMethodInfo getCount = new()
+            OriginalName = GetCount,
+            OriginalTypeName = "int",
+            IsStatic = false,
+            ExposedTypeIfDifferent = null,
+            GenericTypeName = null,
+            SpecialCaseFlags = MethodSpecialCaseFlags.None,
+            Parameters = [],
+            ReturnType = new ExportedTypeInstanceInfo
             {
-                OriginalName = GetCount,
-                OriginalTypeName = "int",
-                IsStatic = false,
-                ExposedTypeIfDifferent = null,
-                GenericTypeName = null,
-                SpecialCaseFlags = MethodSpecialCaseFlags.None,
-                Parameters = [],
-                ReturnType = new ExportedTypeInstanceInfo
-                {
-                    DefinitionId = new ExportedTypeId("System", "Int32"),
-                    DefinitionGenericArgs = null,
-                    GenericName = null,
-                    IsNullable = false,
-                },
-            };
-            classMetadataBuilder.AddMethod(getCount);
+                DefinitionId = new ExportedTypeId("System", "Int32"),
+                DefinitionGenericArgs = null,
+                GenericName = null,
+                IsNullable = false,
+            },
+        };
+        classMetadataBuilder.AddMethod(getCount);
 
-            ExportedMethodInfo fillArr = new()
-            {
-                OriginalName = FillArr,
-                OriginalTypeName = "void",
-                IsStatic = false,
-                ExposedTypeIfDifferent = null,
-                GenericTypeName = null,
-                SpecialCaseFlags = MethodSpecialCaseFlags.None,
-                Parameters =
-                [
-                    new ExportedParameterInfo
-                    {
-                        Name = "numpyArrPtr",
-                        Type = new ExportedTypeInstanceInfo
-                        {
-                            DefinitionId = new ExportedTypeId("System", "IntPtr"),
-                            DefinitionGenericArgs = null,
-                            GenericName = null,
-                            IsNullable = false,
-                        },
-                        OriginalTypeName = "IntPtr",
-                        ExposedTypeIfDifferent = null,
-                        GenericTypeName = null,
-                    },
-                    new ExportedParameterInfo
-                    {
-                        Name = "collectionCount",
-                        Type = new ExportedTypeInstanceInfo
-                        {
-                            DefinitionId = new ExportedTypeId("System", "Int32"),
-                            DefinitionGenericArgs = null,
-                            GenericName = null,
-                            IsNullable = false,
-                        },
-                        OriginalTypeName = "int",
-                        ExposedTypeIfDifferent = null,
-                        GenericTypeName = null,
-                    },
-                ],
-                ReturnType = new ExportedTypeInstanceInfo
+        ExportedMethodInfo fillArr = new()
+        {
+            OriginalName = FillArr,
+            OriginalTypeName = "void",
+            IsStatic = false,
+            ExposedTypeIfDifferent = null,
+            GenericTypeName = null,
+            SpecialCaseFlags = MethodSpecialCaseFlags.None,
+            Parameters =
+            [
+                new ExportedParameterInfo
                 {
-                    DefinitionId = new ExportedTypeId("System", "Void"),
-                    DefinitionGenericArgs = null,
-                    GenericName = null,
-                    IsNullable = false,
+                    Name = "numpyArrPtr",
+                    Type = new ExportedTypeInstanceInfo
+                    {
+                        DefinitionId = new ExportedTypeId("System", "IntPtr"),
+                        DefinitionGenericArgs = null,
+                        GenericName = null,
+                        IsNullable = false,
+                    },
+                    OriginalTypeName = "IntPtr",
+                    ExposedTypeIfDifferent = null,
+                    GenericTypeName = null,
                 },
-            };
-            classMetadataBuilder.AddMethod(fillArr);
-            classBody.AppendLine(
-                @$"
+                new ExportedParameterInfo
+                {
+                    Name = "collectionCount",
+                    Type = new ExportedTypeInstanceInfo
+                    {
+                        DefinitionId = new ExportedTypeId("System", "Int32"),
+                        DefinitionGenericArgs = null,
+                        GenericName = null,
+                        IsNullable = false,
+                    },
+                    OriginalTypeName = "int",
+                    ExposedTypeIfDifferent = null,
+                    GenericTypeName = null,
+                },
+            ],
+            ReturnType = new ExportedTypeInstanceInfo
+            {
+                DefinitionId = new ExportedTypeId("System", "Void"),
+                DefinitionGenericArgs = null,
+                GenericName = null,
+                IsNullable = false,
+            },
+        };
+        classMetadataBuilder.AddMethod(fillArr);
+        classBody.AppendLine(
+            @$"
         [UnmanagedCallersOnly(EntryPoint = ""{Context.EntryPrefix}{GetCount}"")]
         public static int {GetCount}({SelfPtrType} {SelfPointerName})
         {{
@@ -204,31 +199,30 @@ namespace {Context.Namespace}
         {{
             var {Obj} = {Get}({SelfPointerName});
         "
-            );
+        );
 
-            bool isBlitable = typeArg.SpecialType.IsBlittable();
-            var blittable = isBlitable ? "Blittable" : "NonBlittable";
-            string collectionTypeName;
-            if (
-                isBlitable
-                && context.ClassSymbol is IArrayTypeSymbol arrayTypeSymbol
-                && SymbolEqualityComparer.Default.Equals(arrayTypeSymbol.ElementType, typeArg)
-            )
-            {
-                collectionTypeName = "Array";
-            }
-            else
-            {
-                collectionTypeName = "Enumerable";
-            }
+        bool isBlitable = typeArg.SpecialType.IsBlittable();
+        var blittable = isBlitable ? "Blittable" : "NonBlittable";
+        string collectionTypeName;
+        if (
+            isBlitable
+            && context.ClassSymbol is IArrayTypeSymbol arrayTypeSymbol
+            && SymbolEqualityComparer.Default.Equals(arrayTypeSymbol.ElementType, typeArg)
+        )
+        {
+            collectionTypeName = "Array";
+        }
+        else
+        {
+            collectionTypeName = "Enumerable";
+        }
 
-            classBody.AppendLine(
-                @$"
+        classBody.AppendLine(
+            @$"
             global::DotWrap.Operations.Ops.Copy{blittable}{collectionTypeName}InfoToNumpyArray({Obj}, numpyArrPtr, collectionCount);
         }}
         "
-            );
-        }
+        );
     }
 
     protected void AddMetadata(StringBuilder classBody, ClassMetadataBuilder classMetadataBuilder)

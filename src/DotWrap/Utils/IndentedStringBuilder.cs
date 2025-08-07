@@ -88,7 +88,7 @@ internal class IndentedCSharpStringBuilder : IndentedStringBuilder
     }
 }
 
-internal class IndentedPythonStringBuilder : IndentedStringBuilder
+public class IndentedPythonStringBuilder : IndentedStringBuilder
 {
     public override void EnterBlock()
     {

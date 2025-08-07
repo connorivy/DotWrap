@@ -1,5 +1,7 @@
 using System;
+using System.Reflection.Metadata;
 using DotWrap;
+using DotWrap.MSBuild;
 using DotWrap.Utils;
 
 [assembly: DotWrapExternalPropertyMeta(typeof(Task<>), nameof(Task<>.Result))]
@@ -41,6 +43,7 @@ public class TaskConfig : DotWrapPythonTypeConfig
     }
 
     public override void ConfigureGenericClassBody(
+        ExportedTypeDefinitionInfo exportedType,
         Type mathchingType,
         IndentedStringBuilder? genericClassBodyBuilder
     )
@@ -68,6 +71,7 @@ public class ValueTaskConfig : DotWrapPythonTypeConfig
     public override Type TypeToConfigure => typeof(ValueTask<>);
 
     public override void ConfigureGenericClassBody(
+        ExportedTypeDefinitionInfo exportedType,
         Type matchingType,
         IndentedStringBuilder? genericClassBodyBuilder
     )

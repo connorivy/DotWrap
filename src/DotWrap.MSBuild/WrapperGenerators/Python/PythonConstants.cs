@@ -1,13 +1,13 @@
 namespace DotWrap.MSBuild.WrapperGenerators.Python;
 
-internal static class PythonConstants
+public static class PythonConstants
 {
-    internal const string InternalPythonPrefix = "_dotwrap_";
-    internal const string Ptr = InternalPythonPrefix + "ptr";
-    internal const string Lib = InternalPythonPrefix + "lib";
-    internal const string Ffi = InternalPythonPrefix + "ffi";
-    internal const string FromPtr = InternalPythonPrefix + "from_ptr";
-    internal const string Typed = InternalPythonPrefix + "typed";
-    internal const string InternalResult = InternalPythonPrefix + "internal_result";
-    internal const string ExportedResult = InternalPythonPrefix + "exported_result";
+    public const string InternalPythonPrefix = "_dotwrap_";
+    public const string Ptr = InternalPythonPrefix + "ptr";
+    public const string Lib = InternalPythonPrefix + "lib";
+    public const string Ffi = InternalPythonPrefix + "ffi";
+    public const string FromPtr = InternalPythonPrefix + "from_ptr";
+    public const string Typed = InternalPythonPrefix + "typed";
+    public const string InternalPyResult = InternalPythonPrefix + "internal_result";
+    public const string ExportedPyResult = InternalPythonPrefix + "exported_result";
 }
