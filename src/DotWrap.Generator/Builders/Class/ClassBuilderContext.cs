@@ -1,7 +1,7 @@
 using System.Text;
+using DotWrap.Configuration;
 using DotWrap.Generator.Extensions;
-using DotWrap.Internal;
-using DotWrap.MSBuild;
+using DotWrap.Utils;
 using Microsoft.CodeAnalysis;
 
 namespace DotWrap.Generator.Builders.Class;

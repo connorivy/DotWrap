@@ -5,9 +5,10 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using DotWrap.Configuration;
 using DotWrap.Utils;
 using static DotWrap.Internal.Constants;
-using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
+using static DotWrap.Utils.PythonConstants;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 

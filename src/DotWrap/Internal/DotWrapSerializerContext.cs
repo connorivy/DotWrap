@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using DotWrap.MSBuild;
+using DotWrap.Configuration;
 
 namespace DotWrap;
 

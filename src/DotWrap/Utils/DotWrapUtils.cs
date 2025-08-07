@@ -1,9 +1,8 @@
 using System;
-using System.Runtime.InteropServices;
 
-namespace DotWrap.Internal;
+namespace DotWrap.Utils;
 
-internal static class DotWrapUtils
+public static class DotWrapUtils
 {
     public static string GetStamp(string t)
     {

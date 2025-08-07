@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using DotWrap.Internal;
+using DotWrap.Configuration;
 
-namespace DotWrap.MSBuild.WrapperGenerators.Python;
+namespace DotWrap.Utils;
 
 public static class PythonUtils
 {

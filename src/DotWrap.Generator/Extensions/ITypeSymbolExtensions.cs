@@ -1,4 +1,4 @@
-using DotWrap.MSBuild;
+using DotWrap.Configuration;
 using Microsoft.CodeAnalysis;
 
 namespace DotWrap.Generator.Extensions;

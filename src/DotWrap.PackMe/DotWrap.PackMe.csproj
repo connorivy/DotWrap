@@ -1,0 +1,82 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <Authors>connorivy</Authors>
+    <Description>DotWrap: Python/C# interop toolkit (meta-package)</Description>
+    <PackageId>DotWrap</PackageId>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeProjectReferences>true</IncludeProjectReferences>
+    <IncludeAssets>DotWrap.Generator.dll DotWrap.MSBuild.dll DotWrap.Operations.dll</IncludeAssets>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../DotWrap/DotWrap.csproj" PrivateAssets="all" />
+    <ProjectReference Include="../DotWrap.Generator/DotWrap.Generator.csproj" PrivateAssets="all" />
+    <ProjectReference Include="../DotWrap.MSBuild/DotWrap.MSBuild.csproj" PrivateAssets="all" />
+    <ProjectReference
+      Include="../DotWrap.Operations/DotWrap.Operations.csproj"
+      PrivateAssets="all"
+    />
+  </ItemGroup>
+  <PropertyGroup>
+    <DotWrapDir>$(MSBuildProjectDirectory)\..\DotWrap\</DotWrapDir>
+  </PropertyGroup>
+  <Target Name="PushLocal" AfterTargets="Pack" Condition="'$(LocalNugetFeed)' != ''">
+    <!-- Delete from global NuGet cache: Windows -->
+    <Exec
+      Command="if exist %userprofile%\.nuget\packages\dotwrap\$(Version) rmdir /s /q %userprofile%\.nuget\packages\dotwrap\$(Version)"
+      Condition=" '$(OS)' == 'Windows_NT' "
+    />
+    <!-- Delete from global NuGet cache: Unix/macOS -->
+    <Exec
+      Command="rm -rf $HOME/.nuget/packages/dotwrap/$(Version)"
+      Condition=" '$(OS)' != 'Windows_NT' "
+    />
+    <Exec Command="echo Pushing nuget package $(PackageOutputPath)DotWrap.$(Version).nupkg to $(LocalNugetFeed)" />
+    <Exec Command="dotnet nuget push $(PackageOutputPath)DotWrap.$(Version).nupkg --source $(LocalNugetFeed)" />
+  </Target>
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None
+      Update="$(DotWrapDir)Build\DotWrap.targets"
+      Pack="true"
+      PackagePath="build\DotWrap.targets"
+    />
+    <None
+      Include="$(MSBuildProjectDirectory)\..\DotWrap.Generator\bin\$(Configuration)\netstandard2.0\DotWrap.Generator.dll"
+      Pack="true"
+      PackagePath="analyzers/dotnet/cs"
+      Visible="false"
+    />
+    <!-- <None
+      Include="$(MSBuildProjectDirectory)\..\DotWrap\bin\$(Configuration)\netstandard2.0\$(AssemblyName).dll"
+      Pack="true"
+      PackagePath="analyzers/dotnet/cs"
+      Visible="false"
+    /> -->
+    <None
+      Include="$(MSBuildProjectDirectory)\..\DotWrap\bin\$(Configuration)\netstandard2.0\DotWrap.dll"
+      Pack="true"
+      PackagePath="lib/$(TargetFramework)"
+      Visible="true"
+    />
+    <None
+      Include="$(MSBuildProjectDirectory)\..\DotWrap.Operations\bin\$(Configuration)\$(TargetFramework)\DotWrap.Operations.dll"
+      Pack="true"
+      PackagePath="lib/$(TargetFramework)"
+      Visible="true"
+    />
+    <None
+      Include="$(MSBuildProjectDirectory)\..\DotWrap.MSBuild\bin\$(Configuration)\$(TargetFramework)\DotWrap.MSBuild.dll"
+      Pack="true"
+      PackagePath="tools/"
+      Visible="true"
+    />
+    <!-- <None
+      Include="$(MSBuildProjectDirectory)\..\DotWrap.MSBuild\bin\$(Configuration)\$(TargetFramework)\DotWrap.MSBuild.runtimeconfig.json"
+      Pack="true"
+      PackagePath="lib/$(TargetFramework)"
+      Visible="true"
+    /> -->
+  </ItemGroup>
+</Project>

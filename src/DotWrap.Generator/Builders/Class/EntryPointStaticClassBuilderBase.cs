@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
+using DotWrap.Configuration;
 using DotWrap.Generator.Extensions;
-using DotWrap.MSBuild;
 using Microsoft.CodeAnalysis;
 using static DotWrap.Internal.Constants;
 

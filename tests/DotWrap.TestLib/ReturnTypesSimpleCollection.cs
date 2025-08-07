@@ -1,12 +1,17 @@
 using System.Runtime.InteropServices;
 using DotWrap;
+using DotWrap.Configuration;
 using DotWrap.Internal;
 using DotWrap.MSBuild;
-using DotWrap.MSBuild.WrapperGenerators.Python;
 using DotWrap.MSBuild.WrapperGenerators.Python.Builders;
+
+// using DotWrap.MSBuild.WrapperGenerators.Python;
+// using DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 using DotWrap.Utils;
 using static DotWrap.Internal.Constants;
-using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
+using static DotWrap.Utils.PythonConstants;
+
+// using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
 
 // [assembly: DotWrapExternalExpose(typeof(IList<>))]
 [assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<>.Add), alias: "CustomAddName")]

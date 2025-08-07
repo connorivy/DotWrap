@@ -5,12 +5,9 @@
     <ContinuousIntegrationEnv Condition="'$(ContinuousIntegrationEnv)' == ''"
       >false</ContinuousIntegrationEnv
     >
-    <DotWrapNugetPackageVersion
-      Condition="'$(DotWrapNugetPackageVersion)' == ''"
-    ></DotWrapNugetPackageVersion>
   </PropertyGroup>
   <!-- Use project references locally, but use nuget package in CI -->
-  <ItemGroup Condition="'$(ContinuousIntegrationEnv)' == 'false'">
+  <ItemGroup Condition="'$(ContinuousIntegrationEnv)' == 'false' and '$(DotWrapVersion)' == ''">
     <ProjectReference
       Include="..\..\src\DotWrap.Generator\DotWrap.Generator.csproj"
       OutputItemType="Analyzer"
@@ -21,14 +18,14 @@
     <ProjectReference Include="..\..\src\DotWrap.Operations\DotWrap.Operations.csproj" />
   </ItemGroup>
   <Import
-    Condition="'$(ContinuousIntegrationEnv)' == 'false'"
+    Condition="'$(ContinuousIntegrationEnv)' == 'false' and '$(DotWrapVersion)' == ''"
     Project="..\..\src\DotWrap\Build\DotWrap.targets"
   />
   <Import
-    Condition="'$(ContinuousIntegrationEnv)' == 'false'"
+    Condition="'$(ContinuousIntegrationEnv)' == 'false' and '$(DotWrapVersion)' == ''"
     Project="..\..\src\DotWrap\Build\DotWrap.props"
   />
-  <ItemGroup Condition="'$(ContinuousIntegrationEnv)' != 'false'">
-    <PackageReference Include="DotWrap" Version="$(DotWrapNugetPackageVersion)" />
+  <ItemGroup Condition="'$(ContinuousIntegrationEnv)' != 'false' or '$(DotWrapVersion)' != ''">
+    <PackageReference Include="DotWrap" VersionOverride="$(DotWrapVersion)" PrivateAssets="all" />
   </ItemGroup>
 </Project>

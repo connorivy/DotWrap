@@ -1,4 +1,4 @@
-namespace DotWrap.MSBuild.WrapperGenerators.Python;
+namespace DotWrap.Utils;
 
 public static class PythonConstants
 {

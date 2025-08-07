@@ -114,3 +114,5 @@ cover/
 # Verify
 *.received.*
 *.received/
+
+DotWrap.user.props

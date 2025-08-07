@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
+using DotWrap.Configuration;
 using DotWrap.Utils;
-using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
+using static DotWrap.Utils.PythonConstants;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 

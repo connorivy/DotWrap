@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using DotWrap.Configuration;
 using DotWrap.MSBuild.WrapperGenerators.Python.Extensions;
-using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
+using DotWrap.Utils;
+using static DotWrap.Utils.PythonConstants;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 

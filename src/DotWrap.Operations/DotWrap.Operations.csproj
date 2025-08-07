@@ -7,6 +7,6 @@
     <PublishAot>true</PublishAot>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DotWrap\DotWrap.csproj" />
+    <ProjectReference Include="..\DotWrap\DotWrap.csproj" PrivateAssets="all" />
   </ItemGroup>
 </Project>

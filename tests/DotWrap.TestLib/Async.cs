@@ -1,6 +1,7 @@
 using System;
 using System.Reflection.Metadata;
 using DotWrap;
+using DotWrap.Configuration;
 using DotWrap.MSBuild;
 using DotWrap.Utils;
 

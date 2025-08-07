@@ -1,18 +1,17 @@
 <Project>
   <PropertyGroup>
     <DotWrapRoot Condition="'$(DotWrapRoot)' == ''">$(MSBuildThisFileDirectory)..\..</DotWrapRoot>
-    <DotWrapToolsPath Condition="'$(DotWrapToolsPath)' == ''">$(DotWrapRoot)\tools</DotWrapToolsPath>
+    <DotWrapToolsPath Condition="'$(DotWrapToolsPath)' == ''"
+      >$(DotWrapRoot)\tools</DotWrapToolsPath
+    >
   </PropertyGroup>
-
   <!-- <Target Name="RunWrapperGen" BeforeTargets="Publish"> -->
   <Target Name="RunWrapperGen" AfterTargets="Build">
-    <Exec Command="&quot;$(DotWrapToolsPath)\DotWrap.MSBuild.exe&quot; $(TargetPath) build" />
+    <Exec Command="dotnet --roll-forward Major &quot;$(DotWrapToolsPath)\DotWrap.MSBuild.dll&quot; $(TargetPath) build" />
   </Target>
-
   <Target Name="CopyNativeLibs" AfterTargets="Publish">
-    <Exec Command="&quot;$(DotWrapToolsPath)\DotWrap.MSBuild.exe&quot; $(TargetPath) publish" />
+    <Exec Command="dotnet --roll-forward Major &quot;$(DotWrapToolsPath)\DotWrap.MSBuild.dll&quot; $(TargetPath) publish" />
   </Target>
-
   <!-- <Target Name="CopyNativeLibs" AfterTargets="Publish">
     <ItemGroup>
       <NativeLibs Include="$(OutputPath)\*.dll" />

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
+using DotWrap.Configuration;
 using DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 using static DotWrap.Internal.Constants;
 

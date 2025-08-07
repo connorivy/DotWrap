@@ -1,6 +1,6 @@
+using DotWrap.Configuration;
 using DotWrap.Generator.Builders.Method;
 using DotWrap.Generator.Extensions;
-using DotWrap.MSBuild;
 using Microsoft.CodeAnalysis;
 
 namespace DotWrap.Generator.Builders;

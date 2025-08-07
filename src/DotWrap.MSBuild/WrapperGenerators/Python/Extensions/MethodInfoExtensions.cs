@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using DotWrap.Configuration;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Extensions;
 

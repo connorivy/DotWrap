@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using DotWrap.Configuration;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 

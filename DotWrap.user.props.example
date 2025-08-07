@@ -1,0 +1,6 @@
+<!-- Remove the .example from this file name and replace the placeholder text with your actual values -->
+<Project>
+  <PropertyGroup>
+    <LocalNugetFeed>C:\LocalNuget\</LocalNugetFeed>
+  </PropertyGroup>
+</Project>
