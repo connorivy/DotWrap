@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using DotWrap.Configuration;
 using DotWrap.Utils;
+using DotWrap.Utils.Python;
 using static DotWrap.Internal.Constants;
 using static DotWrap.Utils.PythonConstants;
 
@@ -28,7 +29,7 @@ internal class CffiApiEnumBuilder(
 
     public void AddClassToMainAndInitPy(ExportedEnumInfo cls)
     {
-        string className = PythonUtils.PythonizeClassName(cls.Name);
+        string className = PythonNamingUtils.PythonizeClassName(cls.Name);
         initPy.AppendLine($"from .main import {className}");
 
         mainPy.AppendLine($"class {className}(Enum):");
@@ -36,7 +37,7 @@ internal class CffiApiEnumBuilder(
 
         foreach (var kvp in cls.Options)
         {
-            mainPy.AppendLine($"{PythonUtils.ToSnakeCase(kvp.Key)} = {kvp.Value}");
+            mainPy.AppendLine($"{PythonNamingUtils.ToSnakeCase(kvp.Key)} = {kvp.Value}");
         }
     }
 }

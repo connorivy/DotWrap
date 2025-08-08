@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DotWrap.Configuration;
-using DotWrap.Utils;
+using DotWrap.Utils.Python;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Extensions;
 
@@ -12,7 +12,7 @@ public static class DotWrapObjectExtensions
     {
         public string OriginalTypeSimple => typeInfo.OriginalTypeName.Split('.').Last();
 
-        public string OriginalTypeWrapper => PythonUtils.PythonizeClassName(typeInfo.OriginalTypeName);
+        public string OriginalTypeWrapper => PythonNamingUtils.PythonizeClassName(typeInfo.OriginalTypeName);
 
         public string MapOriginalTypeToPython(IDictionary<string, string>? genericParamsToArgsDict)
         {
@@ -31,7 +31,7 @@ public static class DotWrapObjectExtensions
                 "boolean" or "bool" => "bool",
                 "void" => "None",
                 "string" => "str",
-                _ => $"\"{PythonUtils.PythonizeTypeName(typeInfo.OriginalTypeName, genericParamsToArgsDict)}\"",
+                _ => $"\"{PythonNamingUtils.PythonizeTypeName(typeInfo.OriginalTypeName, genericParamsToArgsDict)}\"",
             };
         }
 
@@ -47,7 +47,7 @@ public static class DotWrapObjectExtensions
                 "boolean" or "bool" => "bool",
                 "void" => "None",
                 "string" => "CString", // use CString wrapper for strings
-                _ => $"\"{PythonUtils.PythonizeTypeName(typeInfo.OriginalTypeName.Split('.').Last())}\"",
+                _ => $"\"{PythonNamingUtils.PythonizeTypeName(typeInfo.OriginalTypeName.Split('.').Last())}\"",
             };
         }
 
@@ -82,7 +82,7 @@ public static class DotWrapObjectExtensions
     extension(ExportedTypeDefinitionInfo type)
     {
         public string PythonWrapperName() =>
-            PythonUtils.PythonizeClassName(type.TypeName);
+            PythonNamingUtils.PythonizeClassName(type.TypeName);
 
     }
 }

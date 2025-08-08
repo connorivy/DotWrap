@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DotWrap.Configuration;
 using DotWrap.MSBuild.WrapperGenerators.Python.Extensions;
-using DotWrap.Utils;
+using DotWrap.Utils.Python;
 using static DotWrap.Utils.PythonConstants;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
@@ -63,7 +63,7 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
             }
         }
 
-        return PythonUtils.ToSnakeCase(methodName);
+        return PythonNamingUtils.ToSnakeCase(methodName);
     }
 
     public IEnumerable<string> PythonMethodParamListWithHints(
@@ -109,7 +109,7 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
 
             if (ClassContext.GlobalContext.EnumNames.Contains(param.Type.DefinitionId.ToString()))
             {
-                yield return $"{param.Name}{Typed} = {PythonUtils.MapTypeToPython(param.ExposedTypeIfDifferent)}({param.Name}.value)";
+                yield return $"{param.Name}{Typed} = {PythonNamingUtils.MapTypeToPython(param.ExposedTypeIfDifferent)}({param.Name}.value)";
             }
             else
             {

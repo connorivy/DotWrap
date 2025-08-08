@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DotWrap.Configuration;
 using DotWrap.Utils;
+using DotWrap.Utils.Python;
 using static DotWrap.Internal.Constants;
 using static DotWrap.Utils.PythonConstants;
 
@@ -23,7 +24,7 @@ internal class CffiApiClassBuilder(
         {
             IndentedPythonStringBuilder classBodyBuilder = new();
 
-            string? genericClassName = PythonUtils.GetGenericBaseNameOrNull(cls.TypeName);
+            string? genericClassName = PythonNamingUtils.GetGenericBaseNameOrNull(cls.TypeName);
             IndentedPythonStringBuilder? genericClassBodyBuilder = null;
             if (genericClassName is not null && this.classNames.Add(genericClassName))
             {
@@ -62,7 +63,7 @@ internal class CffiApiClassBuilder(
     {
         IndentedPythonStringBuilder genericClassBuilder = new();
         string genericClassName =
-            PythonUtils.GetGenericBaseNameOrNull(cls.TypeName)
+            PythonNamingUtils.GetGenericBaseNameOrNull(cls.TypeName)
             ?? throw new ArgumentException("Class name must be a generic type with '<' and '>'");
         var genericParams = cls.GenericTypeArgumentsToParameters.Select(kvp => kvp.Value).ToList();
 
@@ -100,8 +101,8 @@ def __del__(self) -> None:
         IndentedPythonStringBuilder? genericClassBodyBuilder
     )
     {
-        var baseClassName = PythonUtils.GetGenericBaseNameOrNull(classInfo.TypeName);
-        string className = PythonUtils.PythonizeClassName(classInfo.TypeName);
+        var baseClassName = PythonNamingUtils.GetGenericBaseNameOrNull(classInfo.TypeName);
+        string className = PythonNamingUtils.PythonizeClassName(classInfo.TypeName);
 
         if (genericClassBodyBuilder is not null)
         {
@@ -115,7 +116,7 @@ def __del__(self) -> None:
         var genericDef = string.Join(
             ", ",
             classInfo.GenericTypeArgumentsToParameters.Select(kvp =>
-                PythonUtils.MapTypeToPython(kvp.Key)
+                PythonNamingUtils.MapTypeToPython(kvp.Key)
             )
         );
         if (!string.IsNullOrEmpty(genericDef))
@@ -168,12 +169,12 @@ def __del__(self):
             || classInfo.TryGetIReadonlyCollectionType(out genericType)
         )
         {
-            var genericArg = PythonUtils.MapTypeToPython(genericType);
+            var genericArg = PythonNamingUtils.MapTypeToPython(genericType);
             var exposedType = DotWrapUtils.GetExposedTypeFromCsType(
                 genericType,
                 out bool isOriginalType
             );
-            var numpyType = PythonUtils.MapTypeToNumpy(exposedType);
+            var numpyType = PythonNamingUtils.MapTypeToNumpy(exposedType);
             var tolistMethodDef = $"def to_list(self) -> list[\"{genericArg}\"]:";
             classBodyBuilder.AppendLine(tolistMethodDef);
             genericClassBodyBuilder?.AppendLine(tolistMethodDef);

@@ -5,6 +5,7 @@ using System.Text;
 using DotWrap.Configuration;
 using DotWrap.MSBuild.WrapperGenerators.Python.Extensions;
 using DotWrap.Utils;
+using DotWrap.Utils.Python;
 using static DotWrap.Utils.PythonConstants;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
@@ -50,7 +51,7 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStri
                 $"{ExportedPyResult} = str(CString({InternalPyResult}))",
             { OriginalTypeName: "bool" } => $"{ExportedPyResult} = bool({InternalPyResult})",
             _ when method.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.EnumReturnType) =>
-                $"{ExportedPyResult} = {PythonUtils.PythonizeClassName(method.OriginalTypeName)}({InternalPyResult})",
+                $"{ExportedPyResult} = {PythonNamingUtils.PythonizeClassName(method.OriginalTypeName)}({InternalPyResult})",
             { ExposedTypeIfDifferent: not null } => (
                 $"{ExportedPyResult} = {method.OriginalTypeWrapper}.{FromPtr}({InternalPyResult})"
             ),

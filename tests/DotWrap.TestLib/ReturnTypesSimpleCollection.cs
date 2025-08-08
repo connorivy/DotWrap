@@ -4,10 +4,10 @@ using DotWrap.Configuration;
 using DotWrap.Internal;
 using DotWrap.MSBuild;
 using DotWrap.MSBuild.WrapperGenerators.Python.Builders;
-
 // using DotWrap.MSBuild.WrapperGenerators.Python;
 // using DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 using DotWrap.Utils;
+using DotWrap.Utils.Python;
 using static DotWrap.Internal.Constants;
 using static DotWrap.Utils.PythonConstants;
 
@@ -100,7 +100,7 @@ public class ICollectionConfig : DotWrapPythonTypeConfig
             ?? matchingType.GenericTypeArguments[0].Name;
 
         var originalTypeString = DotWrapUtils.GetOriginalTypeString(assemblyName);
-        var genericArg = PythonUtils.MapTypeToPython(originalTypeString);
+        var genericArg = PythonNamingUtils.MapTypeToPython(originalTypeString);
         genericClassBodyBuilder?.AppendLine(
             $@"
 def to_list(self) -> list[""{genericArg}""]:
@@ -120,7 +120,7 @@ def to_list(self) -> list[""{genericArg}""]:
             ?? matchingType.GenericTypeArguments[0].Name;
 
         var originalTypeString = DotWrapUtils.GetOriginalTypeString(assemblyName);
-        var genericArg = PythonUtils.MapTypeToPython(originalTypeString);
+        var genericArg = PythonNamingUtils.MapTypeToPython(originalTypeString);
         var exposedType = DotWrapUtils.GetExposedTypeFromCsType(
             genericArg,
             out bool isOriginalType
@@ -128,7 +128,7 @@ def to_list(self) -> list[""{genericArg}""]:
         classBody.AppendLine($"def to_list(self) -> list[\"{genericArg}\"]:");
         using var indent1 = classBody.IndentUntilDispose();
 
-        var numpyType = PythonUtils.MapTypeToNumpy(genericArg);
+        var numpyType = PythonNamingUtils.MapTypeToNumpy(genericArg);
         classBody.AppendLine(
             @$"
 """"""

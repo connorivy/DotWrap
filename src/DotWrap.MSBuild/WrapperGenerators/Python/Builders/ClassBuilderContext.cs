@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection;
 using DotWrap.Configuration;
 
@@ -13,9 +11,3 @@ public record ClassBuilderContext(
 {
     public bool IsGeneric => this.ClassInfo.TypeName.Contains('<');
 };
-
-public record GlobalContext(
-    Dictionary<string, ExportedTypeDefinitionInfo> TypeDefinitions,
-    HashSet<string> EnumNames,
-    Dictionary<Type, DotWrapPythonTypeConfig> Configs
-);

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using DotWrap.Configuration;
 
-namespace DotWrap.Utils;
+namespace DotWrap.Utils.Python;
 
-public static class PythonUtils
+public static class PythonNamingUtils
 {
     /// <summary>
     /// Cases to handle:
@@ -73,7 +73,7 @@ public static class PythonUtils
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
-    public static IEnumerable<string> SplitOnPeriodTopLevel(string input)
+    private static IEnumerable<string> SplitOnPeriodTopLevel(string input)
     {
         int splitStartIndex = 0;
         int numOpenBrackets = 0;
@@ -96,7 +96,7 @@ public static class PythonUtils
         yield return input.Substring(splitStartIndex);
     }
 
-    public static IEnumerable<string> GetTopLevelGenerics(string input)
+    private static IEnumerable<string> GetTopLevelGenerics(string input)
     {
         var startIndex = input.IndexOf('<');
         var endIndex = input.LastIndexOf('>');
@@ -242,28 +242,28 @@ public static class PythonUtils
         };
     }
 
-    public static string MapTypeToC(string t)
-    {
-        t = t.ToLowerInvariant().Replace("system.", "");
-        return t switch
-        {
-            "byte" => "uint8_t",
-            "sbyte" => "int8_t",
-            "short" => "int16_t",
-            "ushort" => "uint16_t",
-            "int32" or "int" => "int32_t",
-            "uint32" or "uint" => "uint32_t",
-            "int64" or "long" => "int64_t",
-            "uint64" or "ulong" => "uint64_t",
-            "char" => "char",
-            "void" => "void",
-            "half" => "float",
-            "float" => "float",
-            "double" => "double",
-            "intptr" => "void*",
-            _ => throw new NotSupportedException($"Unsupported type: {t}"),
-        };
-    }
+    // public static string MapTypeToC(string t)
+    // {
+    //     t = t.ToLowerInvariant().Replace("system.", "");
+    //     return t switch
+    //     {
+    //         "byte" => "uint8_t",
+    //         "sbyte" => "int8_t",
+    //         "short" => "int16_t",
+    //         "ushort" => "uint16_t",
+    //         "int32" or "int" => "int32_t",
+    //         "uint32" or "uint" => "uint32_t",
+    //         "int64" or "long" => "int64_t",
+    //         "uint64" or "ulong" => "uint64_t",
+    //         "char" => "char",
+    //         "void" => "void",
+    //         "half" => "float",
+    //         "float" => "float",
+    //         "double" => "double",
+    //         "intptr" => "void*",
+    //         _ => throw new NotSupportedException($"Unsupported type: {t}"),
+    //     };
+    // }
 
     /// <summary>
     /// Converts a PascalCase or camelCase string to snake_case.
