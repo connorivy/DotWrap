@@ -44,7 +44,7 @@ public class ClassMetadataBuilder
         //     ),
         // };
         var exportedType = classContext.ClassSymbol.GetExportedType(out var isOriginalType);
-        TypeInfo = new ExportedTypeDefinition()
+        var typeDefinition = new ExportedTypeDefinition()
         {
             Id = classContext.ClassSymbol.GetExportedTypeId(),
             AssemblyQualifiedName = classContext.ClassSymbol.GetAssemblyQualifiedName(),
@@ -61,6 +61,18 @@ public class ClassMetadataBuilder
                 classContext.ClassSymbol.GetDocumentationCommentXml()
             ),
         };
+
+        if (
+            classContext.ClassSymbol.TypeKind == TypeKind.Enum
+            && classContext.ClassSymbol is INamedTypeSymbol enumSymbol
+        )
+        {
+            this.TypeInfo = CreateEnum(enumSymbol, typeDefinition);
+        }
+        else
+        {
+            this.TypeInfo = typeDefinition;
+        }
     }
 
     public void AddMethod(ExportedMethodInfo methodInfo)
@@ -68,5 +80,46 @@ public class ClassMetadataBuilder
         // ClassInfo.Methods.Add(methodInfo);
         // TypeInfo.Methods ??= [];
         TypeInfo.Methods.Add(methodInfo);
+    }
+
+    public ExportedEnumInfo CreateEnum(
+        INamedTypeSymbol enumSymbol,
+        ExportedTypeDefinition typeDefinition
+    )
+    {
+        if (enumSymbol.TypeKind != TypeKind.Enum)
+        {
+            throw new ArgumentException("Symbol must be an enum type", nameof(enumSymbol));
+        }
+
+        var enumInfo = new ExportedEnumInfo
+        {
+            Options = enumSymbol
+                .GetMembers()
+                .OfType<IFieldSymbol>()
+                .ToDictionary(
+                    f => f.Name,
+                    f =>
+                        long.TryParse(f.ConstantValue?.ToString(), out var result)
+                            ? result
+                            : throw new ArgumentException(
+                                $"Could not parse constant value for enum field '{f.Name}' in enum '{enumSymbol.Name}'."
+                            )
+                ),
+            // copy the rest of the properties from typeDefinition
+            // DefinitionId = typeDefinition.DefinitionId,
+            Id = typeDefinition.Id,
+            OriginalTypeWrapperName = typeDefinition.OriginalTypeWrapperName,
+            EntryPrefix = typeDefinition.EntryPrefix,
+            TypeNameNoGenerics = typeDefinition.TypeNameNoGenerics,
+            AssemblyQualifiedName = typeDefinition.AssemblyQualifiedName,
+            FullyQualifiedName = typeDefinition.FullyQualifiedName,
+            GenericTypeArgumentsToParameters = typeDefinition.GenericTypeArgumentsToParameters,
+            ExportedType = typeDefinition.ExportedType,
+            IsSameAsExposedType = typeDefinition.IsSameAsExposedType,
+            SpecialCaseFlags = typeDefinition.SpecialCaseFlags,
+            SummaryComment = typeDefinition.SummaryComment,
+        };
+        return enumInfo;
     }
 }

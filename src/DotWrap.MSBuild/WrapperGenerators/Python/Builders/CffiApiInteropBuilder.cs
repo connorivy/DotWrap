@@ -98,6 +98,14 @@ typedef struct {
         headerContent.AppendLine(arrayType);
         foreach (var cls in classes)
         {
+            if (
+                cls.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.DirectlyBlittable)
+                || cls.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.IndirectlyBlittable)
+            )
+            {
+                continue;
+            }
+
             if (!cls.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.Static))
             {
                 var destroyMethod = $"void {cls.EntryPrefix}{Destroy}({CSelfPtrType} ptr);";

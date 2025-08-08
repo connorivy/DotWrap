@@ -29,7 +29,7 @@ internal class CffiApiEnumBuilder(
 
     public void AddClassToMainAndInitPy(ExportedEnumInfo cls)
     {
-        string className = PythonNamingUtils.PythonizeClassName(cls.Name);
+        string className = PythonNamingUtils.PythonizeClassName(cls.TypeNameNoGenerics);
         initPy.AppendLine($"from .main import {className}");
 
         mainPy.AppendLine($"class {className}(Enum):");

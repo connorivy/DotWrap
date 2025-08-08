@@ -36,6 +36,16 @@ public abstract class EntryPointStaticClassBuilderBase(ClassBuilderContext conte
 
         this.AddMetadata(classBody, classMetadataBuilder);
 
+        string attrName;
+        if (context.ClassSymbol.TypeKind == TypeKind.Enum)
+        {
+            attrName = nameof(DotWrapGeneratedEnumMetaAttribute);
+        }
+        else
+        {
+            attrName = nameof(DotWrapGeneratedClassWrapperAttribute);
+        }
+
         var sourceText =
             $@"
 using System;
@@ -46,7 +56,7 @@ namespace {Context.Namespace}
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
     [global::System.CodeDom.Compiler.GeneratedCode(""DotWrap"", ""1.0.0"")]
-    [global::{nameof(DotWrap)}.{nameof(DotWrap.DotWrapGeneratedClassWrapperAttribute).Replace("Attribute", "")}]
+    [global::{nameof(DotWrap)}.{attrName}]
     internal static class {Context.WrapperName}
     {{
 {classBody.ToString().TrimEnd()}

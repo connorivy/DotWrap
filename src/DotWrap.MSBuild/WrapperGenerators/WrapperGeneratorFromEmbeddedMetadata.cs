@@ -17,7 +17,6 @@ public class WrapperGeneratorFromEmbeddedMetadata
         var assembly = Assembly.LoadFrom(libFullPath);
 
         CSharpProjectInfo projectInfo = new(libFullPath);
-        List<ExportedEnumInfo> exportedEnums = [];
         Dictionary<string, ExportedTypeDefinition> exportedTypes = [];
 
         // reflection strangely represents static classes as abstract sealed classes
@@ -40,7 +39,7 @@ public class WrapperGeneratorFromEmbeddedMetadata
             );
             if (attr is DotWrapGeneratedEnumMetaAttribute enumAttr)
             {
-                AddEnumWrapperInfo(exportedEnums, type, classInfoString);
+                AddEnumWrapperInfo(exportedTypes, type, classInfoString);
             }
             // else if (attr is DotWrapGeneratedClassWrapperAttribute classAttr)
             // {
@@ -60,11 +59,14 @@ public class WrapperGeneratorFromEmbeddedMetadata
 
         GlobalContext globalContext = new(
             exportedTypes,
-            [.. exportedEnums.Select(e => $"{e.Namespace}.{e.Name}")],
+            // [.. exportedEnums.Select(e => $"{e.Namespace}.{e.Name}")],
             configTypes
         );
         CffiApiWrapperBuilder pythonWrapperBuilder = new(globalContext, projectInfo);
-        pythonWrapperBuilder.BuildWrapper(exportedTypes.Values.ToList(), exportedEnums);
+        pythonWrapperBuilder.BuildWrapper(
+            exportedTypes.Values.Where(t => t is not ExportedEnumInfo).ToList(),
+            exportedTypes.Values.OfType<ExportedEnumInfo>().ToList()
+        );
     }
 
     private static void AddClassWrapperInfo(
@@ -86,7 +88,8 @@ public class WrapperGeneratorFromEmbeddedMetadata
     }
 
     private static void AddEnumWrapperInfo(
-        List<ExportedEnumInfo> exportedEnums,
+        Dictionary<string, ExportedTypeDefinition> exportedTypes,
+        // List<ExportedEnumInfo> exportedEnums,
         Type type,
         string classInfoString
     )
@@ -100,7 +103,8 @@ public class WrapperGeneratorFromEmbeddedMetadata
                 $"Failed to deserialize class info for {type.FullName}."
             );
 
-        exportedEnums.Add(enumInfo);
+        // exportedEnums.Add(enumInfo);
+        exportedTypes[enumInfo.Id.ToString()] = enumInfo;
     }
 
     private static void AddExportedTypeInfo(

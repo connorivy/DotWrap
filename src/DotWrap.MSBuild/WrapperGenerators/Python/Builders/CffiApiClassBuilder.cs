@@ -22,6 +22,14 @@ internal class CffiApiClassBuilder(
     {
         foreach (var cls in classes)
         {
+            if (
+                cls.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.DirectlyBlittable)
+                || cls.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.IndirectlyBlittable)
+            )
+            {
+                continue;
+            }
+
             IndentedPythonStringBuilder classBodyBuilder = new();
 
             IndentedPythonStringBuilder? genericClassBodyBuilder = null;
@@ -36,6 +44,10 @@ internal class CffiApiClassBuilder(
             using var indent = classBodyBuilder.IndentUntilDispose();
             foreach (var config in GetApplicableConfigs(globalContext.Configs, cls))
             {
+                if (!config.Item2.ShouldConfigure(cls, config.Item1))
+                {
+                    continue;
+                }
                 if (genericClassBodyBuilder is not null)
                 {
                     config.Item2.ConfigureGenericClassBody(
@@ -96,18 +108,14 @@ def __del__(self) -> None:
         IndentedPythonStringBuilder? genericClassBodyBuilder
     )
     {
-        var baseClassName = PythonNamingUtils.GetGenericBaseNameOrNull(
-            classInfo.FullyQualifiedName
+        var baseClassName = PythonNamingUtils.PythonizeClassName(classInfo.TypeNameNoGenerics);
+        var className = PythonNamingUtils.PythonizeClassName(classInfo.FullyQualifiedName);
+        Logger.LogDebug(
+            $"Adding class {className} with baseClass {baseClassName} to main.py with number of methods: {classInfo.Methods.Count}"
         );
-        string className = PythonNamingUtils.PythonizeClassName(classInfo.FullyQualifiedName);
-
-        if (genericClassBodyBuilder is not null)
+        if (classNames.Add(baseClassName))
         {
             initPy.AppendLine($"from .main import {baseClassName}");
-        }
-        else
-        {
-            initPy.AppendLine($"from .main import {className}");
         }
 
         var genericDef = string.Join(

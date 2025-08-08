@@ -98,16 +98,17 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
 
     public IEnumerable<string> ConvertPythonParamsToCParams()
     {
-        bool hasConverted = false;
         foreach (var param in this.MethodInfo.Parameters)
         {
             if (param.ExposedTypeIfDifferent is null)
             {
                 continue;
             }
-            hasConverted = true;
 
-            if (ClassContext.GlobalContext.EnumNames.Contains(param.Type.DefinitionId.ToString()))
+            var definition = ClassContext.GlobalContext.TypeDefinitions[
+                param.Type.DefinitionId.ToString()
+            ];
+            if (definition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.Enum))
             {
                 yield return $"{param.Name}{Typed} = {PythonNamingUtils.MapTypeToPython(param.ExposedTypeIfDifferent)}({param.Name}.value)";
             }

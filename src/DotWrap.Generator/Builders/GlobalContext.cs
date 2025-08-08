@@ -9,7 +9,7 @@ public class GlobalContext(
     List<ITypeSymbol> inferedTypesToWrap
 )
 {
-    public List<ExportedEnumInfo> ExportedEnums { get; } = [];
+    // public List<ExportedEnumInfo> ExportedEnums { get; } = [];
 
     public void AddInferedType(ITypeSymbol typeSymbol)
     {

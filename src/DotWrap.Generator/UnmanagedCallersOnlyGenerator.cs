@@ -135,40 +135,40 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                     }
                 }
 
-                foreach (var exportedEnum in globalContext.ExportedEnums)
-                {
-                    string enumSourceText =
-                        $@"
-using System;
-using System.Runtime.InteropServices;
+                //                 foreach (var exportedEnum in globalContext.ExportedEnums)
+                //                 {
+                //                     string enumSourceText =
+                //                         $@"
+                // using System;
+                // using System.Runtime.InteropServices;
 
-namespace {exportedEnum.Namespace}
-{{
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+                // namespace {exportedEnum.Namespace}
+                // {{
+                // #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
-    [global::System.CodeDom.Compiler.GeneratedCode(""DotWrap"", ""1.0.0"")]
-    [global::{nameof(DotWrap)}.{nameof(DotWrap.DotWrapGeneratedEnumMetaAttribute).Replace("Attribute", "")}]
-    internal static class {exportedEnum.Name}DotWrapMetadata
-    {{
-#pragma warning disable CS0414 // Field is assigned to but its value is never used
-        private static readonly string {DotWrap.Internal.Constants.Metadata} =  
-        """"""
-        {JsonSerializer.Serialize(
-            exportedEnum,
-            DotWrapSerializerOptions.Default
-        )}
-        """""";
-#pragma warning restore CS0414 // Field is assigned to but its value is never used;
-    }}
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
-}}
-";
+                //     [global::System.CodeDom.Compiler.GeneratedCode(""DotWrap"", ""1.0.0"")]
+                //     [global::{nameof(DotWrap)}.{nameof(DotWrap.DotWrapGeneratedEnumMetaAttribute).Replace("Attribute", "")}]
+                //     internal static class {exportedEnum.Name}DotWrapMetadata
+                //     {{
+                // #pragma warning disable CS0414 // Field is assigned to but its value is never used
+                //         private static readonly string {DotWrap.Internal.Constants.Metadata} =
+                //         """"""
+                //         {JsonSerializer.Serialize(
+                //             exportedEnum,
+                //             DotWrapSerializerOptions.Default
+                //         )}
+                //         """""";
+                // #pragma warning restore CS0414 // Field is assigned to but its value is never used;
+                //     }}
+                // #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+                // }}
+                // ";
 
-                    spc.AddSource(
-                        $"{exportedEnum.Namespace.Replace(".", "_")}_{exportedEnum.Name}.g.cs",
-                        SourceText.From(enumSourceText, Encoding.UTF8)
-                    );
-                }
+                //                     spc.AddSource(
+                //                         $"{exportedEnum.Namespace.Replace(".", "_")}_{exportedEnum.Name}.g.cs",
+                //                         SourceText.From(enumSourceText, Encoding.UTF8)
+                //                     );
+                //                 }
             }
         );
 
