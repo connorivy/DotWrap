@@ -46,12 +46,8 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
 
                 HashSet<ITypeSymbol> allExplicitTypes = [];
                 HashSet<ITypeSymbol> allInferedTypes = [];
-                List<ITypeSymbol> inferedTypesToWrap = [];
-                GlobalContext globalContext = new(
-                    allExplicitTypes,
-                    allInferedTypes,
-                    inferedTypesToWrap
-                );
+                List<ITypeSymbol> inferedTypes = [];
+                GlobalContext globalContext = new(allExplicitTypes, allInferedTypes, inferedTypes);
 
                 // System.Diagnostics.Debugger.Launch();
 
@@ -88,7 +84,7 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                     );
                 }
 
-                if (inferedTypesToWrap.Count == 0)
+                if (inferedTypes.Count == 0)
                 {
                     return;
                 }
@@ -113,12 +109,12 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                     )
                     .ToList();
 
-                while (inferedTypesToWrap.Count > 0)
+                while (inferedTypes.Count > 0)
                 {
-                    for (int i = inferedTypesToWrap.Count - 1; i >= 0; i--)
+                    for (int i = inferedTypes.Count - 1; i >= 0; i--)
                     {
-                        var classSymbol = inferedTypesToWrap[i];
-                        inferedTypesToWrap.RemoveAt(i);
+                        var classSymbol = inferedTypes[i];
+                        inferedTypes.RemoveAt(i);
                         var context = new ClassBuilderContext(globalContext, classSymbol);
                         string sourceText = new ImplicitWrapperBuilder(
                             context,

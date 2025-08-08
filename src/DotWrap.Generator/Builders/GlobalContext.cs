@@ -8,7 +8,7 @@ namespace DotWrap.Generator.Builders;
 public class GlobalContext(
     HashSet<ITypeSymbol> allExplicitTypes,
     HashSet<ITypeSymbol> allInferedTypes,
-    List<ITypeSymbol> inferedTypesToWrap
+    List<ITypeSymbol> inferedTypes
 )
 {
     public List<ExportedEnumInfo> ExportedEnums { get; } = [];
@@ -60,7 +60,7 @@ public class GlobalContext(
         {
             if (!SkipWrapperGeneration(typeSymbol) && !allExplicitTypes.Contains(typeSymbol))
             {
-                inferedTypesToWrap.Add(typeSymbol);
+                inferedTypes.Add(typeSymbol);
             }
         }
         else
