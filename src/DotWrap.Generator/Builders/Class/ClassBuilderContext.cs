@@ -85,34 +85,4 @@ public class ClassBuilderContext(
     public string FullyQualifiedWrapperName => $"{Namespace}.{WrapperName}";
     public string FullyQualifiedClassName => ClassSymbol.ToDisplayString();
     public string EntryPrefix => field ??= $"c{DotWrapUtils.GetStamp(FullyQualifiedClassName)}_";
-
-    public ClassSpecialCaseFlags SpecialCaseFlags
-    {
-        get
-        {
-            ClassSpecialCaseFlags flags = ClassSpecialCaseFlags.None;
-
-            if (ClassSymbol.AllInterfaces.Any(i => i.Name == "IEnumerable"))
-            {
-                flags |= ClassSpecialCaseFlags.IEnumerable;
-            }
-            if (ClassSymbol.AllInterfaces.Any(i => i.Name.StartsWith("IReadOnlyCollection")))
-            {
-                flags |= ClassSpecialCaseFlags.ICollection;
-                if (ClassSymbol.AllInterfaces.Any(i => i.Name == "ICollection"))
-                {
-                    flags |= ClassSpecialCaseFlags.IsReadOnly;
-                }
-            }
-            if (ClassSymbol.AllInterfaces.Any(i => i.Name.StartsWith("IReadOnlyList")))
-            {
-                flags |= ClassSpecialCaseFlags.IList;
-                if (!ClassSymbol.AllInterfaces.Any(i => i.Name == "IList"))
-                {
-                    flags |= ClassSpecialCaseFlags.IsReadOnly;
-                }
-            }
-            return flags;
-        }
-    }
 }

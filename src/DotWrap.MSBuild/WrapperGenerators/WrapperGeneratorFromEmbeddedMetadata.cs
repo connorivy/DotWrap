@@ -18,7 +18,7 @@ public class WrapperGeneratorFromEmbeddedMetadata
 
         CSharpProjectInfo projectInfo = new(libFullPath);
         List<ExportedEnumInfo> exportedEnums = [];
-        Dictionary<string, ExportedTypeDefinitionInfo> exportedTypes = [];
+        Dictionary<string, ExportedTypeDefinition> exportedTypes = [];
 
         // reflection strangely represents static classes as abstract sealed classes
         foreach (
@@ -68,13 +68,13 @@ public class WrapperGeneratorFromEmbeddedMetadata
     }
 
     private static void AddClassWrapperInfo(
-        List<ExportedTypeDefinitionInfo> exportedClasses,
+        List<ExportedTypeDefinition> exportedClasses,
         Type type,
         string classInfoString
     )
     {
-        ExportedTypeDefinitionInfo classInfo =
-            JsonSerializer.Deserialize<ExportedTypeDefinitionInfo>(
+        ExportedTypeDefinition classInfo =
+            JsonSerializer.Deserialize<ExportedTypeDefinition>(
                 classInfoString,
                 DotWrapSerializerOptions.Default
             )
@@ -104,13 +104,13 @@ public class WrapperGeneratorFromEmbeddedMetadata
     }
 
     private static void AddExportedTypeInfo(
-        Dictionary<string, ExportedTypeDefinitionInfo> exportedTypes,
+        Dictionary<string, ExportedTypeDefinition> exportedTypes,
         Type type,
         string classInfoString
     )
     {
         var typeInfo =
-            JsonSerializer.Deserialize<ExportedTypeDefinitionInfo>(
+            JsonSerializer.Deserialize<ExportedTypeDefinition>(
                 classInfoString,
                 DotWrapSerializerOptions.Default
             )

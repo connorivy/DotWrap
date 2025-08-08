@@ -44,7 +44,7 @@ public class TaskConfig : DotWrapPythonTypeConfig
     }
 
     public override void ConfigureGenericClassBody(
-        ExportedTypeDefinitionInfo exportedType,
+        ExportedTypeDefinition exportedType,
         Type mathchingType,
         IndentedStringBuilder? genericClassBodyBuilder
     )
@@ -72,7 +72,7 @@ public class ValueTaskConfig : DotWrapPythonTypeConfig
     public override Type TypeToConfigure => typeof(ValueTask<>);
 
     public override void ConfigureGenericClassBody(
-        ExportedTypeDefinitionInfo exportedType,
+        ExportedTypeDefinition exportedType,
         Type matchingType,
         IndentedStringBuilder? genericClassBodyBuilder
     )

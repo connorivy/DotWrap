@@ -7,16 +7,19 @@ public abstract class DotWrapPythonTypeConfig
 {
     public abstract Type TypeToConfigure { get; }
 
+    public virtual bool ShouldConfigure(ExportedTypeDefinition exportedType, Type matchingType) =>
+        true;
+
     public virtual void ConfigureImports(IndentedStringBuilder sb) { }
 
     public virtual void ConfigureClassBody(
-        ExportedTypeDefinitionInfo exportedType,
+        ExportedTypeDefinition exportedType,
         Type matchingType,
         IndentedStringBuilder classBody
     ) { }
 
     public virtual void ConfigureGenericClassBody(
-        ExportedTypeDefinitionInfo exportedType,
+        ExportedTypeDefinition exportedType,
         Type matchingType,
         IndentedStringBuilder genericClassBodyBuilder
     ) { }

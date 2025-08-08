@@ -6,8 +6,8 @@ namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 public record ClassBuilderContext(
     GlobalContext GlobalContext,
     PythonProjectInfo ProjectInfo,
-    ExportedTypeDefinitionInfo ClassInfo
+    ExportedTypeDefinition ClassInfo
 )
 {
-    public bool IsGeneric => this.ClassInfo.TypeName.Contains('<');
+    public bool IsGeneric => this.ClassInfo.FullyQualifiedName.Contains('<');
 };

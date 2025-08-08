@@ -48,11 +48,7 @@ public class MethodBuilder(
             exportedResultAssignment = null;
         }
         else if (
-            GetBlittableExternalTypeAssignment(
-                context.OriginalReturnType,
-                classContext.GlobalContext
-            )
-            is string assignment
+            GetBlittableExternalTypeAssignment(context.OriginalReturnType) is string assignment
         )
         {
             exportedResultAssignment = assignment;
@@ -207,10 +203,7 @@ public class MethodBuilder(
         return newContext.FullyQualifiedWrapperName;
     }
 
-    public static string? GetBlittableExternalTypeAssignment(
-        ITypeSymbol typeSymbol,
-        GlobalContext globalContext
-    )
+    public static string? GetBlittableExternalTypeAssignment(ITypeSymbol typeSymbol)
     {
         if (typeSymbol is null)
         {

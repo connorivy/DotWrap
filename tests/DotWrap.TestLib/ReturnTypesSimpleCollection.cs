@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using DotWrap;
 using DotWrap.Configuration;
@@ -90,42 +91,64 @@ public class ICollectionConfig : DotWrapPythonTypeConfig
     public override Type TypeToConfigure => typeof(ICollection<>);
 
     public override void ConfigureGenericClassBody(
-        ExportedTypeDefinitionInfo exportedType,
+        ExportedTypeDefinition exportedType,
         Type matchingType,
         IndentedStringBuilder genericClassBodyBuilder
     )
     {
+        var interfaceImplementation =
+            matchingType.GetInterface(this.TypeToConfigure.Name)
+            ?? throw new InvalidOperationException(
+                $"Type {matchingType.FullName} does not implement ICollection<> interface."
+            );
         var assemblyName =
-            matchingType.GenericTypeArguments[0].FullName
-            ?? matchingType.GenericTypeArguments[0].Name;
+            interfaceImplementation.GenericTypeArguments[0].FullName
+            ?? interfaceImplementation.GenericTypeArguments[0].Name;
 
-        var originalTypeString = DotWrapUtils.GetOriginalTypeString(assemblyName);
-        var genericArg = PythonNamingUtils.MapTypeToPython(originalTypeString);
+        var originalTypeString = DotWrapUtils.NormalizeCsTypeName(
+            DotWrapUtils.GetOriginalTypeString(assemblyName)
+        );
+        var genericArg = PythonNamingUtils.MapTypeToPython(
+            originalTypeString,
+            exportedType.GenericTypeArgumentsToParameters,
+            true
+        );
         genericClassBodyBuilder?.AppendLine(
             $@"
-def to_list(self) -> list[""{genericArg}""]:
+def to_list(self) -> list[{genericArg}]:
     pass
         "
         );
     }
 
     public override void ConfigureClassBody(
-        ExportedTypeDefinitionInfo typeInfo,
+        ExportedTypeDefinition typeInfo,
         Type matchingType,
         IndentedStringBuilder classBody
     )
     {
+        var interfaceImplementation =
+            matchingType.GetInterface(this.TypeToConfigure.Name)
+            ?? throw new InvalidOperationException(
+                $"Type {matchingType.FullName} does not implement ICollection<> interface."
+            );
         var assemblyName =
-            matchingType.GenericTypeArguments[0].FullName
-            ?? matchingType.GenericTypeArguments[0].Name;
+            interfaceImplementation.GenericTypeArguments[0].FullName
+            ?? interfaceImplementation.GenericTypeArguments[0].Name;
 
-        var originalTypeString = DotWrapUtils.GetOriginalTypeString(assemblyName);
-        var genericArg = PythonNamingUtils.MapTypeToPython(originalTypeString);
+        var originalTypeString = DotWrapUtils.NormalizeCsTypeName(
+            DotWrapUtils.GetOriginalTypeString(assemblyName)
+        );
+        var genericArg = PythonNamingUtils.MapTypeToPython(
+            originalTypeString,
+            typeInfo.GenericTypeArgumentsToParameters,
+            false
+        );
         var exposedType = DotWrapUtils.GetExposedTypeFromCsType(
             genericArg,
             out bool isOriginalType
         );
-        classBody.AppendLine($"def to_list(self) -> list[\"{genericArg}\"]:");
+        classBody.AppendLine($"def to_list(self) -> list[{genericArg}]:");
         using var indent1 = classBody.IndentUntilDispose();
 
         var numpyType = PythonNamingUtils.MapTypeToNumpy(genericArg);
@@ -149,14 +172,7 @@ arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
         }
         else
         {
-            OriginalAndExposedTypeInfo genericTypeInfo = new(
-                originalTypeString,
-                isOriginalType ? null : exposedType
-            );
-
-            var externalTypeAssignment = CffiApiMethodBuilder.GetExternalResultAssignment(
-                genericTypeInfo
-            );
+            var externalTypeAssignment = PythonInteropUtils.GetExternalResultAssignment(typeInfo);
             classBody.AppendLine("final_list = []");
             using (var forBlock = classBody.AppendLineWithNewBlock("for i in range(length):"))
             {
@@ -186,4 +202,18 @@ arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
 public class IReadOnlyCollectionConfig : ICollectionConfig
 {
     public override Type TypeToConfigure => typeof(IReadOnlyCollection<>);
+
+    public override bool ShouldConfigure(
+        ExportedTypeDefinition exportedType,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type matchingType
+    )
+    {
+        var icollection = matchingType.GetInterface(nameof(ICollection<>));
+        var interfaces = matchingType.GetInterfaces();
+        Logger.LogDebug(
+            $"Checking if IReadOnlyCollectionConfig should configure {matchingType.Name}, ICollection interfaces: {string.Join(", ", interfaces)}, ICollection: {icollection}"
+        );
+        // Check if the type implments the ICollection<> interface
+        return icollection is null;
+    }
 }

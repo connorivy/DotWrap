@@ -33,6 +33,7 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
             compilationAndClasses,
             static (spc, source) =>
             {
+                Logger.Context = spc;
                 var (compilation, classes) = source;
 
                 // collect all assembly attributes that are marked for external exposure
@@ -84,6 +85,12 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
                     );
                 }
 
+                Logger.LogInfo(
+                    $"Found {allExplicitTypes.Count} explicit types for wrapper generation."
+                );
+                Logger.LogInfo(
+                    $"Found {inferedTypes.Count} inferred types for wrapper generation."
+                );
                 if (inferedTypes.Count == 0)
                 {
                     return;

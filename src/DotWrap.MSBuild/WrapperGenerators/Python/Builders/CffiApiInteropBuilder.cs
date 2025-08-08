@@ -66,7 +66,7 @@ setup(
     private const string CSelfPtrType = "void*";
 
     public (StringBuilder, StringBuilder) CreateBuildPyAndHeader(
-        IList<ExportedTypeDefinitionInfo> classes
+        IList<ExportedTypeDefinition> classes
     )
     {
         var libName = pythonProjectInfo.CSharpProjectInfo.LibName;

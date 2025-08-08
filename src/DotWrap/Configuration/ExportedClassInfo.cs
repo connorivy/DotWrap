@@ -55,51 +55,70 @@ public class ExportedEnumInfo : IHasOriginalAndExposedTypes
     public required Dictionary<string, long> Options { get; set; }
 }
 
-public class ExportedTypeDefinitionInfo
+// public class ExportedTypeDefinition
+// {
+//     public ExportedTypeId Id => new(Namespace, TypeName, GenericTypeArgumentsToParameters.Keys);
+//     public required string FullyQualifiedName { get; set; }
+
+//     // public string EntryPrefix => field ??= $"c{DotWrapUtils.GetStamp(this.Id.ToString())}_";
+//     public required string EntryPrefix { get; set; }
+
+//     // public required string[]? GenericParameters { get; set; }
+//     public required Dictionary<string, string> GenericTypeArgumentsToParameters { get; set; }
+//     public required List<string> Interfaces { get; set; }
+//     public required string Namespace { get; set; }
+//     public required string TypeName { get; set; }
+//     public required ExportedType ExportedType { get; set; }
+//     public required TypeSpecialCaseFlags SpecialCaseFlags { get; set; }
+//     public string? SummaryComment { get; set; }
+//     public required bool IsSameAsExposedType { get; set; }
+//     public List<ExportedMethodInfo> Methods { get; set; } = new();
+
+//     public bool TryGetICollectionType([NotNullWhen(true)] out string? collectionType) =>
+//         this.TryGetSingleGenericInterfaceType(
+//             "System.Collections.Generic.ICollection<",
+//             out collectionType
+//         );
+
+//     public bool TryGetIReadonlyCollectionType([NotNullWhen(true)] out string? collectionType) =>
+//         this.TryGetSingleGenericInterfaceType(
+//             "System.Collections.Generic.IReadOnlyCollection<",
+//             out collectionType
+//         );
+
+//     public bool TryGetSingleGenericInterfaceType(
+//         string interfaceStart,
+//         [NotNullWhen(true)] out string? collectionType
+//     )
+//     {
+//         var collectionInter = this.Interfaces.FirstOrDefault(i => i.StartsWith(interfaceStart));
+//         if (collectionInter is not null)
+//         {
+//             collectionType = collectionInter[interfaceStart.Length..^1];
+//             return true;
+//         }
+//         collectionType = null;
+//         return false;
+//     }
+// }
+
+public class ExportedTypeDefinition
 {
-    public ExportedTypeId Id => new(Namespace, TypeName, GenericTypeArgumentsToParameters.Keys);
+    public required ExportedTypeId Id { get; set; }
+    public required string AssemblyQualifiedName { get; set; }
     public required string FullyQualifiedName { get; set; }
-
-    // public string EntryPrefix => field ??= $"c{DotWrapUtils.GetStamp(this.Id.ToString())}_";
     public required string EntryPrefix { get; set; }
-
-    // public required string[]? GenericParameters { get; set; }
     public required Dictionary<string, string> GenericTypeArgumentsToParameters { get; set; }
-    public required List<string> Interfaces { get; set; }
-    public required string Namespace { get; set; }
-    public required string TypeName { get; set; }
+
+    // public required List<string> Interfaces { get; set; }
+    // public required string Namespace { get; set; }
+    public required string TypeNameNoGenerics { get; set; }
     public required ExportedType ExportedType { get; set; }
     public required TypeSpecialCaseFlags SpecialCaseFlags { get; set; }
     public string? SummaryComment { get; set; }
     public required bool IsSameAsExposedType { get; set; }
+    public required string OriginalTypeWrapperName { get; set; }
     public List<ExportedMethodInfo> Methods { get; set; } = new();
-
-    public bool TryGetICollectionType([NotNullWhen(true)] out string? collectionType) =>
-        this.TryGetSingleGenericInterfaceType(
-            "System.Collections.Generic.ICollection<",
-            out collectionType
-        );
-
-    public bool TryGetIReadonlyCollectionType([NotNullWhen(true)] out string? collectionType) =>
-        this.TryGetSingleGenericInterfaceType(
-            "System.Collections.Generic.IReadOnlyCollection<",
-            out collectionType
-        );
-
-    public bool TryGetSingleGenericInterfaceType(
-        string interfaceStart,
-        [NotNullWhen(true)] out string? collectionType
-    )
-    {
-        var collectionInter = this.Interfaces.FirstOrDefault(i => i.StartsWith(interfaceStart));
-        if (collectionInter is not null)
-        {
-            collectionType = collectionInter[interfaceStart.Length..^1];
-            return true;
-        }
-        collectionType = null;
-        return false;
-    }
 }
 
 public class ExportedTypeInstanceInfo
@@ -172,6 +191,14 @@ public enum TypeSpecialCaseFlags
     Struct = 1 << 2,
     Enum = 1 << 3,
     Static = 1 << 4,
+    DirectlyBlittable = 1 << 5,
+
+    /// <summary>
+    /// This type is indirectly blittable, meaning it is not blittable itself,
+    /// but it can be transformed into a blittable type
+    /// (e.g. a bool is not blittable, but it can be transformed into an int).
+    /// </summary>
+    IndirectlyBlittable = 1 << 6,
 }
 
 public interface IHasOriginalAndExposedTypes

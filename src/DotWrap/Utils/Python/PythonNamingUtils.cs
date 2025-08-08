@@ -47,7 +47,8 @@ public static class PythonNamingUtils
     /// <returns></returns>
     public static string PythonizeTypeName(
         string fullTypeName,
-        IDictionary<string, string>? genericParamsToArgsDict = null
+        IDictionary<string, string>? genericArgsToParamsDict = null,
+        bool useGenericParams = false
     )
     {
         fullTypeName = DotWrapUtils.ReplaceArraySymbols(fullTypeName);
@@ -56,7 +57,7 @@ public static class PythonNamingUtils
 
         var innerGenerics = topLevelSplit
             .SelectMany(GetTopLevelGenerics)
-            .Select(g => MapTypeToPython(g, genericParamsToArgsDict))
+            .Select(g => MapTypeToPython(g, genericArgsToParamsDict, useGenericParams))
             .ToList();
 
         var typeName = topLevelSplit.Last();
@@ -160,6 +161,7 @@ public static class PythonNamingUtils
 
     public static string? GetGenericBaseNameOrNull(string className)
     {
+        className = SplitOnPeriodTopLevel(className).LastOrDefault() ?? className;
         // split on first < and last >
         var startIndex = className.IndexOf('<');
         var endIndex = className.LastIndexOf('>');
@@ -172,12 +174,27 @@ public static class PythonNamingUtils
 
     public static string MapTypeToPython(
         string t,
-        IDictionary<string, string>? genericParamsToArgsDict = null
+        IDictionary<string, string>? genericArgsToParamsDict = null,
+        bool useGenericParams = false
     )
     {
-        if (genericParamsToArgsDict?.TryGetValue(t, out var mappedType) == true)
+        if (useGenericParams)
         {
-            return mappedType;
+            if (genericArgsToParamsDict?.TryGetValue(t, out var mappedType) == true)
+            {
+                return mappedType;
+            }
+        }
+        else
+        {
+            if (
+                genericArgsToParamsDict?.FirstOrDefault(kvp => kvp.Value == t) is var mappedType
+                && mappedType.HasValue
+                && mappedType.Value.Key is not null
+            )
+            {
+                t = mappedType.Value.Key;
+            }
         }
         return t.ToLowerInvariant().Replace("system.", "") switch
         {
@@ -197,7 +214,7 @@ public static class PythonNamingUtils
             "boolean" or "bool" => "bool",
             "void" => "None",
             "string" => "str",
-            _ => PythonizeTypeName(t, genericParamsToArgsDict),
+            _ => $"\"{PythonizeTypeName(t, genericArgsToParamsDict, useGenericParams)}\"",
         };
     }
 

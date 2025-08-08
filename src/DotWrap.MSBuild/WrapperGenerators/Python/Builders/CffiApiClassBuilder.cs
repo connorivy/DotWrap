@@ -18,15 +18,14 @@ internal class CffiApiClassBuilder(
 {
     private HashSet<string> classNames = new();
 
-    public void AddClassesToMainAndInitPy(IEnumerable<ExportedTypeDefinitionInfo> classes)
+    public void AddClassesToMainAndInitPy(IEnumerable<ExportedTypeDefinition> classes)
     {
         foreach (var cls in classes)
         {
             IndentedPythonStringBuilder classBodyBuilder = new();
 
-            string? genericClassName = PythonNamingUtils.GetGenericBaseNameOrNull(cls.TypeName);
             IndentedPythonStringBuilder? genericClassBodyBuilder = null;
-            if (genericClassName is not null && this.classNames.Add(genericClassName))
+            if (cls.GenericTypeArgumentsToParameters.Count > 0)
             {
                 genericClassBodyBuilder = this.CreateGenericClassBodyBuilder(cls);
             }
@@ -57,14 +56,10 @@ internal class CffiApiClassBuilder(
         }
     }
 
-    private IndentedPythonStringBuilder CreateGenericClassBodyBuilder(
-        ExportedTypeDefinitionInfo cls
-    )
+    private IndentedPythonStringBuilder CreateGenericClassBodyBuilder(ExportedTypeDefinition cls)
     {
         IndentedPythonStringBuilder genericClassBuilder = new();
-        string genericClassName =
-            PythonNamingUtils.GetGenericBaseNameOrNull(cls.TypeName)
-            ?? throw new ArgumentException("Class name must be a generic type with '<' and '>'");
+        string genericClassName = cls.TypeNameNoGenerics;
         var genericParams = cls.GenericTypeArgumentsToParameters.Select(kvp => kvp.Value).ToList();
 
         foreach (var param in genericParams)
@@ -96,13 +91,15 @@ def __del__(self) -> None:
     }
 
     private void AddClassToMainAndInitPy(
-        ExportedTypeDefinitionInfo classInfo,
+        ExportedTypeDefinition classInfo,
         IndentedPythonStringBuilder classBodyBuilder,
         IndentedPythonStringBuilder? genericClassBodyBuilder
     )
     {
-        var baseClassName = PythonNamingUtils.GetGenericBaseNameOrNull(classInfo.TypeName);
-        string className = PythonNamingUtils.PythonizeClassName(classInfo.TypeName);
+        var baseClassName = PythonNamingUtils.GetGenericBaseNameOrNull(
+            classInfo.FullyQualifiedName
+        );
+        string className = PythonNamingUtils.PythonizeClassName(classInfo.FullyQualifiedName);
 
         if (genericClassBodyBuilder is not null)
         {
@@ -139,8 +136,12 @@ def __del__(self) -> None:
 
         var classContext = new ClassBuilderContext(globalContext, pythonProjectInfo, classInfo);
         var methodBuilder = new CffiApiMethodBuilder(classContext, classBodyBuilder);
+        Logger.LogDebug(
+            $"Adding class {className} to main.py with number of methods: {classInfo.Methods.Count}"
+        );
         foreach (var method in classInfo.Methods)
         {
+            Logger.LogDebug($"Adding method {method.OriginalName} to class {className} in main.py");
             if (method.OriginalName.StartsWith(InternalPrefix))
             {
                 continue;
@@ -164,70 +165,70 @@ def __del__(self):
             );
         }
 
-        if (
-            classInfo.TryGetICollectionType(out var genericType)
-            || classInfo.TryGetIReadonlyCollectionType(out genericType)
-        )
-        {
-            var genericArg = PythonNamingUtils.MapTypeToPython(genericType);
-            var exposedType = DotWrapUtils.GetExposedTypeFromCsType(
-                genericType,
-                out bool isOriginalType
-            );
-            var numpyType = PythonNamingUtils.MapTypeToNumpy(exposedType);
-            var tolistMethodDef = $"def to_list(self) -> list[\"{genericArg}\"]:";
-            classBodyBuilder.AppendLine(tolistMethodDef);
-            genericClassBodyBuilder?.AppendLine(tolistMethodDef);
-            genericClassBodyBuilder?.AppendLine("    pass");
-            using var indent1 = classBodyBuilder.IndentUntilDispose();
-            classBodyBuilder.AppendLine(
-                @$"
-""""""
-Converts the array data to a list of the specified dtype.
-""""""
-length = {Lib}.{classInfo.EntryPrefix}{GetCount}(self.{Ptr})
-arr = np.empty(length, dtype={numpyType})
+        //         if (
+        //             classInfo.TryGetICollectionType(out var genericType)
+        //             || classInfo.TryGetIReadonlyCollectionType(out genericType)
+        //         )
+        //         {
+        //             var genericArg = PythonNamingUtils.MapTypeToPython(genericType);
+        //             var exposedType = DotWrapUtils.GetExposedTypeFromCsType(
+        //                 genericType,
+        //                 out bool isOriginalType
+        //             );
+        //             var numpyType = PythonNamingUtils.MapTypeToNumpy(exposedType);
+        //             var tolistMethodDef = $"def to_list(self) -> list[\"{genericArg}\"]:";
+        //             classBodyBuilder.AppendLine(tolistMethodDef);
+        //             genericClassBodyBuilder?.AppendLine(tolistMethodDef);
+        //             genericClassBodyBuilder?.AppendLine("    pass");
+        //             using var indent1 = classBodyBuilder.IndentUntilDispose();
+        //             classBodyBuilder.AppendLine(
+        //                 @$"
+        // """"""
+        // Converts the array data to a list of the specified dtype.
+        // """"""
+        // length = {Lib}.{classInfo.EntryPrefix}{GetCount}(self.{Ptr})
+        // arr = np.empty(length, dtype={numpyType})
 
-# get stable pointer to the array data
-arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
-{Lib}.{classInfo.EntryPrefix}{FillArr}(self.{Ptr}, arr_ptr, length)
-        "
-            );
+        // # get stable pointer to the array data
+        // arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
+        // {Lib}.{classInfo.EntryPrefix}{FillArr}(self.{Ptr}, arr_ptr, length)
+        //         "
+        //             );
 
-            if (isOriginalType)
-            {
-                classBodyBuilder.AppendLine("return arr.tolist()");
-            }
-            else
-            {
-                OriginalAndExposedTypeInfo genericTypeInfo = new(
-                    genericType,
-                    isOriginalType ? null : exposedType
-                );
+        //             if (isOriginalType)
+        //             {
+        //                 classBodyBuilder.AppendLine("return arr.tolist()");
+        //             }
+        //             else
+        //             {
+        //                 OriginalAndExposedTypeInfo genericTypeInfo = new(
+        //                     genericType,
+        //                     isOriginalType ? null : exposedType
+        //                 );
 
-                var (prefix, suffix) = CffiApiMethodBuilder.GetToPythonTransformation(
-                    genericTypeInfo
-                );
-                classBodyBuilder.AppendLine("final_list = []");
-                using (
-                    var forBlock = classBodyBuilder.AppendLineWithNewBlock(
-                        "for i in range(length):"
-                    )
-                )
-                {
-                    if (numpyType == "np.intp")
-                    {
-                        classBodyBuilder.AppendLine($"val = {Ffi}.cast('void *', arr[i])");
-                    }
-                    else
-                    {
-                        classBodyBuilder.AppendLine($"val = arr[i]");
-                    }
-                    classBodyBuilder.AppendLine($"final_list.append({prefix}val{suffix})");
-                }
-                classBodyBuilder.AppendLine("return final_list");
-            }
-        }
+        //                 var (prefix, suffix) = CffiApiMethodBuilder.GetToPythonTransformation(
+        //                     genericTypeInfo
+        //                 );
+        //                 classBodyBuilder.AppendLine("final_list = []");
+        //                 using (
+        //                     var forBlock = classBodyBuilder.AppendLineWithNewBlock(
+        //                         "for i in range(length):"
+        //                     )
+        //                 )
+        //                 {
+        //                     if (numpyType == "np.intp")
+        //                     {
+        //                         classBodyBuilder.AppendLine($"val = {Ffi}.cast('void *', arr[i])");
+        //                     }
+        //                     else
+        //                     {
+        //                         classBodyBuilder.AppendLine($"val = arr[i]");
+        //                     }
+        //                     classBodyBuilder.AppendLine($"final_list.append({prefix}val{suffix})");
+        //                 }
+        //                 classBodyBuilder.AppendLine("return final_list");
+        //             }
+        //         }
     }
 
     /// <summary>
@@ -238,14 +239,20 @@ arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
     /// <returns></returns>
     public IEnumerable<(Type, DotWrapPythonTypeConfig)> GetApplicableConfigs(
         Dictionary<Type, DotWrapPythonTypeConfig> configs,
-        ExportedTypeDefinitionInfo typeInfo
+        ExportedTypeDefinition typeInfo
     )
     {
-        foreach (var strongType in GetTypesThatCouldHaveConfigs(typeInfo))
+        var originalType =
+            Type.GetType(typeInfo.AssemblyQualifiedName)
+            ?? throw new InvalidOperationException(
+                $"Could not find type {typeInfo.AssemblyQualifiedName} for class {typeInfo.TypeNameNoGenerics}."
+            );
+
+        foreach (var strongType in GetTypesThatCouldHaveConfigs(originalType))
         {
             if (configs.TryGetValue(strongType, out var config))
             {
-                yield return (strongType, config);
+                yield return (originalType, config);
             }
 
             if (strongType.IsGenericType)
@@ -253,37 +260,23 @@ arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
                 var genericTypeDef = strongType.GetGenericTypeDefinition();
                 if (configs.TryGetValue(genericTypeDef, out var genericConfig))
                 {
-                    yield return (strongType, genericConfig);
+                    yield return (originalType, genericConfig);
                 }
             }
         }
     }
 
-    private static IEnumerable<Type> GetTypesThatCouldHaveConfigs(
-        ExportedTypeDefinitionInfo typeInfo
-    )
+    private static IEnumerable<Type> GetTypesThatCouldHaveConfigs(Type originalType)
     {
-        foreach (var typeString in typeInfo.Interfaces.Prepend(typeInfo.FullyQualifiedName))
+        var baseType = originalType;
+        while (baseType is not null && baseType != typeof(object))
         {
-            // Logger.LogDebug($"Checking for config for type {typeString}");
-            var strongType = Type.GetType(typeString);
-
-            if (strongType is null)
-            {
-                Logger.LogWarning(
-                    $"Could not find type {typeString} for class {typeInfo.TypeName}."
-                );
-                continue;
-            }
-
+            yield return baseType;
+            baseType = baseType.BaseType;
+        }
+        foreach (var strongType in originalType.GetInterfaces())
+        {
             yield return strongType;
-
-            var baseType = strongType.BaseType;
-            while (baseType is not null && baseType != typeof(object))
-            {
-                yield return baseType;
-                baseType = baseType.BaseType;
-            }
         }
     }
 }

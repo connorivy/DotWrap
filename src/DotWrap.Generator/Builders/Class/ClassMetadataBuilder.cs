@@ -7,7 +7,7 @@ namespace DotWrap.Generator.Builders.Class;
 public class ClassMetadataBuilder
 {
     // public ExportedClassInfo ClassInfo { get; }
-    public ExportedTypeDefinitionInfo TypeInfo { get; }
+    public ExportedTypeDefinition TypeInfo { get; }
 
     public ClassMetadataBuilder(ClassBuilderContext classContext)
     {
@@ -44,25 +44,18 @@ public class ClassMetadataBuilder
         //     ),
         // };
         var exportedType = classContext.ClassSymbol.GetExportedType(out var isOriginalType);
-        TypeInfo = new ExportedTypeDefinitionInfo()
+        TypeInfo = new ExportedTypeDefinition()
         {
-            Namespace = classContext.Namespace,
-            FullyQualifiedName = classContext.ClassSymbol.GetAssemblyQualifiedName(),
-            TypeName = classContext.ClassName,
+            Id = classContext.ClassSymbol.GetExportedTypeId(),
+            AssemblyQualifiedName = classContext.ClassSymbol.GetAssemblyQualifiedName(),
+            FullyQualifiedName = classContext.ClassSymbol.ToDisplayString(),
+            TypeNameNoGenerics = classContext.ClassNameWithoutGenerics,
             EntryPrefix = classContext.EntryPrefix,
             ExportedType = classContext.ClassSymbol.GetExportedType(out _),
             GenericTypeArgumentsToParameters = genericTypeArgumentsToParameters,
             IsSameAsExposedType = isOriginalType,
+            OriginalTypeWrapperName = classContext.WrapperName,
             // GenericParameters = classContext.TypeParameters.Select(tp => tp.Name).ToArray(),
-            Interfaces = classContext
-                .ClassSymbol.AllInterfaces.Select(i => i.GetAssemblyQualifiedName())
-                .Append(
-                    classContext.ClassSymbol.TypeKind == TypeKind.Interface
-                        ? classContext.ClassSymbol.GetAssemblyQualifiedName()
-                        : null
-                )
-                .OfType<string>()
-                .ToList(),
             SpecialCaseFlags = classContext.ClassSymbol.GetSpecialCaseFlags(),
             SummaryComment = XmlParser.ParseSummary(
                 classContext.ClassSymbol.GetDocumentationCommentXml()

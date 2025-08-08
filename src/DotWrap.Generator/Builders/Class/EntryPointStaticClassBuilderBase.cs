@@ -1,3 +1,4 @@
+using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
 using DotWrap.Configuration;
@@ -15,15 +16,23 @@ public abstract class EntryPointStaticClassBuilderBase(ClassBuilderContext conte
     {
         StringBuilder classBody = new();
 
-        if (!context.IsStatic)
-        {
-            this.AddMemoryManagmentMethods(classBody);
-        }
-
         var classMetadataBuilder = new ClassMetadataBuilder(Context);
-        this.CreateClassBody(classBody, classMetadataBuilder);
+        var typeDefinition = classMetadataBuilder.TypeInfo;
+        var generateWrapperMethods =
+            !typeDefinition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.DirectlyBlittable)
+            && !typeDefinition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.IndirectlyBlittable);
 
-        this.AddSpecialMethods(classBody, classMetadataBuilder, context);
+        if (generateWrapperMethods)
+        {
+            if (!context.IsStatic)
+            {
+                this.AddMemoryManagmentMethods(classBody);
+            }
+
+            this.CreateClassBody(classBody, classMetadataBuilder);
+
+            this.AddSpecialMethods(classBody, classMetadataBuilder, context);
+        }
 
         this.AddMetadata(classBody, classMetadataBuilder);
 
@@ -105,7 +114,7 @@ namespace {Context.Namespace}
         ClassBuilderContext context
     )
     {
-        ExportedTypeDefinitionInfo cls = classMetadataBuilder.TypeInfo;
+        var cls = classMetadataBuilder.TypeInfo;
         // get icollection<T> interface symbol if implemented by context.ClassSymbol
         var iCollectionSymbol = context.ClassSymbol.AllInterfaces.FirstOrDefault(i =>
             i.ContainingNamespace.ToDisplayString().Contains("System.Collections.Generic")

@@ -4,7 +4,8 @@ using DotWrap.Configuration;
 
 namespace DotWrap;
 
-[JsonSerializable(typeof(ExportedTypeDefinitionInfo))]
+[JsonSerializable(typeof(ExportedTypeDefinition))]
+// [JsonSerializable(typeof(ExportedTypeDefinition))]
 [JsonSerializable(typeof(ExportedMethodInfo))]
 [JsonSerializable(typeof(ExportedParameterInfo))]
 [JsonSerializable(typeof(ExportedEnumInfo))]

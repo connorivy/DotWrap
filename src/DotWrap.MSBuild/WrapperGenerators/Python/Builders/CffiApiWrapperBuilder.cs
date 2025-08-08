@@ -9,7 +9,7 @@ namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 public class CffiApiWrapperBuilder(GlobalContext globalContext, CSharpProjectInfo projectInfo)
 {
     public void BuildWrapper(
-        IList<ExportedTypeDefinitionInfo> classes,
+        IList<ExportedTypeDefinition> classes,
         IReadOnlyList<ExportedEnumInfo> enums
     )
     {
