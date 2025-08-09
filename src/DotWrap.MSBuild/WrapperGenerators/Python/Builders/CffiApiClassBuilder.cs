@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using DotWrap.Configuration;
 using DotWrap.Utils;
 using DotWrap.Utils.Python;
@@ -44,19 +45,21 @@ internal class CffiApiClassBuilder(
             using var indent = classBodyBuilder.IndentUntilDispose();
             foreach (var config in GetApplicableConfigs(globalContext.Configs, cls))
             {
-                if (!config.Item2.ShouldConfigure(cls, config.Item1))
+                PythonTypeConfigContext context = new(
+                    globalContext.TypeDefinitions,
+                    cls,
+                    config.Item1,
+                    classBodyBuilder
+                );
+                if (!config.Item2.ShouldConfigure(context))
                 {
                     continue;
                 }
                 if (genericClassBodyBuilder is not null)
                 {
-                    config.Item2.ConfigureGenericClassBody(
-                        cls,
-                        config.Item1,
-                        genericClassBodyBuilder
-                    );
+                    config.Item2.ConfigureGenericClassBody(context);
                 }
-                config.Item2.ConfigureClassBody(cls, config.Item1, classBodyBuilder);
+                config.Item2.ConfigureClassBody(context);
             }
 
             if (genericClassBodyBuilder is not null)

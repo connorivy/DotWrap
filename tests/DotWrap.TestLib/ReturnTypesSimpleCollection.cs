@@ -1,12 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using DotWrap;
 using DotWrap.Configuration;
-using DotWrap.Internal;
+using DotWrap.Extensions;
 using DotWrap.MSBuild;
 using DotWrap.MSBuild.WrapperGenerators.Python.Builders;
-// using DotWrap.MSBuild.WrapperGenerators.Python;
-// using DotWrap.MSBuild.WrapperGenerators.Python.Builders;
+// using DotWrap.MSBuild;
 using DotWrap.Utils;
 using DotWrap.Utils.Python;
 using static DotWrap.Internal.Constants;
@@ -90,12 +90,12 @@ public class ICollectionConfig : DotWrapPythonTypeConfig
 {
     public override Type TypeToConfigure => typeof(ICollection<>);
 
-    public override void ConfigureGenericClassBody(
-        ExportedTypeDefinition exportedType,
-        Type matchingType,
-        IndentedStringBuilder genericClassBodyBuilder
-    )
+    public override void ConfigureGenericClassBody(PythonTypeConfigContext context)
     {
+        var exportedType = context.ExportedType;
+        var matchingType = context.MatchingType;
+        var genericClassBodyBuilder = context.ClassBody;
+
         var interfaceImplementation =
             matchingType.GetInterface(this.TypeToConfigure.Name)
             ?? throw new InvalidOperationException(
@@ -121,20 +121,32 @@ def to_list(self) -> list[{genericArg}]:
         );
     }
 
-    public override void ConfigureClassBody(
-        ExportedTypeDefinition typeInfo,
-        Type matchingType,
-        IndentedStringBuilder classBody
-    )
+    public override void ConfigureClassBody(PythonTypeConfigContext context)
     {
+        Logger.LogDebug(
+            $"global context type definitions {JsonSerializer.Serialize(context.TypeDefinitions.Keys)}"
+        );
+        var typeDefinitions = context.TypeDefinitions;
+        var matchingType = context.MatchingType;
+        var classBody = context.ClassBody;
+        var typeInfo = context.ExportedType;
+
+        Logger.LogDebug($"matching type {matchingType}, exported type {typeInfo.Id}");
+
         var interfaceImplementation =
             matchingType.GetInterface(this.TypeToConfigure.Name)
             ?? throw new InvalidOperationException(
                 $"Type {matchingType.FullName} does not implement ICollection<> interface."
             );
+        var collectionType = interfaceImplementation.GenericTypeArguments[0];
+        Logger.LogDebug(
+            $"collection type {collectionType} with generic args {string.Join(", ", collectionType.GetGenericArguments().Select(arg => arg.FullName))}"
+        );
         var assemblyName =
-            interfaceImplementation.GenericTypeArguments[0].FullName
-            ?? interfaceImplementation.GenericTypeArguments[0].Name;
+            collectionType.FullName
+            ?? throw new InvalidOperationException(
+                $"Collection type {collectionType.Name} does not have a full name."
+            );
 
         var originalTypeString = DotWrapUtils.NormalizeCsTypeName(
             DotWrapUtils.GetOriginalTypeString(assemblyName)
@@ -172,7 +184,11 @@ arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
         }
         else
         {
-            var externalTypeAssignment = PythonInteropUtils.GetExternalResultAssignment(typeInfo);
+            var innerTypeId = collectionType.GetExportedTypeIdFromType();
+            var internalTypeDefinition = typeDefinitions[innerTypeId.ToString()];
+            var externalTypeAssignment = PythonInteropUtils.GetExternalResultAssignment(
+                internalTypeDefinition
+            );
             classBody.AppendLine("final_list = []");
             using (var forBlock = classBody.AppendLineWithNewBlock("for i in range(length):"))
             {
@@ -203,17 +219,10 @@ public class IReadOnlyCollectionConfig : ICollectionConfig
 {
     public override Type TypeToConfigure => typeof(IReadOnlyCollection<>);
 
-    public override bool ShouldConfigure(
-        ExportedTypeDefinition exportedType,
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type matchingType
-    )
+    public override bool ShouldConfigure(PythonTypeConfigContext context)
     {
-        var icollection = matchingType.GetInterface(nameof(ICollection<>));
-        var interfaces = matchingType.GetInterfaces();
-        Logger.LogDebug(
-            $"Checking if IReadOnlyCollectionConfig should configure {matchingType.Name}, ICollection interfaces: {string.Join(", ", interfaces)}, ICollection: {icollection}"
-        );
-        // Check if the type implments the ICollection<> interface
+        var icollection = context.MatchingType.GetInterface(nameof(ICollection<>));
+        var interfaces = context.MatchingType.GetInterfaces();
         return icollection is null;
     }
 }

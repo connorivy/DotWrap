@@ -9,6 +9,8 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
     <IsPackable>false</IsPackable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
     <!--<TUnitImplicitUsings>false</TUnitImplicitUsings>-->
     <!--<InvariantGlobalization>true</InvariantGlobalization>-->
     <NoWarn>

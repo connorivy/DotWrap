@@ -1,1 +1,248 @@
 ﻿
+using System;
+using System.Runtime.InteropServices;
+
+namespace DotWrap.Tests
+{
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
+    [global::System.CodeDom.Compiler.GeneratedCode("DotWrap", "1.0.0")]
+    [global::DotWrap.DotWrapGeneratedClassWrapperAttribute]
+    internal static class ReturnTypesSimpleDotWrapWrapper
+    {
+
+        internal static IntPtr __dotwrapCreate(DotWrap.Tests.ReturnTypesSimple __dotwrapObj)
+        {
+            var handle = GCHandle.Alloc(__dotwrapObj, GCHandleType.Normal);
+            return GCHandle.ToIntPtr(handle);
+        }
+
+        internal static DotWrap.Tests.ReturnTypesSimple __dotwrapGet(IntPtr __dotwrapSelfPtr)
+        {
+            var handle = GCHandle.FromIntPtr(__dotwrapSelfPtr);
+            if (!handle.IsAllocated) throw new System.ArgumentException($"Invalid handle: {__dotwrapSelfPtr}");
+            var __dotwrapObj = (DotWrap.Tests.ReturnTypesSimple)handle.Target;
+            return __dotwrapObj;
+        }
+
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257___dotwrapDestroy")]
+        public static void __dotwrapDestroy(IntPtr __dotwrapSelfPtr)
+        {
+            var handle = GCHandle.FromIntPtr(__dotwrapSelfPtr);
+            if (handle.IsAllocated)
+            {
+                handle.Free();
+            }
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxSByte0811C9DC")]
+        public static sbyte MaxSByte0811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MaxSByte();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinSByte0811C9DC")]
+        public static sbyte MinSByte0811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MinSByte();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxByte0811C9DC")]
+        public static byte MaxByte0811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MaxByte();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinByte0811C9DC")]
+        public static byte MinByte0811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MinByte();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxInt160811C9DC")]
+        public static short MaxInt160811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MaxInt16();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinInt160811C9DC")]
+        public static short MinInt160811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MinInt16();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxUInt160811C9DC")]
+        public static ushort MaxUInt160811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MaxUInt16();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinUInt160811C9DC")]
+        public static ushort MinUInt160811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MinUInt16();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxInt320811C9DC")]
+        public static int MaxInt320811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MaxInt32();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinInt320811C9DC")]
+        public static int MinInt320811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MinInt32();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxUInt320811C9DC")]
+        public static uint MaxUInt320811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MaxUInt32();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinUInt320811C9DC")]
+        public static uint MinUInt320811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MinUInt32();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxInt640811C9DC")]
+        public static long MaxInt640811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MaxInt64();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinInt640811C9DC")]
+        public static long MinInt640811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MinInt64();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxUInt640811C9DC")]
+        public static ulong MaxUInt640811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MaxUInt64();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinUInt640811C9DC")]
+        public static ulong MinUInt640811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MinUInt64();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxHalf0811C9DC")]
+        public static IntPtr MaxHalf0811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MaxHalf();
+
+            var __dotwrapExResult = <global namespace>.HalfDotWrapWrapper.__dotwrapCreate(__dotwrapResult);
+            return __dotwrapExResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinHalf0811C9DC")]
+        public static IntPtr MinHalf0811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MinHalf();
+
+            var __dotwrapExResult = <global namespace>.HalfDotWrapWrapper.__dotwrapCreate(__dotwrapResult);
+            return __dotwrapExResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxSingle0811C9DC")]
+        public static float MaxSingle0811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MaxSingle();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinSingle0811C9DC")]
+        public static float MinSingle0811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MinSingle();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxDouble0811C9DC")]
+        public static double MaxDouble0811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MaxDouble();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinDouble0811C9DC")]
+        public static double MinDouble0811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.MinDouble();
+            return __dotwrapResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_True0811C9DC")]
+        public static int True0811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.True();
+
+            var __dotwrapExResult = __dotwrapResult ? 1 : 0;
+            return __dotwrapExResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_False0811C9DC")]
+        public static int False0811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.False();
+
+            var __dotwrapExResult = __dotwrapResult ? 1 : 0;
+            return __dotwrapExResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_HelloWorld0811C9DC")]
+        public static IntPtr HelloWorld0811C9DC()
+        {
+            var __dotwrapResult = ReturnTypesSimple.HelloWorld();
+
+            var __dotwrapExResult = global::DotWrap.BuiltIn.CString.Create(__dotwrapResult);
+            return __dotwrapExResult;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_DoNothing0811C9DC")]
+        public static void DoNothing0811C9DC()
+        {
+            ReturnTypesSimple.DoNothing();
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "cD778F257_Constructor0811C9DC")]
+        public static IntPtr Constructor0811C9DC()
+        {
+            var __dotwrapResult = new ReturnTypesSimple();
+
+            var __dotwrapExResult = DotWrap.Tests.ReturnTypesSimpleDotWrapWrapper.__dotwrapCreate(__dotwrapResult);
+            return __dotwrapExResult;
+        }
+
+
+#pragma warning disable CS0414 // Field is assigned to but its value is never used
+        private static readonly string __dotwrapMetadata =  
+        """
+        {"Id":{"Id":"DotWrap.Tests.ReturnTypesSimple"},"AssemblyQualifiedName":"DotWrap.Tests.ReturnTypesSimple, DotWrap.Generator, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null","FullyQualifiedName":"DotWrap.Tests.ReturnTypesSimple","EntryPrefix":"cD778F257_","GenericTypeArgumentsToParameters":{},"TypeNameNoGenerics":"ReturnTypesSimple","ExportedType":11,"SpecialCaseFlags":1,"SummaryComment":null,"IsSameAsExposedType":false,"OriginalTypeWrapperName":"ReturnTypesSimpleDotWrapWrapper","Methods":[{"OriginalName":"MaxSByte","StampedName":"MaxSByte0811C9DC","OriginalTypeName":"sbyte","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.SByte"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MinSByte","StampedName":"MinSByte0811C9DC","OriginalTypeName":"sbyte","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.SByte"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MaxByte","StampedName":"MaxByte0811C9DC","OriginalTypeName":"byte","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.Byte"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MinByte","StampedName":"MinByte0811C9DC","OriginalTypeName":"byte","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.Byte"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MaxInt16","StampedName":"MaxInt160811C9DC","OriginalTypeName":"short","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.Int16"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MinInt16","StampedName":"MinInt160811C9DC","OriginalTypeName":"short","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.Int16"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MaxUInt16","StampedName":"MaxUInt160811C9DC","OriginalTypeName":"ushort","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.UInt16"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MinUInt16","StampedName":"MinUInt160811C9DC","OriginalTypeName":"ushort","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.UInt16"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MaxInt32","StampedName":"MaxInt320811C9DC","OriginalTypeName":"int","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.Int32"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MinInt32","StampedName":"MinInt320811C9DC","OriginalTypeName":"int","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.Int32"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MaxUInt32","StampedName":"MaxUInt320811C9DC","OriginalTypeName":"uint","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.UInt32"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MinUInt32","StampedName":"MinUInt320811C9DC","OriginalTypeName":"uint","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.UInt32"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MaxInt64","StampedName":"MaxInt640811C9DC","OriginalTypeName":"long","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.Int64"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MinInt64","StampedName":"MinInt640811C9DC","OriginalTypeName":"long","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.Int64"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MaxUInt64","StampedName":"MaxUInt640811C9DC","OriginalTypeName":"ulong","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.UInt64"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MinUInt64","StampedName":"MinUInt640811C9DC","OriginalTypeName":"ulong","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.UInt64"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MaxHalf","StampedName":"MaxHalf0811C9DC","OriginalTypeName":"Half","ExposedTypeIfDifferent":"IntPtr","GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"\u003Cglobal namespace\u003E.Half"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MinHalf","StampedName":"MinHalf0811C9DC","OriginalTypeName":"Half","ExposedTypeIfDifferent":"IntPtr","GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"\u003Cglobal namespace\u003E.Half"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MaxSingle","StampedName":"MaxSingle0811C9DC","OriginalTypeName":"float","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.Single"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MinSingle","StampedName":"MinSingle0811C9DC","OriginalTypeName":"float","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.Single"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MaxDouble","StampedName":"MaxDouble0811C9DC","OriginalTypeName":"double","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.Double"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"MinDouble","StampedName":"MinDouble0811C9DC","OriginalTypeName":"double","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.Double"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"True","StampedName":"True0811C9DC","OriginalTypeName":"bool","ExposedTypeIfDifferent":"int","GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.Boolean"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"False","StampedName":"False0811C9DC","OriginalTypeName":"bool","ExposedTypeIfDifferent":"int","GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.Boolean"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"HelloWorld","StampedName":"HelloWorld0811C9DC","OriginalTypeName":"string","ExposedTypeIfDifferent":"IntPtr","GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.String"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"DoNothing","StampedName":"DoNothing0811C9DC","OriginalTypeName":"void","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.Void"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":4,"Parameters":[]},{"OriginalName":"Constructor","StampedName":"Constructor0811C9DC","OriginalTypeName":"DotWrap.Tests.ReturnTypesSimple","ExposedTypeIfDifferent":"IntPtr","GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"DotWrap.Tests.ReturnTypesSimple"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":0,"Parameters":[]}]}
+        """;
+#pragma warning restore CS0414 // Field is assigned to but its value is never used
+    }
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+}

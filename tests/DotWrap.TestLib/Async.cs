@@ -43,12 +43,9 @@ public class TaskConfig : DotWrapPythonTypeConfig
         sb.AppendLine("import asyncio");
     }
 
-    public override void ConfigureGenericClassBody(
-        ExportedTypeDefinition exportedType,
-        Type mathchingType,
-        IndentedStringBuilder? genericClassBodyBuilder
-    )
+    public override void ConfigureGenericClassBody(PythonTypeConfigContext context)
     {
+        var genericClassBodyBuilder = context.ClassBody;
         genericClassBodyBuilder?.AppendLine(
             @"
 def __await__(self):
@@ -71,12 +68,10 @@ public class ValueTaskConfig : DotWrapPythonTypeConfig
 {
     public override Type TypeToConfigure => typeof(ValueTask<>);
 
-    public override void ConfigureGenericClassBody(
-        ExportedTypeDefinition exportedType,
-        Type matchingType,
-        IndentedStringBuilder? genericClassBodyBuilder
-    )
+    public override void ConfigureGenericClassBody(PythonTypeConfigContext context)
     {
+        var genericClassBodyBuilder = context.ClassBody;
+
         genericClassBodyBuilder?.AppendLine(
             @"
 def __await__(self):

@@ -1,5 +1,6 @@
 using DotWrap.Configuration;
 using DotWrap.Generator.Builders.Method;
+using DotWrap.Utils;
 using Microsoft.CodeAnalysis;
 using static DotWrap.Internal.Constants;
 
@@ -247,11 +248,14 @@ public static class ITypedSymbolExtensions
 
         public ExportedTypeId GetExportedTypeId()
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             return new ExportedTypeId(
-                symbol.ContainingNamespace?.ToDisplayString() ?? "global",
-                symbol.Name,
-                symbol.GetTypeArguments()?.Select(arg => arg.ToDisplayString()) ?? []
+                AssemblyNameUtils.GetSimplifiedAssemblyName(symbol.GetAssemblyQualifiedName())
+                // symbol.ContainingNamespace?.ToDisplayString() ?? "global",
+                // symbol.Name,
+                // symbol.GetTypeArguments()?.Select(arg => DotWrapUtils.NormalizeCsTypeName(arg.ToDisplayString())) ?? []
             );
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public ExportedTypeInstanceInfo GetExportedTypeInstance(string? genericName)
