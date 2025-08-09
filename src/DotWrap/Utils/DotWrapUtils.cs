@@ -110,102 +110,28 @@ public static class DotWrapUtils
     /// <returns></returns>
     public static string GetOriginalTypeString(string assemblyQualifiedName)
     {
-        if (string.IsNullOrEmpty(assemblyQualifiedName))
-            return assemblyQualifiedName;
+        var simplifiedAssemblyName = AssemblyNameUtils.GetSimplifiedAssemblyName(
+            assemblyQualifiedName
+        );
 
-        // Find the first comma that separates the type name from assembly info
-        int assemblyStart = FindAssemblyStart(assemblyQualifiedName);
-        string typePart =
-            assemblyStart > 0
-                ? assemblyQualifiedName.Substring(0, assemblyStart)
-                : assemblyQualifiedName;
+        // I have a simplified assembly name, now I need to convert it to the original type string
+        // "System.Collections.Generic.KeyValuePair`2[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.KeyValuePair`2[[System.Int32],[System.Int64]]]]]]],[System.Int32]]";
+        // create a regex with the following rules
+        // Replace `(anyNumber)[[ with "<" (i.e. "`2[[" -> "<")
+        // Replace "]]" with ">" (i.e. `]]` -> `>`)
+        // Replace "],[" with ", "
 
-        return ParseGenericType(typePart);
-    }
+        var result = simplifiedAssemblyName;
 
-    private static int FindAssemblyStart(string assemblyQualifiedName)
-    {
-        int bracketDepth = 0;
-        for (int i = 0; i < assemblyQualifiedName.Length; i++)
-        {
-            char c = assemblyQualifiedName[i];
-            if (c == '[')
-                bracketDepth++;
-            else if (c == ']')
-                bracketDepth--;
-            else if (c == ',' && bracketDepth == 0)
-                return i;
-        }
-        return -1;
-    }
+        // Replace `(anyNumber)[[ with "<"
+        result = System.Text.RegularExpressions.Regex.Replace(result, @"`\d+\[\[", "<");
 
-    private static string ParseGenericType(string typePart)
-    {
-        // Handle generic types with backtick notation (e.g., List`1, Dictionary`2)
-        int backtickIndex = typePart.IndexOf('`');
-        if (backtickIndex == -1)
-        {
-            // Not a generic type, return as-is
-            return typePart;
-        }
+        // Replace "]]" with ">"
+        result = result.Replace("]]", ">");
 
-        // Extract the base type name
-        string baseTypeName = typePart.Substring(0, backtickIndex);
+        // Replace "],[" with ", "
+        result = result.Replace("],[", ", ");
 
-        // Find the generic arguments enclosed in [[ ]]
-        int genericStart = typePart.IndexOf("[[");
-        if (genericStart == -1)
-        {
-            // No generic arguments found, just return base type
-            return baseTypeName;
-        }
-
-        // Parse generic arguments
-        var genericArgs = ParseGenericArguments(typePart.Substring(genericStart));
-
-        // Construct the C# format with angle brackets
-        return baseTypeName + "<" + string.Join(", ", genericArgs) + ">";
-    }
-
-    private static string[] ParseGenericArguments(string genericPart)
-    {
-        var args = new System.Collections.Generic.List<string>();
-
-        // Remove the outer [[ ]]
-        if (genericPart.StartsWith("[[") && genericPart.EndsWith("]]"))
-        {
-            genericPart = genericPart.Substring(2, genericPart.Length - 4);
-        }
-
-        // Split by "],["  to handle bracketed arguments
-        // This handles the pattern [arg1],[arg2],[arg3]...
-        string[] parts = genericPart.Split(new string[] { "],[" }, StringSplitOptions.None);
-
-        for (int i = 0; i < parts.Length; i++)
-        {
-            string part = parts[i];
-
-            // Remove leading [ from first part and trailing ] from last part
-            if (i == 0 && part.StartsWith("["))
-                part = part.Substring(1);
-            if (i == parts.Length - 1 && part.EndsWith("]"))
-                part = part.Substring(0, part.Length - 1);
-
-            args.Add(ProcessGenericArgument(part));
-        }
-
-        return args.ToArray();
-    }
-
-    private static string ProcessGenericArgument(string arg)
-    {
-        // Remove surrounding brackets if present
-        if (arg.StartsWith("[") && arg.EndsWith("]"))
-        {
-            arg = arg.Substring(1, arg.Length - 2);
-        }
-
-        // Recursively process this argument as it might be a generic type itself
-        return GetOriginalTypeString(arg);
+        return result;
     }
 }

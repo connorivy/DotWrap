@@ -166,16 +166,16 @@ def to_list(self) -> list[{genericArg}]:
         var numpyType = PythonNamingUtils.MapTypeToNumpy(genericArg);
         classBody.AppendLine(
             @$"
-""""""
-Converts the array data to a list of the specified dtype.
-""""""
-length = {Lib}.{typeInfo.EntryPrefix}{GetCount}(self.{Ptr})
-arr = np.empty(length, dtype={numpyType})
+        """"""
+        Converts the array data to a list of the specified dtype.
+        """"""
+        length = {Lib}.{typeInfo.EntryPrefix}{GetCount}(self.{Ptr})
+        arr = np.empty(length, dtype={numpyType})
 
-# get stable pointer to the array data
-arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
-{Lib}.{typeInfo.EntryPrefix}{FillArr}(self.{Ptr}, arr_ptr, length)
-        "
+        # get stable pointer to the array data
+        arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
+        {Lib}.{typeInfo.EntryPrefix}{FillArr}(self.{Ptr}, arr_ptr, length)
+                "
         );
 
         if (isOriginalType)
