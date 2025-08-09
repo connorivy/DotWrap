@@ -11,28 +11,58 @@ public class AssemblyNameFromSymbolTests
     [Test]
     [Arguments(
         typeof(int),
+        "int",
         "System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e"
     )]
     [Arguments(
         typeof(List<int>),
+        "List<int>",
         "System.Collections.Generic.List`1[[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e"
     )]
     [Arguments(
         typeof(int[]),
+        "int[]",
         "System.Int32[], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e"
     )]
     [Arguments(
         typeof(Dictionary<List<List<KeyValuePair<int, string>>>, string>),
+        "Dictionary<List<List<KeyValuePair<int, string>>>, string>",
         "System.Collections.Generic.Dictionary`2[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.KeyValuePair`2[[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e"
     )]
-    public async Task GetAssemblyNameFromSymbol_ReturnsExpectedName(Type type, string expectedName)
+    [Arguments(
+        typeof(Dictionary<int, int>.KeyCollection),
+        "Dictionary<int, int>.KeyCollection",
+        "System.Collections.Generic.Dictionary`2+KeyCollection[[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e"
+    )]
+    [Arguments(
+        typeof(SampleParent<int, int>.SampleNestedChild<int, int>.SampleDoubleNestChild<int, int>),
+        "DotWrap.Tests.SampleParent<int, int>.SampleNestedChild<int, int>.SampleDoubleNestChild<int, int>",
+        "DotWrap.Tests.SampleParent`2+SampleNestedChild`2+SampleDoubleNestChild`2[[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], DotWrap.Tests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+    )]
+    [Arguments(
+        typeof(SampleParent<int, int>.SampleNestedChild<int, int>.SampleDoubleNestedStaticChild<
+            int,
+            int
+        >),
+        "DotWrap.Tests.SampleParent<int, int>.SampleNestedChild<int, int>.SampleDoubleNestedStaticChild<int, int>",
+        "DotWrap.Tests.SampleParent`2+SampleNestedChild`2+SampleDoubleNestedStaticChild`2[[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], DotWrap.Tests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+    )]
+    public async Task GetAssemblyNameFromSymbol_ReturnsExpectedName(
+        Type type,
+        string typeString,
+        string expectedName
+    )
     {
-        var originalTypeString = DotWrapUtils.GetOriginalTypeString(
-            type.FullName ?? throw new InvalidOperationException("Type name cannot be null")
-        );
-        var tree = CSharpSyntaxTree.ParseText(
-            $"class Dummy {{ public {originalTypeString} Field; }}"
-        );
+        var code =
+            $@"
+using System;
+using System.Collections.Generic;
+
+class Dummy 
+{{ 
+    public {typeString} Field; 
+}}";
+        var tree = CSharpSyntaxTree.ParseText(code);
         var compilation = CSharpCompilation.Create(
             "DummyAssembly",
             new[] { tree },
@@ -55,5 +85,15 @@ public class AssemblyNameFromSymbolTests
             DotWrap.Generator.Utils.AssemblyNameUtils.GetAssemblyQualifiedName(iTypeSymbol!);
 
         await Assert.That(assemblyQualifiedName).IsEqualTo(expectedName);
+    }
+}
+
+public class SampleParent<TKey, TValue>
+{
+    public class SampleNestedChild<TKey2, TValue2>
+    {
+        public class SampleDoubleNestChild<TKey3, TValue3> { }
+
+        public static class SampleDoubleNestedStaticChild<TKey3, TValue3> { }
     }
 }

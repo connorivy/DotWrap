@@ -34,26 +34,24 @@ public static class AssemblyNameUtils
             case INamedTypeSymbol namedType when namedType.IsGenericType:
                 var sb = new StringBuilder();
 
-                // Get the full namespace and name without generic parameters from the original definition
-                var originalDefinition = namedType.OriginalDefinition;
-                var fullName = GetFullTypeName(originalDefinition);
+                // Get the full type name with proper nested type separators and arity
+                var fullName = GetFullTypeNameWithArity(namedType.OriginalDefinition);
                 sb.Append(fullName);
-                sb.Append('`');
 
-                // Use the original definition's arity (number of type parameters it declares)
-                sb.Append(originalDefinition.Arity);
+                // Collect all type arguments from the entire type hierarchy
+                var allTypeArguments = GetAllTypeArguments(namedType);
 
-                if (namedType.TypeArguments.Length > 0)
+                if (allTypeArguments.Count > 0)
                 {
                     sb.Append("[[");
 
-                    for (int i = 0; i < namedType.TypeArguments.Length; i++)
+                    for (int i = 0; i < allTypeArguments.Count; i++)
                     {
                         if (i > 0)
                         {
                             sb.Append("],[");
                         }
-                        sb.Append(GetTypeNameWithAssembly(namedType.TypeArguments[i]));
+                        sb.Append(GetTypeNameWithAssembly(allTypeArguments[i]));
                     }
 
                     sb.Append("]]");
@@ -62,39 +60,108 @@ public static class AssemblyNameUtils
                 return sb.ToString();
 
             default:
-                return GetFullTypeName(symbol);
+                return GetFullTypeNameWithArity(symbol);
         }
     }
 
-    private static string GetFullTypeName(ITypeSymbol symbol)
+    private static List<ITypeSymbol> GetAllTypeArguments(INamedTypeSymbol namedType)
     {
-        // Build the full type name including namespace
-        var parts = new List<string>();
+        var allArguments = new List<ITypeSymbol>();
 
-        // Add the type name
-        parts.Add(symbol.Name);
+        // Walk up the containing type hierarchy and collect type arguments
+        var current = namedType;
+        var typeArgStack = new Stack<ITypeSymbol[]>();
 
-        // Walk up the containing types and namespaces
-        var container = symbol.ContainingSymbol;
+        while (current != null)
+        {
+            if (current.TypeArguments.Length > 0)
+            {
+                typeArgStack.Push(current.TypeArguments.ToArray());
+            }
+            current = current.ContainingType;
+        }
+
+        // Add type arguments in the correct order (outermost first)
+        while (typeArgStack.Count > 0)
+        {
+            allArguments.AddRange(typeArgStack.Pop());
+        }
+
+        return allArguments;
+    }
+
+    private static string GetFullTypeNameWithArity(ITypeSymbol symbol)
+    {
+        // Build the full type name including namespace, with proper nested type handling
+        var containers = new List<ISymbol>();
+        var current = symbol;
+
+        // Add the current symbol
+        containers.Add(current);
+
+        // Walk up the containing symbols
+        var container = current.ContainingSymbol;
         while (container != null)
         {
-            if (container is INamedTypeSymbol containingType)
-            {
-                parts.Add(containingType.Name);
-            }
-            else if (
-                container is INamespaceSymbol namespaceSymbol
-                && !namespaceSymbol.IsGlobalNamespace
+            if (
+                container is INamedTypeSymbol
+                || (container is INamespaceSymbol ns && !ns.IsGlobalNamespace)
             )
             {
-                parts.Add(namespaceSymbol.Name);
+                containers.Add(container);
             }
             container = container.ContainingSymbol;
         }
 
         // Reverse to get correct order (namespace.type)
-        parts.Reverse();
-        return string.Join(".", parts);
+        containers.Reverse();
+
+        // Build the type name
+        var sb = new StringBuilder();
+        bool firstPart = true;
+        bool inNestedTypes = false;
+
+        foreach (var containerSymbol in containers)
+        {
+            if (!firstPart)
+            {
+                if (containerSymbol is INamedTypeSymbol && inNestedTypes)
+                {
+                    // Use + for nested types after we've started encountering types
+                    sb.Append('+');
+                }
+                else
+                {
+                    // Use . for namespaces and the first type
+                    sb.Append('.');
+                }
+            }
+            firstPart = false;
+
+            if (containerSymbol is INamedTypeSymbol namedType)
+            {
+                // Mark that we're now in types (not namespaces)
+                if (!inNestedTypes)
+                {
+                    inNestedTypes = true;
+                }
+
+                sb.Append(namedType.Name);
+
+                // Add arity for generic types
+                if (namedType.Arity > 0)
+                {
+                    sb.Append('`');
+                    sb.Append(namedType.Arity);
+                }
+            }
+            else if (containerSymbol is INamespaceSymbol namespaceSymbol)
+            {
+                sb.Append(namespaceSymbol.Name);
+            }
+        }
+
+        return sb.ToString();
     }
 
     private static string GetAssemblyName(ITypeSymbol symbol)

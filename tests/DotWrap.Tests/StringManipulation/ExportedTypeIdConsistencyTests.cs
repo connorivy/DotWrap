@@ -16,7 +16,8 @@ public class ExportedTypeIdConsistencyTests
     // [Arguments(typeof(double?))]
     [Arguments(typeof(Dictionary<string, List<int>>))]
     [Arguments(typeof(KeyValuePair<string, int>))]
-    // [Arguments(typeof(KeyValuePair<List<List<KeyValuePair<string, int>>>, int>))]
+    [Arguments(typeof(KeyValuePair<List<List<KeyValuePair<string, int>>>, int>))]
+    [Arguments(typeof(Dictionary<int, int>.KeyCollection))]
     public async Task ExportedTypeId_Matches_Between_Type_And_ITypeSymbol(Type type)
     {
         // Reflection-based
