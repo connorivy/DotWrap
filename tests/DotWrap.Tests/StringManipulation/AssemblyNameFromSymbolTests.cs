@@ -85,6 +85,7 @@ class Dummy
             DotWrap.Generator.Utils.AssemblyNameUtils.GetAssemblyQualifiedName(iTypeSymbol!);
 
         await Assert.That(assemblyQualifiedName).IsEqualTo(expectedName);
+        await Assert.That(assemblyQualifiedName).IsEqualTo(type.AssemblyQualifiedName);
     }
 }
 

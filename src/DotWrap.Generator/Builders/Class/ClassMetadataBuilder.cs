@@ -44,10 +44,16 @@ public class ClassMetadataBuilder
         //     ),
         // };
         var exportedType = classContext.ClassSymbol.GetExportedType(out var isOriginalType);
+        var assemblyQualifiedName =
+            DotWrap.Generator.Utils.AssemblyNameUtils.GetAssemblyQualifiedName(
+                classContext.ClassSymbol
+            );
         var typeDefinition = new ExportedTypeDefinition()
         {
             Id = classContext.ClassSymbol.GetExportedTypeId(),
-            AssemblyQualifiedName = classContext.ClassSymbol.GetAssemblyQualifiedName(),
+            AssemblyQualifiedName = assemblyQualifiedName,
+            SimplifiedAssemblyQualifiedName =
+                DotWrap.Utils.AssemblyNameUtils.GetSimplifiedAssemblyName(assemblyQualifiedName),
             FullyQualifiedName = classContext.ClassSymbol.ToDisplayString(),
             TypeNameNoGenerics = classContext.ClassNameWithoutGenerics,
             EntryPrefix = classContext.EntryPrefix,
@@ -110,6 +116,7 @@ public class ClassMetadataBuilder
             // DefinitionId = typeDefinition.DefinitionId,
             Id = typeDefinition.Id,
             OriginalTypeWrapperName = typeDefinition.OriginalTypeWrapperName,
+            SimplifiedAssemblyQualifiedName = typeDefinition.SimplifiedAssemblyQualifiedName,
             EntryPrefix = typeDefinition.EntryPrefix,
             TypeNameNoGenerics = typeDefinition.TypeNameNoGenerics,
             AssemblyQualifiedName = typeDefinition.AssemblyQualifiedName,
