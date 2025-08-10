@@ -52,12 +52,6 @@
       Visible="true"
     />
     <None
-      Include="$(MSBuildProjectDirectory)\..\DotWrap\bin\$(Configuration)\netstandard2.0\DotWrap.dll"
-      Pack="true"
-      PackagePath="lib/$(TargetFramework)"
-      Visible="true"
-    />
-    <None
       Include="$(MSBuildProjectDirectory)\..\DotWrap.Operations\bin\$(Configuration)\$(TargetFramework)\DotWrap.Operations.dll"
       Pack="true"
       PackagePath="lib/$(TargetFramework)"
@@ -76,6 +70,12 @@
       Visible="true"
     />
     <None
+      Include="$(MSBuildProjectDirectory)\..\DotWrap\bin\$(Configuration)\netstandard2.0\DotWrap.dll"
+      Pack="true"
+      PackagePath="lib/net7.0"
+      Visible="true"
+    />
+    <None
       Include="$(MSBuildProjectDirectory)\..\DotWrap.MSBuild\bin\$(Configuration)\net8.0\DotWrap.MSBuild.dll"
       Pack="true"
       PackagePath="lib/net8.0"
@@ -88,6 +88,12 @@
       Visible="true"
     />
     <None
+      Include="$(MSBuildProjectDirectory)\..\DotWrap\bin\$(Configuration)\netstandard2.0\DotWrap.dll"
+      Pack="true"
+      PackagePath="lib/net8.0"
+      Visible="true"
+    />
+    <None
       Include="$(MSBuildProjectDirectory)\..\DotWrap.MSBuild\bin\$(Configuration)\net10.0\DotWrap.MSBuild.dll"
       Pack="true"
       PackagePath="lib/net10.0"
@@ -95,6 +101,12 @@
     />
     <None
       Include="$(MSBuildProjectDirectory)\..\DotWrap.MSBuild\bin\$(Configuration)\net10.0\DotWrap.MSBuild.runtimeconfig.json"
+      Pack="true"
+      PackagePath="lib/net10.0"
+      Visible="true"
+    />
+    <None
+      Include="$(MSBuildProjectDirectory)\..\DotWrap\bin\$(Configuration)\netstandard2.0\DotWrap.dll"
       Pack="true"
       PackagePath="lib/net10.0"
       Visible="true"
