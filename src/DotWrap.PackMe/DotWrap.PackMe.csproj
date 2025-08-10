@@ -69,11 +69,11 @@
       PackagePath="tools/"
       Visible="true"
     />
-    <!-- <None
+    <None
       Include="$(MSBuildProjectDirectory)\..\DotWrap.MSBuild\bin\$(Configuration)\$(TargetFramework)\DotWrap.MSBuild.runtimeconfig.json"
       Pack="true"
-      PackagePath="lib/$(TargetFramework)"
+      PackagePath="tools/"
       Visible="true"
-    /> -->
+    />
   </ItemGroup>
 </Project>
