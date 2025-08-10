@@ -74,7 +74,7 @@ jobs:
         shell: bash
         run: |
           echo "Packing DotWrap.PackMe project with version $DOTWRAP_NUGET_VERSION..."
-          dotnet pack src/DotWrap.PackMe/DotWrap.PackMe.csproj --configuration Release --no-build --output ./nupkgs -p:Version=$DOTWRAP_NUGET_VERSION
+          dotnet pack src/DotWrap.PackMe/DotWrap.PackMe.csproj --configuration Release --no-build --output ./nupkgs/ -p:Version=$DOTWRAP_NUGET_VERSION
           echo "Package created successfully:"
           ls -la ./nupkgs/
 
