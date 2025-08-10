@@ -41,16 +41,6 @@ jobs:
           dotnet-version: "10.0.x"
           dotnet-quality: "preview"
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.x"
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
       #   - name: Restore .NET dependencies
       #     run: dotnet restore
 
@@ -61,6 +51,13 @@ jobs:
           dotnet build src/DotWrap.MSBuild/DotWrap.MSBuild.csproj --configuration Release
           dotnet build src/DotWrap.Operations/DotWrap.Operations.csproj --configuration Release
           dotnet build src/DotWrap.PackMe/DotWrap.PackMe.csproj --configuration Release
+
+      - name: Build test projects
+        run: |
+          dotnet build tests/DotWrap.Tests/DotWrap.Tests.csproj --configuration Release
+
+      - name: Run .NET tests
+        run: dotnet test tests/DotWrap.Tests/DotWrap.Tests.csproj --configuration Release --no-build --verbosity normal
 
       - name: Create local NuGet feed directory
         shell: bash
@@ -118,10 +115,6 @@ jobs:
             exit 1
           fi
 
-      - name: Build test projects
-        run: |
-          dotnet build tests/DotWrap.Tests/DotWrap.Tests.csproj --configuration Release --no-restore
-
       - name: Publish test library (AOT)
         shell: bash
         run: |
@@ -148,6 +141,16 @@ jobs:
             -p:DotWrapVersion=$DOTWRAP_VERSION \
             --output ./test-lib-output
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
       - name: Install Python test library
         shell: bash
         run: |
@@ -170,9 +173,6 @@ jobs:
 
           # Verify installation
           python -c "import dotwrap_testlib; print('dotwrap_testlib imported successfully')"
-
-      - name: Run .NET tests
-        run: dotnet test tests/DotWrap.Tests/DotWrap.Tests.csproj --configuration Release --no-build --verbosity normal
 
       - name: Run Python tests
         working-directory: tests/DotWrap.PythonTests
