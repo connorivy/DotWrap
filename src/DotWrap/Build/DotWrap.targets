@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <DotWrapRoot Condition="'$(DotWrapRoot)' == ''">$(MSBuildThisFileDirectory)..\..</DotWrapRoot>
+    <DotWrapRoot Condition="'$(DotWrapRoot)' == ''">$(MSBuildThisFileDirectory)..</DotWrapRoot>
     <DotWrapToolsPath Condition="'$(DotWrapToolsPath)' == ''"
       >$(DotWrapRoot)\tools</DotWrapToolsPath
     >
@@ -22,3 +22,4 @@
     <Copy SourceFiles="@(NativeLibs)" DestinationFolder="$(DotWrapRoot)\python\DotWrap_SampleAotLib" />
   </Target> -->
 </Project>
+
