@@ -4,9 +4,6 @@ using System.Text.Json;
 using DotWrap;
 using DotWrap.Configuration;
 using DotWrap.Extensions;
-using DotWrap.MSBuild;
-using DotWrap.MSBuild.WrapperGenerators.Python.Builders;
-// using DotWrap.MSBuild;
 using DotWrap.Utils;
 using DotWrap.Utils.Python;
 using static DotWrap.Internal.Constants;
@@ -121,9 +118,6 @@ def to_list(self) -> list[{genericArg}]:
 
     public override void ConfigureClassBody(PythonTypeConfigContext context)
     {
-        Logger.LogDebug(
-            $"global context type definitions {JsonSerializer.Serialize(context.TypeDefinitions.Keys)}"
-        );
         var typeDefinitions = context.TypeDefinitions;
         var matchingType = context.MatchingType;
         var classBody = context.ClassBody;

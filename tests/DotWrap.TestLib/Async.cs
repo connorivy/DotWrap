@@ -1,8 +1,5 @@
-using System;
-using System.Reflection.Metadata;
 using DotWrap;
 using DotWrap.Configuration;
-using DotWrap.MSBuild;
 using DotWrap.Utils;
 
 [assembly: DotWrapExternalPropertyMeta(typeof(Task<>), nameof(Task<>.Result))]

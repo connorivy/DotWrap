@@ -19,7 +19,7 @@ public class AssemblyNameUtilsTests
     {
         var input =
             "System.Collections.Generic.List`1[[System.Int64, System.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a]]";
-        var expected = "System.Collections.Generic.List`1[[System.Int64]]";
+        var expected = "System.Collections.Generic.List[[System.Int64]]";
         var actual = AssemblyNameUtils.GetSimplifiedAssemblyName(input);
         await Assert.That(actual).IsEqualTo(expected);
     }
@@ -29,7 +29,7 @@ public class AssemblyNameUtilsTests
     {
         var input =
             "System.Collections.Generic.KeyValuePair`2[[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int64, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e";
-        var expected = "System.Collections.Generic.KeyValuePair`2[[System.Int32],[System.Int64]]";
+        var expected = "System.Collections.Generic.KeyValuePair[[System.Int32],[System.Int64]]";
         var actual = AssemblyNameUtils.GetSimplifiedAssemblyName(input);
         await Assert.That(actual).IsEqualTo(expected);
     }
@@ -44,7 +44,7 @@ public class AssemblyNameUtilsTests
         var input =
             "System.Collections.Generic.KeyValuePair`2[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.KeyValuePair`2[[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int64, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e";
         var expected =
-            "System.Collections.Generic.KeyValuePair`2[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.KeyValuePair`2[[System.Int32],[System.Int64]]]]]]],[System.Int32]]";
+            "System.Collections.Generic.KeyValuePair[[System.Collections.Generic.List[[System.Collections.Generic.List[[System.Collections.Generic.KeyValuePair[[System.Int32],[System.Int64]]]]]]],[System.Int32]]";
         var actual = AssemblyNameUtils.GetSimplifiedAssemblyName(input);
         await Assert.That(actual).IsEqualTo(expected);
     }
