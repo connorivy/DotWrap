@@ -3,8 +3,12 @@ name: CI
 on:
   push:
     branches: [main]
+    tags:
+      - "v*"
   pull_request:
     branches: [main]
+  release:
+    types: [published]
 
 jobs:
   build-and-test:
@@ -17,10 +21,19 @@ jobs:
 
     env:
       ContinuousIntegrationEnv: true
+      LocalNugetFeed: ${{ github.workspace }}/local-feed
 
     steps:
+      - name: Set NuGet package version
+        id: set_version
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/}"
+          else
+            VERSION="0.0.0-local"
+          fi
+          echo "DOTWRAP_NUGET_VERSION=$VERSION" >> $GITHUB_ENV
       - uses: actions/checkout@v4
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -48,36 +61,37 @@ jobs:
           dotnet build src/DotWrap.Operations/DotWrap.Operations.csproj --configuration Release
           dotnet build src/DotWrap.PackMe/DotWrap.PackMe.csproj --configuration Release
 
+      - name: Create local NuGet feed directory
+        shell: bash
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/local-feed"
+
+      - name: Add local NuGet source
+        run: dotnet nuget add source "$GITHUB_WORKSPACE/local-feed" --name local-feed
+
       - name: Pack DotWrap.PackMe project
         shell: bash
         run: |
-          echo "Packing DotWrap.PackMe project..."
-          dotnet pack src/DotWrap.PackMe/DotWrap.PackMe.csproj --configuration Release --no-build --output ./nupkgs
+          echo "Packing DotWrap.PackMe project with version $DOTWRAP_NUGET_VERSION..."
+          dotnet pack src/DotWrap.PackMe/DotWrap.PackMe.csproj --configuration Release --no-build --output ./nupkgs -p:Version=$DOTWRAP_NUGET_VERSION
           echo "Package created successfully:"
           ls -la ./nupkgs/
 
-      - name: Create local NuGet feed directory
-        shell: bash
-        run: mkdir -p ./local-feed
+      #   - name: Push package to local feed
+      #     shell: bash
+      #     run: |
+      #       # Find the generated package
+      #       PACKAGE_PATH=$(find ./nupkgs -name "DotWrap.*.nupkg" | head -1)
+      #       if [ -n "$PACKAGE_PATH" ]; then
+      #         cp "$PACKAGE_PATH" ./local-feed/
+      #         echo "Package copied to local feed: $PACKAGE_PATH"
+      #       else
+      #         echo "No DotWrap package found in ./nupkgs"
+      #         exit 1
+      #       fi
 
-      - name: Add local NuGet source
-        run: dotnet nuget add source ./local-feed --name local-feed
-
-      - name: Push package to local feed
-        shell: bash
-        run: |
-          # Find the generated package
-          PACKAGE_PATH=$(find ./nupkgs -name "DotWrap.*.nupkg" | head -1)
-          if [ -n "$PACKAGE_PATH" ]; then
-            cp "$PACKAGE_PATH" ./local-feed/
-            echo "Package copied to local feed: $PACKAGE_PATH"
-          else
-            echo "No DotWrap package found in ./nupkgs"
-            exit 1
-          fi
-
-      - name: Clear NuGet cache
-        run: dotnet nuget locals all --clear
+      #   - name: Clear NuGet cache
+      #     run: dotnet nuget locals all --clear
 
       - name: Build test library with DotWrapVersion flag
         shell: bash
