@@ -118,6 +118,7 @@ jobs:
 
           echo "Publishing for runtime: $RUNTIME"
           dotnet publish tests/DotWrap.TestLib/DotWrap.TestLib.csproj --configuration Release \
+            -v d \
             -r $RUNTIME \
             -p:DotWrapVersion=$DOTWRAP_NUGET_VERSION \
             --output ./test-lib-output
