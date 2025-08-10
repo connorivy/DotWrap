@@ -65,10 +65,10 @@ jobs:
       - name: Create local NuGet feed directory
         shell: bash
         run: |
-          mkdir -p "$GITHUB_WORKSPACE/local-feed"
+          mkdir -p "${{ github.workspace }}/local-feed"
 
       - name: Add local NuGet source
-        run: dotnet nuget add source "$GITHUB_WORKSPACE/local-feed" --name local-feed
+        run: dotnet nuget add source "${{ github.workspace }}/local-feed" --name local-feed
 
       - name: Pack DotWrap.PackMe project
         shell: bash
