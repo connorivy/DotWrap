@@ -92,9 +92,9 @@ public class ICollectionConfig : DotWrapPythonTypeConfig
 
     public override void ConfigureGenericClassBody(PythonTypeConfigContext context)
     {
-        var exportedType = context.ExportedType;
         var matchingType = context.MatchingType;
         var genericClassBodyBuilder = context.ClassBody;
+        var typeInfo = context.ExportedType;
 
         var interfaceImplementation =
             matchingType.GetInterface(this.TypeToConfigure.Name)
@@ -102,16 +102,14 @@ public class ICollectionConfig : DotWrapPythonTypeConfig
                 $"Type {matchingType.FullName} does not implement ICollection<> interface."
             );
         var assemblyName =
-            interfaceImplementation.GenericTypeArguments[0].FullName
+            interfaceImplementation.GenericTypeArguments[0].AssemblyQualifiedName
             ?? interfaceImplementation.GenericTypeArguments[0].Name;
+        var simplifiedAssemblyName = AssemblyNameUtils.GetSimplifiedAssemblyName(assemblyName);
 
-        var originalTypeString = DotWrapUtils.NormalizeCsTypeName(
-            DotWrapUtils.GetOriginalTypeString(assemblyName)
-        );
         var genericArg = PythonNamingUtils.MapTypeToPython(
-            originalTypeString,
-            exportedType.GenericTypeArgumentsToParameters,
-            true
+            DotWrapUtils.NormalizeCsTypeName(simplifiedAssemblyName),
+            typeInfo.GenericTypeArgumentsToParameters,
+            false
         );
         genericClassBodyBuilder?.AppendLine(
             $@"
@@ -131,28 +129,21 @@ def to_list(self) -> list[{genericArg}]:
         var classBody = context.ClassBody;
         var typeInfo = context.ExportedType;
 
-        Logger.LogDebug($"matching type {matchingType}, exported type {typeInfo.Id}");
-
         var interfaceImplementation =
             matchingType.GetInterface(this.TypeToConfigure.Name)
             ?? throw new InvalidOperationException(
                 $"Type {matchingType.FullName} does not implement ICollection<> interface."
             );
         var collectionType = interfaceImplementation.GenericTypeArguments[0];
-        Logger.LogDebug(
-            $"collection type {collectionType} with generic args {string.Join(", ", collectionType.GetGenericArguments().Select(arg => arg.FullName))}"
-        );
         var assemblyName =
-            collectionType.FullName
+            collectionType.AssemblyQualifiedName
             ?? throw new InvalidOperationException(
                 $"Collection type {collectionType.Name} does not have a full name."
             );
 
-        var originalTypeString = DotWrapUtils.NormalizeCsTypeName(
-            DotWrapUtils.GetOriginalTypeString(assemblyName)
-        );
+        var simplifiedAssemblyName = AssemblyNameUtils.GetSimplifiedAssemblyName(assemblyName);
         var genericArg = PythonNamingUtils.MapTypeToPython(
-            originalTypeString,
+            DotWrapUtils.NormalizeCsTypeName(simplifiedAssemblyName),
             typeInfo.GenericTypeArgumentsToParameters,
             false
         );
@@ -166,15 +157,15 @@ def to_list(self) -> list[{genericArg}]:
         var numpyType = PythonNamingUtils.MapTypeToNumpy(genericArg);
         classBody.AppendLine(
             @$"
-        """"""
-        Converts the array data to a list of the specified dtype.
-        """"""
-        length = {Lib}.{typeInfo.EntryPrefix}{GetCount}(self.{Ptr})
-        arr = np.empty(length, dtype={numpyType})
+""""""
+Converts the array data to a list of the specified dtype.
+""""""
+length = {Lib}.{typeInfo.EntryPrefix}{GetCount}(self.{Ptr})
+arr = np.empty(length, dtype={numpyType})
 
-        # get stable pointer to the array data
-        arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
-        {Lib}.{typeInfo.EntryPrefix}{FillArr}(self.{Ptr}, arr_ptr, length)
+# get stable pointer to the array data
+arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
+{Lib}.{typeInfo.EntryPrefix}{FillArr}(self.{Ptr}, arr_ptr, length)
                 "
         );
 
@@ -222,7 +213,7 @@ public class IReadOnlyCollectionConfig : ICollectionConfig
     public override bool ShouldConfigure(PythonTypeConfigContext context)
     {
         var icollection = context.MatchingType.GetInterface(nameof(ICollection<>));
-        var interfaces = context.MatchingType.GetInterfaces();
+        // var interfaces = context.MatchingType.GetInterfaces();
         return icollection is null;
     }
 }

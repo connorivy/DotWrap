@@ -57,7 +57,12 @@ internal class CffiApiClassBuilder(
                 }
                 if (genericClassBodyBuilder is not null)
                 {
-                    config.Item2.ConfigureGenericClassBody(context);
+                    config.Item2.ConfigureGenericClassBody(
+                        context with
+                        {
+                            ClassBody = genericClassBodyBuilder,
+                        }
+                    );
                 }
                 config.Item2.ConfigureClassBody(context);
             }

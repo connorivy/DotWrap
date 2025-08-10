@@ -31,6 +31,9 @@ namespace DotWrap.Utils
             // Replace backtick followed by any number followed by plus with a period
             simplified = System.Text.RegularExpressions.Regex.Replace(simplified, @"`\d+\+", ".");
 
+            // remove backtick followed by any number
+            simplified = System.Text.RegularExpressions.Regex.Replace(simplified, @"`\d+", "");
+
             return simplified;
         }
     }

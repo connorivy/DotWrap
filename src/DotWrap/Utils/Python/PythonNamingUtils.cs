@@ -25,6 +25,7 @@ public static class PythonNamingUtils
 
         var innerGenerics = topLevelSplit
             .SelectMany(GetTopLevelGenerics)
+            .Concat(GetTopLevelGenericsWithBrackets(topLevelSplit.Last()))
             .Select(DotWrapUtils.NormalizeCsTypeName)
             .Select(PythonizeClassName)
             .ToList();
@@ -57,6 +58,8 @@ public static class PythonNamingUtils
 
         var innerGenerics = topLevelSplit
             .SelectMany(GetTopLevelGenerics)
+            .Concat(GetTopLevelGenericsWithBrackets(topLevelSplit.Last()))
+            .Select(DotWrapUtils.NormalizeCsTypeName)
             .Select(g => MapTypeToPython(g, genericArgsToParamsDict, useGenericParams))
             .ToList();
 
@@ -78,8 +81,13 @@ public static class PythonNamingUtils
     {
         int splitStartIndex = 0;
         int numOpenBrackets = 0;
+        var doubleOpenBracketIndex = input.IndexOf("[[");
         for (int i = 0; i < input.Length; i++)
         {
+            if (doubleOpenBracketIndex > -1 && i >= doubleOpenBracketIndex)
+            {
+                break;
+            }
             if (input[i] == '<')
             {
                 numOpenBrackets++;
@@ -88,7 +96,7 @@ public static class PythonNamingUtils
             {
                 numOpenBrackets--;
             }
-            else if (input[i] == '.' && numOpenBrackets == 0)
+            else if (numOpenBrackets == 0 && input[i] == '.')
             {
                 yield return input.Substring(splitStartIndex, i - splitStartIndex);
                 splitStartIndex = i + 1;
@@ -113,6 +121,22 @@ public static class PythonNamingUtils
         }
     }
 
+    private static IEnumerable<string> GetTopLevelGenericsWithBrackets(string input)
+    {
+        var startIndex = input.IndexOf("[[");
+        var endIndex = input.LastIndexOf("]]");
+        if (startIndex < 0 || endIndex < 0 || startIndex >= endIndex)
+        {
+            yield break;
+        }
+
+        var genericString = input.Substring(startIndex + 2, endIndex - startIndex - 2);
+        foreach (var genericType in SplitGenericStringWithBracketsIntoTopLevelList(genericString))
+        {
+            yield return genericType;
+        }
+    }
+
     /// <summary>
     /// Splits a generic argument string into its top-level arguments, handling nested generics.
     /// For example:
@@ -129,8 +153,13 @@ public static class PythonNamingUtils
     {
         int depth = 0;
         int lastPos = 0;
+        var doubleOpenBracketIndex = input.IndexOf("[[");
         for (int i = 0; i < input.Length; i++)
         {
+            if (doubleOpenBracketIndex > -1 && i >= doubleOpenBracketIndex)
+            {
+                break;
+            }
             if (input[i] == '<')
                 depth++;
             else if (input[i] == '>')
@@ -145,17 +174,44 @@ public static class PythonNamingUtils
             yield return input.Substring(lastPos).Trim();
     }
 
-    public static IEnumerable<string> GetPythonGenericTypes(string typeName)
+    /// <summary>
+    /// Splits a generic argument string into its top-level arguments, handling nested generics.
+    /// For example:
+    ///   "int, string"                => ["int", "string"]
+    ///   "List[[System.Int32], [System.String]]"          => ["List[[System.Int32]]", "string"]
+    ///   "Dictionary[[System.String, System.Int32]]"    => ["Dictionary[[System.String], System.Int32]]"]
+    ///   "List[[Dictionary[[int, str]]]]" => ["List[[Dictionary[[int],[str]]]]"]
+    ///   "string, List[[int]], Tuple[[int],[List[[string]]]]" => ["string", "List[[int]]", "Tuple[[int],[List[[string]]]]"]
+    /// </summary>
+    /// <param name="input">The generic argument string (e.g., "int, List<string>")</param>
+    /// <returns>List of top-level argument strings</returns>
+    static IEnumerable<string> SplitGenericStringWithBracketsIntoTopLevelList(string input)
     {
-        var startIndex = typeName.IndexOf('<');
-        var endIndex = typeName.LastIndexOf('>');
-        while (startIndex >= 0 && endIndex >= 0 && startIndex < endIndex)
+        int depth = 0;
+        int lastPos = 0;
+        for (int i = 0; i < input.Length - 2; i++)
         {
-            var genericString = typeName.Substring(startIndex + 1, endIndex - startIndex - 1);
-            foreach (var genericType in genericString.Split(',').Select(t => t.Trim()))
+            var nextTwoChars = input.AsSpan(i, 2);
+            if (nextTwoChars == "[[")
             {
-                yield return MapTypeToPython(genericType);
+                depth++;
+                continue;
             }
+            else if (nextTwoChars == "]]")
+            {
+                depth--;
+                continue;
+            }
+            var nextThreeChars = input.AsSpan(i, 3);
+            if (depth == 0 && nextThreeChars.SequenceEqual("],["))
+            {
+                yield return input.Substring(lastPos, i - lastPos).Trim();
+                lastPos = i + 3;
+            }
+        }
+        if (lastPos < input.Length)
+        {
+            yield return input.Substring(lastPos).Trim();
         }
     }
 
@@ -165,6 +221,11 @@ public static class PythonNamingUtils
         // split on first < and last >
         var startIndex = className.IndexOf('<');
         var endIndex = className.LastIndexOf('>');
+        if (startIndex < 0 || endIndex < 0 || startIndex >= endIndex)
+        {
+            startIndex = className.IndexOf("[[");
+            endIndex = className.LastIndexOf("]]");
+        }
         if (startIndex < 0 || endIndex < 0 || startIndex >= endIndex)
         {
             return null; // no valid generic type found
