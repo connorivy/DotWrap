@@ -51,7 +51,7 @@
       PackagePath="analyzers/dotnet/cs"
       Visible="true"
     />
-    <None
+    <!-- <None
       Include="$(MSBuildProjectDirectory)\..\DotWrap.MSBuild\bin\$(Configuration)\net7.0\DotWrap.MSBuild.dll"
       Pack="true"
       PackagePath="lib/net7.0"
@@ -74,7 +74,7 @@
       Pack="true"
       PackagePath="lib/net7.0"
       Visible="true"
-    />
+    /> -->
     <None
       Include="$(MSBuildProjectDirectory)\..\DotWrap.MSBuild\bin\$(Configuration)\net8.0\DotWrap.MSBuild.dll"
       Pack="true"
