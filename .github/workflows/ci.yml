@@ -91,10 +91,10 @@ jobs:
       #   - name: Clear NuGet cache
       #     run: dotnet nuget locals all --clear
 
-      - name: Build test library with DotWrapVersion flag
-        shell: bash
-        run: |
-          dotnet build tests/DotWrap.TestLib/DotWrap.TestLib.csproj --configuration Release -p:DotWrapVersion=$DOTWRAP_NUGET_VERSION
+      #   - name: Build test library with DotWrapVersion flag
+      #     shell: bash
+      #     run: |
+      #       dotnet build tests/DotWrap.TestLib/DotWrap.TestLib.csproj --configuration Release -p:DotWrapVersion=$DOTWRAP_NUGET_VERSION
 
       - name: Publish test library (AOT)
         shell: bash
@@ -117,9 +117,9 @@ jobs:
           esac
 
           echo "Publishing for runtime: $RUNTIME"
-          dotnet publish tests/DotWrap.TestLib/DotWrap.TestLib.csproj --configuration Release --no-build \
+          dotnet publish tests/DotWrap.TestLib/DotWrap.TestLib.csproj --configuration Release \
             -r $RUNTIME \
-            -p:DotWrapVersion=$DOTWRAP_VERSION \
+            -p:DotWrapVersion=$DOTWRAP_NUGET_VERSION \
             --output ./test-lib-output
 
       - name: Setup Python
