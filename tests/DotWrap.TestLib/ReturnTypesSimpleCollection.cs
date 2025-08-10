@@ -109,7 +109,7 @@ public class ICollectionConfig : DotWrapPythonTypeConfig
         var genericArg = PythonNamingUtils.MapTypeToPython(
             DotWrapUtils.NormalizeCsTypeName(simplifiedAssemblyName),
             typeInfo.GenericTypeArgumentsToParameters,
-            false
+            true
         );
         genericClassBodyBuilder?.AppendLine(
             $@"

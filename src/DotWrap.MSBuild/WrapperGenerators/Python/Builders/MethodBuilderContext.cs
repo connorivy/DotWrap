@@ -81,6 +81,21 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
         return paramListWithHints;
     }
 
+    public IEnumerable<string> PythonGenericMethodParamListWithHints(
+        IDictionary<string, string>? genericParamsToArgsDict = null
+    )
+    {
+        var paramListWithHints = this.MethodInfo.Parameters.Select(p =>
+            $"{p.Name}: {this.ClassContext.ClassInfo.GenericTypeArgumentsToParameters?.GetValueOrDefault(p.OriginalTypeName) ?? p.MapOriginalTypeToPython(genericParamsToArgsDict)}"
+        );
+
+        if (!this.MethodInfo.IsStatic)
+        {
+            paramListWithHints = paramListWithHints.Prepend("self");
+        }
+        return paramListWithHints;
+    }
+
     public string PythonMethodGenericParamListWithHints(
         IDictionary<string, string>? genericParamsToArgsDict = null
     )

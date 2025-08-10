@@ -34,7 +34,8 @@ internal class CffiApiClassBuilder(
             IndentedPythonStringBuilder classBodyBuilder = new();
 
             IndentedPythonStringBuilder? genericClassBodyBuilder = null;
-            if (cls.GenericTypeArgumentsToParameters.Count > 0)
+            var baseClassName = PythonNamingUtils.PythonizeClassName(cls.TypeNameNoGenerics);
+            if (cls.GenericTypeArgumentsToParameters.Count > 0 && classNames.Add(baseClassName))
             {
                 genericClassBodyBuilder = this.CreateGenericClassBodyBuilder(cls);
             }
@@ -121,7 +122,8 @@ def __del__(self) -> None:
         Logger.LogDebug(
             $"Adding class {className} with baseClass {baseClassName} to main.py with number of methods: {classInfo.Methods.Count}"
         );
-        if (classNames.Add(baseClassName))
+        var isGeneric = classInfo.GenericTypeArgumentsToParameters.Count > 0;
+        if (!isGeneric || genericClassBodyBuilder is not null)
         {
             initPy.AppendLine($"from .main import {baseClassName}");
         }

@@ -59,22 +59,6 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStri
         };
     }
 
-    public static string? GetExternalResultAssignment(IHasOriginalAndExposedTypes type)
-    {
-        return type switch
-        {
-            { OriginalTypeName: "string" } =>
-                $"{ExportedPyResult} = str(CString({InternalPyResult}))",
-            { OriginalTypeName: "bool" } => $"{ExportedPyResult} = bool({InternalPyResult})",
-            // _ when type.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.Enum) =>
-            //     $"{ExportedPyResult} = {PythonUtils.PythonizeClassName(type.TypeName)}({InternalPyResult})",
-            { ExposedTypeIfDifferent: not null } => (
-                $"{ExportedPyResult} = {type.OriginalTypeWrapper}.{FromPtr}({InternalPyResult})"
-            ),
-            _ => null,
-        };
-    }
-
     public void GenerateSingleMethod(
         MethodBuilderContext context,
         string? exportedResultAssignment,
@@ -84,9 +68,20 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStri
         var methodInfo = context.MethodInfo;
         var cLibMethodArgs = context.GetCMethodCallArgumentsString();
 
-        var pyReturnType = context.GetReturnType(null);
+        // var pyReturnType = context.GetReturnType(null);
+        var pyReturnType = PythonNamingUtils.MapTypeToPython(
+            context.MethodInfo.OriginalTypeName,
+            context.ClassContext.ClassInfo.GenericTypeArgumentsToParameters,
+            false
+        );
+        var genericReturnType = PythonNamingUtils.MapTypeToPython(
+            context.MethodInfo.OriginalTypeName,
+            context.ClassContext.ClassInfo.GenericTypeArgumentsToParameters,
+            true
+        );
         var methodName = context.GetMethodName(this.methodNames);
         var paramListWithHints = context.PythonMethodParamListWithHints();
+        var genericParamListWithHints = context.PythonGenericMethodParamListWithHints();
 
         string? internalResultAssignment;
         internalResultAssignment = $"{InternalPyResult} = ";
@@ -94,6 +89,7 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStri
         if (methodName == "__init__")
         {
             paramListWithHints = paramListWithHints.Prepend("self");
+            genericParamListWithHints = genericParamListWithHints.Prepend("self");
             pyReturnType = "None";
             // resultToExportTypePrefix = $"self.{Ptr} = ";
             // resultToExportTypeSuffix = string.Empty;
@@ -125,10 +121,12 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStri
             genericClassBodyBuilder?.AppendLine($"@{methodName}.setter");
         }
 
-        var methodDef =
-            $"def {methodName}({string.Join(", ", paramListWithHints)}){$" -> {pyReturnType}"}:";
-        mainPy.AppendLine(methodDef);
-        genericClassBodyBuilder?.AppendLine(methodDef);
+        mainPy.AppendLine(
+            $"def {methodName}({string.Join(", ", paramListWithHints)}){$" -> {pyReturnType}"}:"
+        );
+        genericClassBodyBuilder?.AppendLine(
+            $"def {methodName}({string.Join(", ", genericParamListWithHints)}){$" -> {genericReturnType ?? pyReturnType}"}:"
+        );
         genericClassBodyBuilder?.AppendLine("    pass");
         using var indent = mainPy.IndentUntilDispose();
 
