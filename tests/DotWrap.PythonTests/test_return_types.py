@@ -1,4 +1,4 @@
-from DotWrap_TestLib import ReturnTypesSimple as test_lib
+from dotwrap_testlib import ReturnTypesSimple as test_lib
 
 
 def test_max_s_byte():

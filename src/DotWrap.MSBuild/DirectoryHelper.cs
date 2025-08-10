@@ -11,7 +11,7 @@ public record PythonProjectInfo
     public PythonProjectInfo(CSharpProjectInfo cSharpProjectInfo)
     {
         CSharpProjectInfo = cSharpProjectInfo;
-        ProjectName = CSharpProjectInfo.LibName.Replace(".", "_");
+        ProjectName = CSharpProjectInfo.LibName.Replace(".", "_").ToLowerInvariant();
 
         Directory.CreateDirectory(PythonProjectRoot);
         Directory.CreateDirectory(PythonPackageRoot);

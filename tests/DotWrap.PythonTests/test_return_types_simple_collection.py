@@ -1,4 +1,4 @@
-import DotWrap_TestLib as test_lib
+import dotwrap_testlib as test_lib
 import numpy as np
 
 

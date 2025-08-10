@@ -1,5 +1,5 @@
 import time
-from DotWrap_TestLib import ReturnTypesSimple as bench
+from dotwrap_testlib import ReturnTypesSimple as bench
 
 
 def do_nothing():

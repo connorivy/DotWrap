@@ -1,5 +1,5 @@
 import time
-from DotWrap_TestLib import IsPrimeBench as bench
+from dotwrap_testlib import IsPrimeBench as bench
 
 
 def is_prime(number):
