@@ -37,16 +37,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Restore .NET dependencies
-        run: dotnet restore
+      #   - name: Restore .NET dependencies
+      #     run: dotnet restore
 
       - name: Build all source projects (Release)
         run: |
-          dotnet build src/DotWrap/DotWrap.csproj --configuration Release --no-restore
-          dotnet build src/DotWrap.Generator/DotWrap.Generator.csproj --configuration Release --no-restore
-          dotnet build src/DotWrap.MSBuild/DotWrap.MSBuild.csproj --configuration Release --no-restore
-          dotnet build src/DotWrap.Operations/DotWrap.Operations.csproj --configuration Release --no-restore
-          dotnet build src/DotWrap.PackMe/DotWrap.PackMe.csproj --configuration Release --no-restore
+          dotnet build src/DotWrap/DotWrap.csproj --configuration Release
+          dotnet build src/DotWrap.Generator/DotWrap.Generator.csproj --configuration Release
+          dotnet build src/DotWrap.MSBuild/DotWrap.MSBuild.csproj --configuration Release
+          dotnet build src/DotWrap.Operations/DotWrap.Operations.csproj --configuration Release
+          dotnet build src/DotWrap.PackMe/DotWrap.PackMe.csproj --configuration Release
 
       - name: Pack DotWrap.PackMe project
         shell: bash
