@@ -75,5 +75,11 @@
       PackagePath="tools/"
       Visible="true"
     />
+  <None
+      Include="$(MSBuildProjectDirectory)\..\DotWrap\bin\$(Configuration)\netstandard2.0\DotWrap.dll"
+      Pack="true"
+      PackagePath="tools/"
+      Visible="true"
+    />
   </ItemGroup>
 </Project>
