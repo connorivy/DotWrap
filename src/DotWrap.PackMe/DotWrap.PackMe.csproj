@@ -37,23 +37,20 @@
   </Target>
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
-    <None
-      Update="$(DotWrapDir)Build\DotWrap.targets"
-      Pack="true"
-      PackagePath="build\DotWrap.targets"
-    />
+    <None Include="$(DotWrapDir)Build\DotWrap.targets" Pack="true" PackagePath="build/" />
+    <None Include="$(DotWrapDir)Build\DotWrap.props" Pack="true" PackagePath="build/" />
     <None
       Include="$(MSBuildProjectDirectory)\..\DotWrap.Generator\bin\$(Configuration)\netstandard2.0\DotWrap.Generator.dll"
       Pack="true"
       PackagePath="analyzers/dotnet/cs"
       Visible="false"
     />
-    <!-- <None
-      Include="$(MSBuildProjectDirectory)\..\DotWrap\bin\$(Configuration)\netstandard2.0\$(AssemblyName).dll"
+    <None
+      Include="$(MSBuildProjectDirectory)\..\DotWrap\bin\$(Configuration)\netstandard2.0\DotWrap.dll"
       Pack="true"
       PackagePath="analyzers/dotnet/cs"
-      Visible="false"
-    /> -->
+      Visible="true"
+    />
     <None
       Include="$(MSBuildProjectDirectory)\..\DotWrap\bin\$(Configuration)\netstandard2.0\DotWrap.dll"
       Pack="true"

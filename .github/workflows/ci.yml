@@ -139,7 +139,7 @@ jobs:
           # Check if Python project root exists
           if [ ! -d "tests/DotWrap.TestLib/python_project_root" ]; then
             echo "Python project root not found. Listing test library contents:"
-            find tests/DotWrap.TestLib -type f -name "*.py" | head -10
+            find tests/DotWrap.TestLib -type f | head -10
             find tests/DotWrap.TestLib -type d | head -10
             exit 1
           fi
