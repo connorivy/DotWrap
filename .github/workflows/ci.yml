@@ -94,26 +94,8 @@ jobs:
       - name: Build test library with DotWrapVersion flag
         shell: bash
         run: |
-          # Extract version from the package name
-          PACKAGE_FILE=$(find ./local-feed -name "DotWrap.*.nupkg" | head -1)
-          if [ -n "$PACKAGE_FILE" ]; then
-            VERSION=$(basename "$PACKAGE_FILE" | sed 's/DotWrap\.\(.*\)\.nupkg/\1/')
-            echo "Extracted version: $VERSION"
-            echo "DOTWRAP_VERSION=$VERSION" >> $GITHUB_ENV
-            
-            echo "Building test library with DotWrap version $VERSION..."
-            # Build the test library with CI flags
-            dotnet build tests/DotWrap.TestLib/DotWrap.TestLib.csproj --configuration Release \
-              -p:DotWrapVersion=$VERSION
-            
-            echo "Packing test library..."
-            # Pack the test library
-            dotnet pack tests/DotWrap.TestLib/DotWrap.TestLib.csproj --configuration Release --no-build \
-              -p:DotWrapVersion=$VERSION
-          else
-            echo "No DotWrap package found for version extraction"
-            exit 1
-          fi
+          dotnet build tests/DotWrap.TestLib/DotWrap.TestLib.csproj --configuration Release --no-restore \
+            -p:DotWrapVersion=$DOTWRAP_NUGET_VERSION
 
       - name: Publish test library (AOT)
         shell: bash
