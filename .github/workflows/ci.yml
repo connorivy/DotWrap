@@ -10,9 +10,13 @@ jobs:
   build-and-test:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        # os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [windows-latest]
 
     runs-on: ${{ matrix.os }}
+
+    env:
+      ContinuousIntegrationEnv: true
 
     steps:
       - uses: actions/checkout@v4
@@ -42,6 +46,7 @@ jobs:
           dotnet build src/DotWrap.Generator/DotWrap.Generator.csproj --configuration Release --no-restore
           dotnet build src/DotWrap.MSBuild/DotWrap.MSBuild.csproj --configuration Release --no-restore
           dotnet build src/DotWrap.Operations/DotWrap.Operations.csproj --configuration Release --no-restore
+          dotnet build src/DotWrap.PackMe/DotWrap.PackMe.csproj --configuration Release --no-restore
 
       - name: Pack DotWrap.PackMe project
         shell: bash
@@ -87,13 +92,11 @@ jobs:
             echo "Building test library with DotWrap version $VERSION..."
             # Build the test library with CI flags
             dotnet build tests/DotWrap.TestLib/DotWrap.TestLib.csproj --configuration Release \
-              -p:ContinuousIntegrationEnv=true \
               -p:DotWrapVersion=$VERSION
             
             echo "Packing test library..."
             # Pack the test library
             dotnet pack tests/DotWrap.TestLib/DotWrap.TestLib.csproj --configuration Release --no-build \
-              -p:ContinuousIntegrationEnv=true \
               -p:DotWrapVersion=$VERSION
           else
             echo "No DotWrap package found for version extraction"
@@ -127,7 +130,6 @@ jobs:
           echo "Publishing for runtime: $RUNTIME"
           dotnet publish tests/DotWrap.TestLib/DotWrap.TestLib.csproj --configuration Release --no-build \
             -r $RUNTIME \
-            -p:ContinuousIntegrationEnv=true \
             -p:DotWrapVersion=$DOTWRAP_VERSION \
             --output ./test-lib-output
 
@@ -161,19 +163,19 @@ jobs:
         working-directory: tests/DotWrap.PythonTests
         run: python -m pytest -v --tb=short
 
-    #   - name: Upload test library artifacts
-    #     uses: actions/upload-artifact@v4
-    #     if: always()
-    #     with:
-    #       name: test-library-${{ matrix.os }}
-    #       path: ./test-lib-output/
+      #   - name: Upload test library artifacts
+      #     uses: actions/upload-artifact@v4
+      #     if: always()
+      #     with:
+      #       name: test-library-${{ matrix.os }}
+      #       path: ./test-lib-output/
 
-    #   - name: Upload NuGet packages
-    #     uses: actions/upload-artifact@v4
-    #     if: always()
-    #     with:
-    #       name: nuget-packages-${{ matrix.os }}
-    #       path: ./nupkgs/
+      #   - name: Upload NuGet packages
+      #     uses: actions/upload-artifact@v4
+      #     if: always()
+      #     with:
+      #       name: nuget-packages-${{ matrix.os }}
+      #       path: ./nupkgs/
 
       - name: Workflow Summary
         if: always()
