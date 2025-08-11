@@ -163,6 +163,25 @@ jobs:
         shell: bash
         run: |
           set -x
+          echo "--- ENVIRONMENT ---"
+          env
+          echo "--- PATH ---"
+          echo $PATH
+          echo "--- Python executable ---"
+          which python || where python || true
+          echo "--- Python version ---"
+          python --version
+          echo "--- Installed packages ---"
+          pip list
+          echo "--- Directory contents (test-lib-output) ---"
+          ls -la ../../test-lib-output || true
+          echo "--- Directory contents (current) ---"
+          ls -la .
+          echo "--- Directory contents (parent) ---"
+          ls -la ..
+          echo "--- Directory contents (python_project_root) ---"
+          ls -la ../DotWrap.TestLib/python_project_root || true
+          echo "--- Running pytest ---"
           python -m pytest -vvv --tb=long -rA
           EXIT_CODE=$?
           if [ $EXIT_CODE -ne 0 ]; then
