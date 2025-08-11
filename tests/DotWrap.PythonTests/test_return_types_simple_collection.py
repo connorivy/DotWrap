@@ -1,5 +1,4 @@
 import dotwrap_testlib as test_lib
-import numpy as np
 
 
 def test_int_32_array_tolist():
