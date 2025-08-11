@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         # os: [ubuntu-latest, windows-latest, macos-latest]
-        os: [windows-latest]
+        os: [ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
 
@@ -158,42 +158,7 @@ jobs:
 
       - name: Run Python tests
         working-directory: tests/DotWrap.PythonTests
-        env:
-          PYTHONUNBUFFERED: 1
-        shell: bash
-        run: |
-          set -x
-          echo "--- ENVIRONMENT ---"
-          env
-          echo "--- PATH ---"
-          echo $PATH
-          echo "--- Python executable ---"
-          which python || where python || true
-          echo "--- Python version ---"
-          python --version
-          echo "--- Installed packages ---"
-          pip list
-          echo "--- Directory contents (test-lib-output) ---"
-          ls -la ../../test-lib-output || true
-          echo "--- Directory contents (current) ---"
-          ls -la .
-          echo "--- Directory contents (parent) ---"
-          ls -la ..
-          echo "--- Directory contents (python_project_root) ---"
-          ls -la ../DotWrap.TestLib/python_project_root || true
-          echo "--- Directory contents (python_project_root/dotwrap_testlib) ---"
-          ls -la ../DotWrap.TestLib/python_project_root/dotwrap_testlib || true
-          echo "--- Directory contents (python_project_root/dotwrap_testlib/dotwrap_generated) ---"
-          ls -la ../DotWrap.TestLib/python_project_root/dotwrap_testlib/dotwrap_generated || true
-          echo "--- Running pytest ---"
-          python -m pytest -vvv --tb=long -rA
-          EXIT_CODE=$?
-          if [ $EXIT_CODE -ne 0 ]; then
-            echo "\n--- Pytest log tail ---"
-            tail -n 100 .pytest_cache/v/cache/lastfailed || true
-            echo "--- End log tail ---\n"
-          fi
-          exit $EXIT_CODE
+        run: python -m pytest -vvv --tb=long
 
       #   - name: Upload test library artifacts
       #     uses: actions/upload-artifact@v4
