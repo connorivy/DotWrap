@@ -83,6 +83,8 @@ public class ExportedTypeInstanceInfo
 public record ExportedTypeId
 {
     public string Id { get; }
+    public static ExportedTypeId IntPtr { get; internal set; } =
+        new ExportedTypeId("System", "IntPtr");
 
     [Obsolete("Use the constructor with namespace, typeName, and typeParams instead.")]
     [JsonConstructor]

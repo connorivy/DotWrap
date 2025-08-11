@@ -99,6 +99,7 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
         {
             parameters = parameters.Prepend($"{SelfPtrType} {SelfPointerName}");
         }
+        parameters = parameters.Append($"IntPtr {ExceptionInfoPtr}");
 
         return string.Join(", ", parameters);
     }

@@ -16,4 +16,5 @@ internal static class Constants
     public const string GetCount = InternalPrefix + "GetCount";
     public const string FillArr = InternalPrefix + "FillArr";
     public const string OutParam = InternalPrefix + "Out";
+    public const string ExceptionInfoPtr = InternalPrefix + "ExceptionInfoPtr";
 }

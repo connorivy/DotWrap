@@ -116,10 +116,19 @@ public class MethodBuilder(
         var assignOutParameters = methodContext.AssignOutParameters();
 
         sb.AppendLine(
-            $"        [UnmanagedCallersOnly(EntryPoint = \"{entryPrefix}{methodName}\")]"
+            @$"
+        [UnmanagedCallersOnly(EntryPoint = ""{entryPrefix}{methodName}"")]
+        public static {returnType} {methodName}({methodSignature})
+        {{
+            try
+            {{
+        "
         );
-        sb.AppendLine($"        public static {returnType} {methodName}({methodSignature})");
-        sb.AppendLine("        {");
+        // sb.AppendLine(
+        //     $"        [UnmanagedCallersOnly(EntryPoint = \"{entryPrefix}{methodName}\")]"
+        // );
+        // sb.AppendLine($"        public static {returnType} {methodName}({methodSignature})");
+        // sb.AppendLine("        {");
 
         string obj;
         if (methodContext.IsStatic)
@@ -200,8 +209,20 @@ public class MethodBuilder(
             sb.AppendLine($"            return {InternalResult};");
         }
 
-        sb.AppendLine("        }");
-        sb.AppendLine();
+        sb.AppendLine(
+            @$"
+            }}
+            catch (Exception e)
+            {{
+                DotWrap.Operations.ExceptionOps.HandleException(e, {ExceptionInfoPtr});
+                {(internalResultAssignment is null ? "" : "return default!")};
+            }}
+        }}
+        "
+        );
+
+        // sb.AppendLine("        }");
+        // sb.AppendLine();
     }
 
     protected string GetWrapperName(ITypeSymbol returnType)

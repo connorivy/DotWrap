@@ -11,23 +11,36 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
 {
     internal string GetCMethodCallArgumentsString()
     {
-        string self;
-        if (this.MethodInfo.IsStatic)
+        var parameterStrings = this
+            .MethodInfo.Parameters.Select(p =>
+                p.ExposedTypeIfDifferent is null ? p.Name : $"{p.Name}{Typed}"
+            )
+            .Append(ExceptionInfoArg);
+
+        if (!this.MethodInfo.IsStatic)
         {
-            self = string.Empty;
-        }
-        else
-        {
-            self = $"self.{Ptr}{(this.MethodInfo.Parameters.Count > 0 ? ", " : "")}";
+            parameterStrings = parameterStrings.Prepend($"self.{Ptr}");
         }
 
-        return self
-            + string.Join(
-                ", ",
-                this.MethodInfo.Parameters.Select(p =>
-                    p.ExposedTypeIfDifferent is null ? p.Name : $"{p.Name}{Typed}"
-                )
-            );
+        // var parameters = this.MethodInfo.Parameters.Append(
+        //     new()
+        //     {
+        //         Name = "ExceptionInfoPtr",
+        //         OriginalTypeName = "IntPtr",
+        //         ExposedTypeIfDifferent = "IntPtr",
+        //         SpecialCaseFlags = ParameterSpecialCaseFlags.Out,
+        //         GenericTypeName = "IntPtr",
+        //         Type = new ExportedTypeInstanceInfo
+        //         {
+        //             DefinitionId = ExportedTypeId.IntPtr,
+        //             DefinitionGenericArgs = null,
+        //             GenericName = "IntPtr",
+        //             IsNullable = false,
+        //         },
+        //     }
+        // );
+
+        return string.Join(", ", parameterStrings);
     }
 
     public string GetReturnType(IDictionary<string, string>? genericParamsToArgsDict) =>

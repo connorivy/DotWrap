@@ -76,13 +76,6 @@ public class ReturnTypesSimpleCollection
     // public static double[] GetDoubleArray() => new[] { double.MaxValue, double.MinValue };
 }
 
-[StructLayout(LayoutKind.Sequential)]
-public struct ArrayInfo
-{
-    public IntPtr Ptr;
-    public int Length;
-}
-
 public class ICollectionConfig : DotWrapPythonTypeConfig
 {
     public override Type TypeToConfigure => typeof(ICollection<>);
@@ -154,12 +147,14 @@ def to_list(self) -> list[{genericArg}]:
 """"""
 Converts the array data to a list of the specified dtype.
 """"""
-length = {Lib}.{typeInfo.EntryPrefix}{GetCount}(self.{Ptr})
+{ExceptionInfoArg} = {Ffi}.new(""ExceptionInfo *"")
+length = {Lib}.{typeInfo.EntryPrefix}{GetCount}(self.{Ptr}, {ExceptionInfoArg})
 arr = np.empty(length, dtype={numpyType})
 
 # get stable pointer to the array data
 arr_ptr = _dotwrap_ffi.cast(""void*"", _dotwrap_ffi.from_buffer(arr))
-{Lib}.{typeInfo.EntryPrefix}{FillArr}(self.{Ptr}, arr_ptr, length)
+{ExceptionInfoArg}2 = {Ffi}.new(""ExceptionInfo *"")
+{Lib}.{typeInfo.EntryPrefix}{FillArr}(self.{Ptr}, arr_ptr, length, {ExceptionInfoArg}2)
                 "
         );
 

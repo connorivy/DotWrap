@@ -144,6 +144,7 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStri
 
         var libCall = $"{Lib}.{context.ClassContext.ClassInfo.EntryPrefix}{methodInfo.StampedName}";
 
+        mainPy.AppendLine($"{ExceptionInfoArg} = {Ffi}.new(\"ExceptionInfo *\")");
         mainPy.AppendLine($"{internalResultAssignment}{libCall}({cLibMethodArgs})");
 
         if (returnCall == string.Empty)

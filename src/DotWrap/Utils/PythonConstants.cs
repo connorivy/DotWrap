@@ -11,4 +11,5 @@ public static class PythonConstants
     public const string OutVal = InternalPythonPrefix + "out_value";
     public const string InternalPyResult = InternalPythonPrefix + "internal_result";
     public const string ExportedPyResult = InternalPythonPrefix + "exported_result";
+    public const string ExceptionInfoArg = InternalPythonPrefix + "exception_info";
 }

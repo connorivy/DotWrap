@@ -4,7 +4,7 @@ namespace DotWrap.Operations
 {
     public static class StringOperations
     {
-        public static IntPtr Alloc(string str)
+        public static IntPtr Alloc(string? str)
         {
             if (string.IsNullOrEmpty(str))
             {

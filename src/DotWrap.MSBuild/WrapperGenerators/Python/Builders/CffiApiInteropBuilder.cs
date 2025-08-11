@@ -89,14 +89,17 @@ setup(
         build.AppendLine(freeString);
         headerContent.AppendLine(freeString);
 
-        var arrayType =
+        var exceptionInfo =
             @"
 typedef struct {
-    void* Ptr;
-    int Length;
-} ArrayInfo;";
-        build.AppendLine(arrayType);
-        headerContent.AppendLine(arrayType);
+    void* Message;
+    void* StackTrace;
+    void* InnerExceptionMessage;
+    void* InnerExceptionStackTrace;
+} ExceptionInfo;
+";
+        build.AppendLine(exceptionInfo);
+        headerContent.AppendLine(exceptionInfo);
         foreach (var cls in classes)
         {
             if (
@@ -115,7 +118,9 @@ typedef struct {
             }
             foreach (var method in cls.Methods)
             {
-                var parameters = method.Parameters.Select(p => $"{p.MapExposedTypeToC()} {p.Name}");
+                var parameters = method
+                    .Parameters.Select(p => $"{p.MapExposedTypeToC()} {p.Name}")
+                    .Append("ExceptionInfo* exceptionInfo");
                 if (!method.IsStatic)
                 {
                     parameters = parameters.Prepend($"{CSelfPtrType} ptr");
