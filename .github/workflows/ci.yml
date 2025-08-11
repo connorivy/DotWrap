@@ -181,6 +181,10 @@ jobs:
           ls -la ..
           echo "--- Directory contents (python_project_root) ---"
           ls -la ../DotWrap.TestLib/python_project_root || true
+          echo "--- Directory contents (python_project_root/dotwrap_testlib) ---"
+          ls -la ../DotWrap.TestLib/python_project_root/dotwrap_testlib || true
+          echo "--- Directory contents (python_project_root/dotwrap_testlib/dotwrap_generated) ---"
+          ls -la ../DotWrap.TestLib/python_project_root/dotwrap_testlib/dotwrap_generated || true
           echo "--- Running pytest ---"
           python -m pytest -vvv --tb=long -rA
           EXIT_CODE=$?
