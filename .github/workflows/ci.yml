@@ -158,7 +158,19 @@ jobs:
 
       - name: Run Python tests
         working-directory: tests/DotWrap.PythonTests
-        run: python -m pytest -vvv --tb=long
+        env:
+          PYTHONUNBUFFERED: 1
+        shell: bash
+        run: |
+          set -x
+          python -m pytest -vvv --tb=long -rA
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "\n--- Pytest log tail ---"
+            tail -n 100 .pytest_cache/v/cache/lastfailed || true
+            echo "--- End log tail ---\n"
+          fi
+          exit $EXIT_CODE
 
       #   - name: Upload test library artifacts
       #     uses: actions/upload-artifact@v4
