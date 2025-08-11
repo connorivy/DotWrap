@@ -80,6 +80,7 @@ setup(
         build.AppendLine("from cffi import FFI");
         build.AppendLine("from typing import Any");
         build.AppendLine("import os");
+        build.AppendLine("import platform");
         build.AppendLine();
         build.AppendLine("ffibuilder = FFI()");
         build.AppendLine("ffibuilder.cdef(\"\"\"");
@@ -158,6 +159,11 @@ typedef struct {
         build.AppendLine(
             $@"
 current_dir = os.path.dirname(os.path.abspath(__file__))
+# Conditionally add RPATH only on Linux/Unix systems
+extra_link_args = []
+if platform.system() in ['Linux', 'Darwin']:  # Linux or macOS
+    extra_link_args = [""-Wl,-rpath,$ORIGIN""]
+
 ffibuilder.set_source(
     ""_{projectName}"",
     """"""
@@ -166,6 +172,7 @@ ffibuilder.set_source(
     libraries=[""{libName}""],
     library_dirs=[current_dir],
     include_dirs=[current_dir],
+    extra_link_args=extra_link_args,
 )
 
 if __name__ == '__main__':

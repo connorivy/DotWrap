@@ -1,4 +1,5 @@
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace DotWrap.MSBuild;
 
@@ -21,14 +22,26 @@ public class NativeLibCopier
         // copy all files in the native libs directory to the python package root
         foreach (var file in Directory.GetFiles(libDirectory))
         {
-            if (Path.GetExtension(file) == ".pdb")
+            var extension = Path.GetExtension(file).ToLowerInvariant();
+            if (extension == ".pdb" || extension == ".dbg")
             {
-                Logger.LogInfo($"Skipping PDB file: {file}");
-                continue; // skip PDB files
+                Logger.LogInfo($"Skipping file: {file}");
+                continue;
             }
             Logger.LogInfo($"Copying {file} to {dotWrapGeneratedRoot}");
 
-            var destFile = Path.Combine(dotWrapGeneratedRoot, Path.GetFileName(file));
+            var fileName = Path.GetFileName(file);
+            if (
+                (
+                    RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                    || RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                ) && !fileName.StartsWith("lib")
+            )
+            {
+                Logger.LogInfo($"Renaming {file} to lib{fileName}");
+                fileName = "lib" + fileName;
+            }
+            var destFile = Path.Combine(dotWrapGeneratedRoot, fileName);
             File.Copy(file, destFile, overwrite: true);
         }
     }

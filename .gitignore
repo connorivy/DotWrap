@@ -55,6 +55,7 @@ nunit-*.xml
 
 .vs/
 venv/
+venv-win/
 python_project_root/
 
 # Byte-compiled / optimized / DLL files
