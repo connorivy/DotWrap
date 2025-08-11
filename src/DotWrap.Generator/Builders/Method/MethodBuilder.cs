@@ -70,7 +70,7 @@ public class MethodBuilder(
         List<ExportedParameterInfo> parameters = new(method.Parameters.Length);
         foreach (var param in method.Parameters)
         {
-            var exposedCType = param.Type.GetExposedType(out var isOriginalType);
+            var exposedCType = param.GetExposedType(out var isOriginalType);
             var genericName = (param.OriginalDefinition.Type as ITypeParameterSymbol)?.Name;
             parameters.Add(
                 new ExportedParameterInfo
@@ -81,6 +81,7 @@ public class MethodBuilder(
                     ExposedTypeIfDifferent = isOriginalType ? null : exposedCType,
                     GenericTypeName = (param.OriginalDefinition.Type as ITypeParameterSymbol)?.Name,
                     Comment = XmlParser.ParseParamComment(methodXml, param.Name),
+                    SpecialCaseFlags = param.GetSpecialCaseFlags(),
                 }
             );
         }
@@ -112,6 +113,7 @@ public class MethodBuilder(
         var internalMethodCallArgs = methodContext.GetInternalMethodCallArgumentsString();
         var convertParamsToInternal =
             methodContext.ConvertExposedParametersToInternalParametersTypes();
+        var assignOutParameters = methodContext.AssignOutParameters();
 
         sb.AppendLine(
             $"        [UnmanagedCallersOnly(EntryPoint = \"{entryPrefix}{methodName}\")]"
@@ -182,6 +184,11 @@ public class MethodBuilder(
         }
 
         sb.AppendLine($"            {internalResultAssignment}{methodCall};");
+
+        if (assignOutParameters is not null)
+        {
+            sb.AppendLine(assignOutParameters);
+        }
 
         if (exportedResultAssignment is not null)
         {

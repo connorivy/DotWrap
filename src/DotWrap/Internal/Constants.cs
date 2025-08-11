@@ -15,6 +15,5 @@ internal static class Constants
     public const string ExportedResult = InternalPrefix + "ExResult";
     public const string GetCount = InternalPrefix + "GetCount";
     public const string FillArr = InternalPrefix + "FillArr";
-    public const string CopyArrayInfoToNumpyArrayEntryPoint =
-        "DotWrap_Operations_Ops_CopyArrayInfoToNumpyArray";
+    public const string OutParam = InternalPrefix + "Out";
 }

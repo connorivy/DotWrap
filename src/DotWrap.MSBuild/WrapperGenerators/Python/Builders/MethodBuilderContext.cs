@@ -70,8 +70,11 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
         IDictionary<string, string>? genericParamsToArgsDict = null
     )
     {
+        // var paramListWithHints = this.MethodInfo.Parameters.Select(p =>
+        //     $"{p.Name}: {p.MapOriginalTypeToPython(genericParamsToArgsDict)}"
+        // );
         var paramListWithHints = this.MethodInfo.Parameters.Select(p =>
-            $"{p.Name}: {p.MapOriginalTypeToPython(genericParamsToArgsDict)}"
+            $"{p.Name}: {p.PythonizeTypeName(genericParamsToArgsDict, this.ClassContext.GlobalContext.TypeDefinitions)}"
         );
 
         if (!this.MethodInfo.IsStatic)
@@ -123,7 +126,17 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
             var definition = ClassContext.GlobalContext.TypeDefinitions[
                 param.Type.DefinitionId.ToString()
             ];
-            if (definition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.Enum))
+
+            if (param.SpecialCaseFlags.HasFlag(ParameterSpecialCaseFlags.Out))
+            {
+                var outTypeName = param.PythonizeTypeName(
+                    null,
+                    this.ClassContext.GlobalContext.TypeDefinitions
+                );
+                ClassContext.GlobalContext.OutParams.Add(new OutParamInfo(outTypeName, definition));
+                yield return $"{param.Name}{Typed} = {param.Name}.{OutVal}";
+            }
+            else if (definition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.Enum))
             {
                 yield return $"{param.Name}{Typed} = {PythonNamingUtils.MapTypeToPython(param.ExposedTypeIfDifferent)}({param.Name}.value)";
             }

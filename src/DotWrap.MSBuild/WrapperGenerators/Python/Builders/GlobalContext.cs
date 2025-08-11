@@ -7,5 +7,8 @@ namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 public record GlobalContext(
     Dictionary<string, ExportedTypeDefinition> TypeDefinitions,
     // HashSet<string> EnumNames,
-    Dictionary<Type, DotWrapPythonTypeConfig> Configs
+    Dictionary<Type, DotWrapPythonTypeConfig> Configs,
+    List<OutParamInfo> OutParams
 );
+
+public record OutParamInfo(string TypeName, ExportedTypeDefinition ExportedTypeDefinition);

@@ -179,6 +179,7 @@ namespace {Context.Namespace}
                     OriginalTypeName = "IntPtr",
                     ExposedTypeIfDifferent = null,
                     GenericTypeName = null,
+                    SpecialCaseFlags = ParameterSpecialCaseFlags.None,
                 },
                 new ExportedParameterInfo
                 {
@@ -193,6 +194,7 @@ namespace {Context.Namespace}
                     OriginalTypeName = "int",
                     ExposedTypeIfDifferent = null,
                     GenericTypeName = null,
+                    SpecialCaseFlags = ParameterSpecialCaseFlags.None,
                 },
             ],
             ReturnType = new ExportedTypeInstanceInfo

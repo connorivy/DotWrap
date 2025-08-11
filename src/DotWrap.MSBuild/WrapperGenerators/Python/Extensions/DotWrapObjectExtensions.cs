@@ -31,6 +31,7 @@ public static class DotWrapObjectExtensions
                 "boolean" or "bool" => "bool",
                 "void" => "None",
                 "string" => "str",
+                "intptr" => "Any",
                 _ => $"\"{PythonNamingUtils.PythonizeTypeName(typeInfo.OriginalTypeName, genericParamsToArgsDict)}\"",
             };
         }

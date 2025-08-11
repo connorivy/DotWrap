@@ -71,18 +71,24 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
     public List<ParameterDetails> GetParameterDetails()
     {
         return MethodSymbol
-            .Parameters.Select(p => new ParameterDetails(
-                p.Name,
-                p.Type.GetExposedType(out var isOriginalType),
-                isOriginalType
-                    ? null
-                    : (
-                        p.Type as INamedTypeSymbol
-                        ?? throw new NotSupportedException(
-                            $"Unsupported parameter type: {p.Type} on method {MethodSymbol.Name} in class {ClassContext.ClassSymbol.Name}"
-                        )
-                    )
-            ))
+            .Parameters.Select(p =>
+            {
+                var isOutParam = p.RefKind is RefKind.Out;
+                var exposedCType = p.GetExposedType(out var isOriginalType);
+                return new ParameterDetails(
+                    p.Name,
+                    exposedCType,
+                    isOriginalType
+                        ? null
+                        : (
+                            p.Type as INamedTypeSymbol
+                            ?? throw new NotSupportedException(
+                                $"Unsupported parameter type: {p.Type} on method {MethodSymbol.Name} in class {ClassContext.ClassSymbol.Name}"
+                            )
+                        ),
+                    isOutParam
+                );
+            })
             .ToList();
     }
 
@@ -103,7 +109,7 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
         bool hasConverted = false;
         foreach (var param in GetParameterDetails())
         {
-            if (param.OriginalTypeIfDifferent is null)
+            if (param.OriginalTypeIfDifferent is null || param.IsOutParam)
             {
                 continue;
             }
@@ -135,8 +141,42 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
         return string.Join(
             ", ",
             GetParameterDetails()
-                .Select(p => $"{(p.OriginalTypeIfDifferent is null ? p.Name : $"{p.Name}{Typed}")}")
+                .Select(p =>
+                {
+                    string? paramPrefix = p switch
+                    {
+                        { IsOutParam: true } => $"out var ",
+                        _ => null,
+                    };
+                    string? paramSufix = p switch
+                    {
+                        { IsOutParam: true } => $"{OutParam}",
+                        { OriginalTypeIfDifferent: not null } => Typed,
+                        _ => null,
+                    };
+                    return $"{paramPrefix}{p.Name}{paramSufix}";
+                })
         );
+    }
+
+    public string? AssignOutParameters()
+    {
+        StringBuilder sb = new();
+        bool hasConverted = false;
+        foreach (var param in GetParameterDetails())
+        {
+            if (!param.IsOutParam)
+            {
+                continue;
+            }
+            hasConverted = true;
+
+            sb.AppendLine(
+                $"            DotWrap.Operations.MarshalOutParamOps.Marshal({param.Name}{OutParam}, {param.Name});"
+            );
+        }
+
+        return hasConverted ? sb.ToString() : null;
     }
 
     public MethodSpecialCaseFlags GetSpecialCaseFlags()

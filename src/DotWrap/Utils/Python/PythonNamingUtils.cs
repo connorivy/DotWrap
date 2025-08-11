@@ -275,6 +275,7 @@ public static class PythonNamingUtils
             "boolean" or "bool" => "bool",
             "void" => "None",
             "string" => "str",
+            "intptr" => "cffi.FFI.CData",
             _ => $"\"{PythonizeTypeName(t, genericArgsToParamsDict, useGenericParams)}\"",
         };
     }

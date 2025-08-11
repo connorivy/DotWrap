@@ -45,6 +45,7 @@ public class ExportedParameterInfo : IHasOriginalAndExposedTypes
     public required string? ExposedTypeIfDifferent { get; set; }
     public required string? GenericTypeName { get; set; }
     public string? Comment { get; set; }
+    public required ParameterSpecialCaseFlags SpecialCaseFlags { get; set; }
 }
 
 public class ExportedEnumInfo : ExportedTypeDefinition
@@ -119,6 +120,13 @@ public enum ExportedType
     IntPtr,
     Void,
     Char,
+}
+
+[Flags]
+public enum ParameterSpecialCaseFlags
+{
+    None = 0,
+    Out = 1 << 0,
 }
 
 [Flags]
