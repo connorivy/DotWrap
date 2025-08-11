@@ -158,7 +158,7 @@ jobs:
 
       - name: Run Python tests
         working-directory: tests/DotWrap.PythonTests
-        run: python -m pytest -v
+        run: python -m pytest -vvv --tb=long
 
       #   - name: Upload test library artifacts
       #     uses: actions/upload-artifact@v4
