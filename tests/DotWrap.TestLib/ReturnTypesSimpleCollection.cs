@@ -158,7 +158,7 @@ length = {Lib}.{typeInfo.EntryPrefix}{GetCount}(self.{Ptr})
 arr = np.empty(length, dtype={numpyType})
 
 # get stable pointer to the array data
-arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
+arr_ptr = _dotwrap_ffi.cast(""void*"", _dotwrap_ffi.from_buffer(arr))
 {Lib}.{typeInfo.EntryPrefix}{FillArr}(self.{Ptr}, arr_ptr, length)
                 "
         );
