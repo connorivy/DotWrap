@@ -1,11 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net7.0;net8.0;net9.0;net10.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <!-- <PublishAot>true</PublishAot> -->
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DotWrap\DotWrap.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\DotWrap.Shared\DotWrap.Shared.csproj" />
   </ItemGroup>
 </Project>

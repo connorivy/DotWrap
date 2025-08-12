@@ -1,0 +1,20 @@
+<Project>
+  <Target
+    Name="PushLocal"
+    AfterTargets="Pack"
+    Condition="'$(IsPackable)' == 'true' and '$(LocalNugetFeed)' != ''"
+  >
+    <!-- Delete from global NuGet cache: Windows -->
+    <Exec
+      Command="if exist %userprofile%\.nuget\packages\dotwrap\$(Version) rmdir /s /q %userprofile%\.nuget\packages\dotwrap\$(Version)"
+      Condition=" '$(OS)' == 'Windows_NT' "
+    />
+    <!-- Delete from global NuGet cache: Unix/macOS -->
+    <Exec
+      Command="rm -rf $HOME/.nuget/packages/dotwrap/$(Version)"
+      Condition=" '$(OS)' != 'Windows_NT' "
+    />
+    <Exec Command="echo Pushing nuget package $(PackageOutputPath)$(MSBuildProjectName).$(Version).nupkg to $(LocalNugetFeed)" />
+    <Exec Command="dotnet nuget push $(PackageOutputPath)$(MSBuildProjectName).$(Version).nupkg --source $(LocalNugetFeed)" />
+  </Target>
+</Project>

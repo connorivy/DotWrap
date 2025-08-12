@@ -1,9 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks></TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
+    <OutputItemType>Analyzer</OutputItemType>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
   </PropertyGroup>
   <ItemGroup>
@@ -15,15 +18,30 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DotWrap\DotWrap.csproj" GeneratePathProperty="true" PrivateAssets="all" />
+  <!-- Use project references locally, but use nuget package in prod -->
+  <ItemGroup Condition="'$(DotWrapVersion)' == ''">
+    <ProjectReference
+      Include="..\DotWrap.Shared\DotWrap.Shared.csproj"
+      GeneratePathProperty="true"
+      PrivateAssets="all"
+    />
   </ItemGroup>
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(DotWrapVersion)' == ''">
     <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
   </PropertyGroup>
-  <Target Name="GetDependencyTargetPaths">
+  <Target Name="GetDependencyTargetPaths" Condition="'$(DotWrapVersion)' == ''">
     <ItemGroup>
-      <TargetPathWithTargetPlatformMoniker Include="$(MSBuildProjectDirectory)\$(OutputPath)DotWrap.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker
+        Include="$(MSBuildProjectDirectory)\$(OutputPath)DotWrap.Shared.dll"
+        IncludeRuntimeDependency="false"
+      />
     </ItemGroup>
   </Target>
+  <ItemGroup Condition="'$(DotWrapVersion)' != ''">
+    <PackageReference
+      Include="DotWrap.Shared"
+      VersionOverride="$(DotWrapVersion)"
+      PrivateAssets="all"
+    />
+  </ItemGroup>
 </Project>

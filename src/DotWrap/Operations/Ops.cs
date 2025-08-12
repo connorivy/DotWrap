@@ -1,7 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using DotWrap;
-using static DotWrap.Internal.Constants;
 
 namespace DotWrap.Operations;
 

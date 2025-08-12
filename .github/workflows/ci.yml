@@ -19,9 +19,9 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
-    # env:
-    #   ContinuousIntegrationEnv: true
-    #   LocalNugetFeed: ${{ github.workspace }}/local-feed
+    env:
+      ContinuousIntegrationEnv: true
+      LocalNugetFeed: ${{ github.workspace }}/local-feed
 
     steps:
       - name: Set NuGet package version
@@ -44,13 +44,27 @@ jobs:
       #   - name: Restore .NET dependencies
       #     run: dotnet restore
 
+      - name: Create local NuGet feed directory
+        shell: bash
+        run: |
+          mkdir -p "${{ github.workspace }}/local-feed"
+
+      - name: Add local NuGet source
+        run: dotnet nuget add source "${{ github.workspace }}/local-feed" --name local-feed
+
+      - name: Pack Shared project
+        shell: bash
+        run: |
+          echo "Packing DotWrap.Shared project with version $DOTWRAP_NUGET_VERSION..."
+          dotnet pack src/DotWrap.Shared/DotWrap.Shared.csproj --configuration Release -p:Version=$DOTWRAP_NUGET_VERSION --output ./nupkgs/ 
+          echo "Package created successfully:"
+          ls -la ./nupkgs/
+
       - name: Build all source projects (Release)
         run: |
-          dotnet build src/DotWrap/DotWrap.csproj --configuration Release
-          dotnet build src/DotWrap.Generator/DotWrap.Generator.csproj --configuration Release
-          dotnet build src/DotWrap.MSBuild/DotWrap.MSBuild.csproj --configuration Release
-          dotnet build src/DotWrap.Operations/DotWrap.Operations.csproj --configuration Release
-          dotnet build src/DotWrap.PackMe/DotWrap.PackMe.csproj --configuration Release
+          dotnet build src/DotWrap/DotWrap.csproj --configuration Release -p:DotWrapVersion=$DOTWRAP_NUGET_VERSION
+      # dotnet build src/DotWrap.Generator/DotWrap.Generator.csproj --configuration Release
+      # dotnet build src/DotWrap.MSBuild/DotWrap.MSBuild.csproj --configuration Release
 
       # - name: Build test projects
       #   run: |
@@ -59,21 +73,13 @@ jobs:
       # - name: Run .NET tests
       #   run: dotnet test tests/DotWrap.Tests/DotWrap.Tests.csproj --configuration Release --no-build --verbosity normal
 
-      # - name: Create local NuGet feed directory
-      #   shell: bash
-      #   run: |
-      #     mkdir -p "${{ github.workspace }}/local-feed"
-
-      # - name: Add local NuGet source
-      #   run: dotnet nuget add source "${{ github.workspace }}/local-feed" --name local-feed
-
-      # - name: Pack DotWrap.PackMe project
-      #   shell: bash
-      #   run: |
-      #     echo "Packing DotWrap.PackMe project with version $DOTWRAP_NUGET_VERSION..."
-      #     dotnet pack src/DotWrap.PackMe/DotWrap.PackMe.csproj --configuration Release --no-build --output ./nupkgs/ -p:Version=$DOTWRAP_NUGET_VERSION
-      #     echo "Package created successfully:"
-      #     ls -la ./nupkgs/
+      - name: Pack DotWrap.PackMe project
+        shell: bash
+        run: |
+          echo "Packing DotWrap project with version $DOTWRAP_NUGET_VERSION..."
+          dotnet pack ./src/DotWrap/DotWrap.csproj --configuration Release --no-build --output ./nupkgs/ -p:Version=$DOTWRAP_NUGET_VERSION
+          echo "Package created successfully:"
+          ls -la ./nupkgs/
 
       #   - name: Push package to local feed
       #     shell: bash
@@ -117,10 +123,9 @@ jobs:
           esac
 
           echo "Publishing for runtime: $RUNTIME"
-          dotnet publish tests/DotWrap.TestLib/DotWrap.TestLib.csproj --configuration Debug \
-            -v d \
+          dotnet publish tests/DotWrap.TestLib/DotWrap.TestLib.csproj --configuration Release \
             -r $RUNTIME \
-            --output ./test-lib-output
+            -p:DotWrapVersion=$DOTWRAP_NUGET_VERSION
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -167,6 +172,27 @@ jobs:
           ls -ld "$SITE_PACKAGES/dotwrap_testlib" || echo "dotwrap_testlib directory not found in $SITE_PACKAGES"
           find "$SITE_PACKAGES/dotwrap_testlib" -type f | head -10 || echo "No files found in dotwrap_testlib"
           find "$SITE_PACKAGES/dotwrap_testlib" -type d | head -10 || echo "No directories found in dotwrap_testlib"
+
+      - name: Display generated Python files
+        shell: bash
+        run: |
+          echo "Detecting site-packages location..."
+          SITE_PACKAGES=$(python -c "import site; print([p for p in site.getsitepackages() if 'site-packages' in p][0])")
+          echo "=== Displaying contents of generated Python files ==="
+
+          echo "--- Contents of __init__.py ---"
+          if [ -f "$SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/__init__.py" ]; then
+            cat "$SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/__init__.py"
+          else
+            echo "__init__.py not found at $SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/__init__.py"
+          fi
+
+      # echo "--- Contents of main.py ---"
+      # if [ -f "$SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/main.py" ]; then
+      #   cat "$SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/main.py"
+      # else
+      #   echo "main.py not found at $SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/main.py"
+      # fi
 
       - name: Run Python tests
         working-directory: tests/DotWrap.PythonTests

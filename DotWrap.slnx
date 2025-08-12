@@ -2,7 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/DotWrap.Generator/DotWrap.Generator.csproj" />
     <Project Path="src/DotWrap.MSBuild/DotWrap.MSBuild.csproj" />
-    <Project Path="src/DotWrap.Operations/DotWrap.Operations.csproj" />
+    <Project Path="src/DotWrap.Shared/DotWrap.Shared.csproj" />
     <Project Path="src/DotWrap/DotWrap.csproj" />
   </Folder>
   <Folder Name="/tests/">

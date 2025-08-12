@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
-  <PropertyGroup>
-    <ContinuousIntegrationEnv Condition="'$(ContinuousIntegrationEnv)' == ''"
-      >false</ContinuousIntegrationEnv
-    >
-  </PropertyGroup>
   <!-- Use project references locally, but use nuget package in CI -->
   <ItemGroup Condition="'$(ContinuousIntegrationEnv)' == 'false' and '$(DotWrapVersion)' == ''">
     <ProjectReference
@@ -15,7 +10,6 @@
     />
     <ProjectReference Include="..\..\src\DotWrap\DotWrap.csproj" />
     <ProjectReference Include="..\..\src\DotWrap.MSBuild\DotWrap.MSBuild.csproj" />
-    <ProjectReference Include="..\..\src\DotWrap.Operations\DotWrap.Operations.csproj" />
   </ItemGroup>
   <Import
     Condition="'$(ContinuousIntegrationEnv)' == 'false' and '$(DotWrapVersion)' == ''"
@@ -26,6 +20,6 @@
     Project="..\..\src\DotWrap\Build\DotWrap.props"
   />
   <ItemGroup Condition="'$(ContinuousIntegrationEnv)' != 'false' or '$(DotWrapVersion)' != ''">
-    <PackageReference Include="DotWrap" VersionOverride="$(DotWrapVersion)" PrivateAssets="all" />
+    <PackageReference Include="DotWrap" VersionOverride="$(DotWrapVersion)" />
   </ItemGroup>
 </Project>
