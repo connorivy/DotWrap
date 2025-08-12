@@ -10,14 +10,14 @@ on:
   release:
     types: [published]
 
+env:
+  ContinuousIntegrationEnv: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
       DOTWRAP_NUGET_VERSION: ${{ steps.set_version.outputs.DOTWRAP_NUGET_VERSION }}
-    env:
-      ContinuousIntegrationEnv: true
-      LocalNugetFeed: ${{ github.workspace }}/local-feed
     steps:
       - name: Set NuGet package version
         id: set_version
@@ -36,19 +36,25 @@ jobs:
         with:
           dotnet-version: "10.0.x"
           dotnet-quality: "preview"
+
       - name: Create local NuGet feed directory
         shell: bash
         run: |
           mkdir -p "${{ github.workspace }}/local-feed"
+
       - name: Add local NuGet source
         run: dotnet nuget add source "${{ github.workspace }}/local-feed" --name local-feed
+
       - name: Pack Shared project
+        env:
+          LocalNugetFeed: ${{ github.workspace }}/local-feed
         shell: bash
         run: |
           echo "Packing DotWrap.Shared project with version $DOTWRAP_NUGET_VERSION..."
           dotnet pack src/DotWrap.Shared/DotWrap.Shared.csproj --configuration Release -p:Version=$DOTWRAP_NUGET_VERSION --output ./nupkgs/ 
           echo "Package created successfully:"
           ls -la ./nupkgs/
+
       - name: Build all source projects (Release)
         run: |
           dotnet build src/DotWrap/DotWrap.csproj --configuration Release -p:DotWrapVersion=$DOTWRAP_NUGET_VERSION
@@ -76,14 +82,46 @@ jobs:
 
   test:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        dotnet-version: ["8.0.x", "10.0.x"]
-        python-version: ["3.10", "3.11", "3.12"]
+        include:
+          # use default values for latest .NET and Python on ubuntu
+          - dotnet-version: "10.0"
+            python-version: 3.13
+            os: ubuntu-latest
+
+          # All .NET versions with default Python and os
+          - dotnet-version: "8.0"
+            python-version: 3.13
+            os: ubuntu-latest
+          - dotnet-version: "9.0"
+            python-version: 3.13
+            os: ubuntu-latest
+
+          # All Python versions with default .NET and os
+          - dotnet-version: "10.0"
+            python-version: 3.10
+            os: ubuntu-latest
+          - dotnet-version: "10.0"
+            python-version: 3.11
+            os: ubuntu-latest
+          - dotnet-version: "10.0"
+            python-version: 3.12
+            os: ubuntu-latest
+          - dotnet-version: "10.0"
+            python-version: 3.13
+            os: ubuntu-latest
+
+          # All OSes with default .NET and Python
+          - dotnet-version: "10.0"
+            python-version: 3.13
+            os: windows-latest
+          - dotnet-version: "10.0"
+            python-version: 3.13
+            os: macos-latest
     env:
       ContinuousIntegrationEnv: true
-      LocalNugetFeed: ${{ github.workspace }}/local-feed
       DOTWRAP_NUGET_VERSION: ${{ needs.build.outputs.DOTWRAP_NUGET_VERSION }}
 
     steps:
@@ -93,23 +131,40 @@ jobs:
         with:
           name: nuget-packages
           path: ./nupkgs/
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
+
       - name: Add local NuGet source
         run: dotnet nuget add source "${{ github.workspace }}/nupkgs" --name local-feed
-      # - name: Build all source projects (Release)
-      #   run: |
-      #     dotnet build src/DotWrap/DotWrap.csproj --configuration Release
+
       - name: Publish test lib
         run: |
+          # Determine runtime identifier based on OS
+          case "${{ runner.os }}" in
+            "Windows")
+              RUNTIME="win-x64"
+              ;;
+            "macOS")
+              RUNTIME="osx-x64"
+              ;;
+            "Linux")
+              RUNTIME="linux-x64"
+              ;;
+            *)
+              echo "Unknown OS: ${{ runner.os }}"
+              exit 1
+              ;;
+          esac
+
+          echo "Publishing for runtime: $RUNTIME with .NET version net${{ matrix.dotnet-version }} and DotWrap version $DOTWRAP_NUGET_VERSION"
           dotnet publish tests/DotWrap.TestLib/DotWrap.TestLib.csproj --configuration Release \
-            -r linux-x64 \
+            -r $RUNTIME \
+            -p:DotWrapTargetFramework=net${{ matrix.dotnet-version }} -f net${{ matrix.dotnet-version }} \
             -p:DotWrapVersion=$DOTWRAP_NUGET_VERSION
 
-      # - name: Run .NET tests
-      #   run: dotnet test tests/DotWrap.Tests/DotWrap.Tests.csproj --configuration Release --no-build --verbosity normal
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -119,6 +174,27 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      # - name: Display generated Python files
+      #   shell: bash
+      #   run: |
+      #     echo "Detecting site-packages location..."
+      #     SITE_PACKAGES=$(python -c "import site; print([p for p in site.getsitepackages() if 'site-packages' in p][0])")
+      #     echo "=== Displaying contents of generated Python files ==="
+
+      #     echo "--- Contents of __init__.py ---"
+      #     if [ -f "$SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/__init__.py" ]; then
+      #       cat "$SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/__init__.py"
+      #     else
+      #       echo "__init__.py not found at $SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/__init__.py"
+      #     fi
+
+      # echo "--- Contents of main.py ---"
+      # if [ -f "$SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/main.py" ]; then
+      #   cat "$SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/main.py"
+      # else
+      #   echo "main.py not found at $SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/main.py"
+      # fi
 
       - name: Install Python test library
         shell: bash
@@ -132,39 +208,57 @@ jobs:
           fi
 
           cd tests/DotWrap.TestLib/python_project_root
-          echo "Contents of python_project_root:"
-          ls -la
-
           pip install .
           echo "Python test library installed successfully"
 
           python -c "import dotwrap_testlib; print('dotwrap_testlib imported successfully')"
-      - name: show contents of pip package
+
+      - name: Show .log files on failure
+        if: failure()
         shell: bash
         run: |
-          echo "Detecting site-packages location..."
-          SITE_PACKAGES=$(python -c "import site; print([p for p in site.getsitepackages() if 'site-packages' in p][0])")
-          echo "site-packages path: $SITE_PACKAGES"
-          echo "Checking for dotwrap_testlib in $SITE_PACKAGES:"
-          pip list
-          ls -ld "$SITE_PACKAGES" || echo "$SITE_PACKAGES directory not found"
-          ls -ld "$SITE_PACKAGES/dotwrap_testlib" || echo "dotwrap_testlib directory not found in $SITE_PACKAGES"
-          find "$SITE_PACKAGES/dotwrap_testlib" -type f | head -10 || echo "No files found in dotwrap_testlib"
-          find "$SITE_PACKAGES/dotwrap_testlib" -type d | head -10 || echo "No directories found in dotwrap_testlib"
+          # Determine runtime identifier based on OS (repeat logic from earlier step)
+          case "${{ runner.os }}" in
+            "Windows")
+              RUNTIME="win-x64"
+              ;;
+            "macOS")
+              RUNTIME="osx-x64"
+              ;;
+            "Linux")
+              RUNTIME="linux-x64"
+              ;;
+            *)
+              echo "Unknown OS: ${{ runner.os }}"
+              exit 1
+              ;;
+          esac
 
-      - name: Display generated Python files
-        shell: bash
-        run: |
-          echo "Detecting site-packages location..."
-          SITE_PACKAGES=$(python -c "import site; print([p for p in site.getsitepackages() if 'site-packages' in p][0])")
-          echo "=== Displaying contents of generated Python files ==="
-
-          echo "--- Contents of __init__.py ---"
-          if [ -f "$SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/__init__.py" ]; then
-            cat "$SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/__init__.py"
-          else
-            echo "__init__.py not found at $SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/__init__.py"
+          LOGDIR="tests/DotWrap.TestLib/bin/Release/net${{ matrix.dotnet-version }}/${RUNTIME}"
+          echo "=== Displaying all .log files in $LOGDIR (if any) ==="
+          shopt -s nullglob
+          found_logs=false
+          for logfile in "$LOGDIR"/*.log; do
+            found_logs=true
+            echo "--- Contents of $logfile ---"
+            cat "$logfile"
+          done
+          if ! $found_logs; then
+            echo "No .log files found in $LOGDIR"
           fi
+
+      # - name: show contents of pip package
+      #   shell: bash
+      #   run: |
+      #     echo "Detecting site-packages location..."
+      #     SITE_PACKAGES=$(python -c "import site; print([p for p in site.getsitepackages() if 'site-packages' in p][0])")
+      #     echo "site-packages path: $SITE_PACKAGES"
+      #     echo "Checking for dotwrap_testlib in $SITE_PACKAGES:"
+      #     pip list
+      #     ls -ld "$SITE_PACKAGES" || echo "$SITE_PACKAGES directory not found"
+      #     ls -ld "$SITE_PACKAGES/dotwrap_testlib" || echo "dotwrap_testlib directory not found in $SITE_PACKAGES"
+      #     find "$SITE_PACKAGES/dotwrap_testlib" -type f | head -10 || echo "No files found in dotwrap_testlib"
+      #     find "$SITE_PACKAGES/dotwrap_testlib" -type d | head -10 || echo "No directories found in dotwrap_testlib"
 
       - name: Run Python tests
         working-directory: tests/DotWrap.PythonTests
@@ -181,3 +275,10 @@ jobs:
           echo "✅ .NET tests completed"
           echo "✅ Python tests completed"
           echo "=== End Summary ==="
+
+      - name: Push nuget package if published
+        if: github.event_name == 'release'
+        run: |
+          echo "Pushing NuGet package to local feed..."
+          dotnet nuget push "./nupkgs/*.nupkg" --api-key ${{secrets.nuget_api_key}} --source https://api.nuget.org/v3/index.json
+          echo "NuGet package pushed successfully"

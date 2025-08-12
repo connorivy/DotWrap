@@ -12,16 +12,23 @@ using static DotWrap.Utils.PythonConstants;
 // using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
 
 // [assembly: DotWrapExternalExpose(typeof(IList<>))]
-[assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<>.Add), alias: "CustomAddName")]
-[assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<>.Remove))]
-[assembly: DotWrapExternalPropertyMeta(typeof(ICollection<>), nameof(ICollection<>.Count))]
+[assembly: DotWrapExternalMethodMeta(
+    typeof(IList<>),
+    nameof(IList<int>.Add),
+    alias: "CustomAddName"
+)]
+[assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<int>.Remove))]
+[assembly: DotWrapExternalPropertyMeta(typeof(ICollection<>), nameof(ICollection<int>.Count))]
 [assembly: DotWrapExternalPropertyMeta(
     typeof(IReadOnlyCollection<>),
-    nameof(IReadOnlyCollection<>.Count)
+    nameof(IReadOnlyCollection<int>.Count)
 )]
-[assembly: DotWrapExternalPropertyMeta(typeof(IDictionary<,>), nameof(IDictionary<,>.Keys))]
-[assembly: DotWrapExternalPropertyMeta(typeof(KeyValuePair<,>), nameof(KeyValuePair<,>.Key))]
-[assembly: DotWrapExternalPropertyMeta(typeof(KeyValuePair<,>), nameof(KeyValuePair<,>.Value))]
+[assembly: DotWrapExternalPropertyMeta(typeof(IDictionary<,>), nameof(IDictionary<int, int>.Keys))]
+[assembly: DotWrapExternalPropertyMeta(typeof(KeyValuePair<,>), nameof(KeyValuePair<int, int>.Key))]
+[assembly: DotWrapExternalPropertyMeta(
+    typeof(KeyValuePair<,>),
+    nameof(KeyValuePair<int, int>.Value)
+)]
 [assembly: DotWrapExternalPropertyMeta(typeof(System.Array), nameof(System.Array.Length))]
 [assembly: DotWrapExternalIndexerMeta(typeof(System.Array))]
 [assembly: DotWrapExternalMethodMeta(typeof(System.Array), "Add", ignore: true)]
@@ -203,7 +210,7 @@ public class IReadOnlyCollectionConfig : ICollectionConfig
 
     public override bool ShouldConfigure(PythonTypeConfigContext context)
     {
-        var icollection = context.MatchingType.GetInterface(nameof(ICollection<>));
+        var icollection = context.MatchingType.GetInterface(nameof(ICollection<int>));
         // var interfaces = context.MatchingType.GetInterfaces();
         return icollection is null;
     }

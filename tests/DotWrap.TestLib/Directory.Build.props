@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+  <PropertyGroup>
+    <DotWrapTargetFramework Condition="'$(DotWrapTargetFramework)' == ''"
+      >net8.0</DotWrapTargetFramework
+    >
+    <TargetFramework>$(DotWrapTargetFramework)</TargetFramework>
+  </PropertyGroup>
   <!-- Use project references locally, but use nuget package in CI -->
   <ItemGroup Condition="'$(ContinuousIntegrationEnv)' == 'false' and '$(DotWrapVersion)' == ''">
     <ProjectReference

@@ -2,13 +2,13 @@ using DotWrap;
 using DotWrap.Configuration;
 using DotWrap.Utils;
 
-[assembly: DotWrapExternalPropertyMeta(typeof(Task<>), nameof(Task<>.Result))]
+[assembly: DotWrapExternalPropertyMeta(typeof(Task<>), nameof(Task<int>.Result))]
 [assembly: DotWrapExternalPropertyMeta(typeof(Task), nameof(Task.Status))]
-[assembly: DotWrapExternalPropertyMeta(typeof(ValueTask<>), nameof(ValueTask<>.Result))]
-[assembly: DotWrapExternalPropertyMeta(typeof(ValueTask<>), nameof(ValueTask.IsFaulted))]
+[assembly: DotWrapExternalPropertyMeta(typeof(ValueTask<>), nameof(ValueTask<int>.Result))]
+[assembly: DotWrapExternalPropertyMeta(typeof(ValueTask<>), nameof(ValueTask<int>.IsFaulted))]
 [assembly: DotWrapExternalPropertyMeta(
     typeof(ValueTask<>),
-    nameof(ValueTask.IsCompletedSuccessfully)
+    nameof(ValueTask<int>.IsCompletedSuccessfully)
 )]
 
 // [assembly: DotWrapExternalMethodMeta(typeof(Task<>), nameof(Task<>.ContinueWith))]
@@ -18,17 +18,16 @@ namespace DotWrap.TestLib;
 [DotWrapExpose]
 public class Async
 {
-    public static Task<int> TaskOf42()
+    public static async Task<int> TaskOf42()
     {
-        // Using Task.FromResult to avoid actual async behavior in CI
-        // which might be causing AOT compilation issues
-        return Task.FromResult(42);
+        await Task.Delay(500); // Simulate some asynchronous work
+        return 42; // Return a result after the delay
     }
 
-    public static ValueTask<int> ValueTaskOf55()
+    public static async ValueTask<int> ValueTaskOf55()
     {
-        // Using ValueTask with direct result to avoid async timing issues
-        return new ValueTask<int>(55);
+        await Task.Delay(500); // Simulate some asynchronous work
+        return 55; // Return a result after the delay
     }
 }
 

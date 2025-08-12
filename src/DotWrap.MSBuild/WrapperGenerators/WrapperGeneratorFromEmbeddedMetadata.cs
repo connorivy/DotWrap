@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using DotWrap.Configuration;
@@ -19,16 +16,24 @@ public class WrapperGeneratorFromEmbeddedMetadata
         CSharpProjectInfo projectInfo = new(libFullPath);
         Dictionary<string, ExportedTypeDefinition> exportedTypes = [];
 
+        Logger.LogDebug($"Processing assembly with {assembly.GetTypes().Length} types");
+        foreach (var type in assembly.GetTypes())
+        {
+            Logger.LogDebug($"Type {type.FullName}");
+        }
+
         // reflection strangely represents static classes as abstract sealed classes
         foreach (
             var type in assembly.GetTypes().Where(t => t.IsClass && t.IsAbstract && t.IsSealed)
         )
         {
+            Logger.LogInfo($"assessing type {type.FullName}");
             var attr = type.GetCustomAttribute<DotWrapGeneratedAttribute>();
             if (attr == null)
             {
                 continue;
             }
+            Logger.LogInfo($"Processing type {type.FullName} with attribute {attr.GetType().Name}");
 
             var classInfoString = (string)(
                 type.GetField(Metadata, BindingFlags.NonPublic | BindingFlags.Static)
@@ -48,6 +53,12 @@ public class WrapperGeneratorFromEmbeddedMetadata
             else if (attr is DotWrapGeneratedClassWrapperAttribute)
             {
                 AddExportedTypeInfo(exportedTypes, type, classInfoString);
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"Type {type.FullName} has an unsupported DotWrap attribute: {attr.GetType().Name}."
+                );
             }
         }
 

@@ -8,14 +8,16 @@ using DotWrap.MSBuild.WrapperGenerators;
 #endif
 
 string dllPath = args[0];
+var operationMagicString = args[1];
+
 string dllDirectory =
     Path.GetDirectoryName(dllPath) ?? throw new ArgumentException("Invalid DLL path.");
 
-string logPath = Path.Combine(dllDirectory, $"DotWrapOutput.log");
+string logPath = Path.Combine(dllDirectory, $"DotWrapOutput{operationMagicString}.log");
 
 try
 {
-    switch (args[1])
+    switch (operationMagicString)
     {
         case MagicStrings.BuildOperation:
             var wrapperGenerator = new WrapperGeneratorFromEmbeddedMetadata();
