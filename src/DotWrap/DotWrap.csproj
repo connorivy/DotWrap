@@ -56,37 +56,55 @@
       Include="$(MSBuildProjectDirectory)\..\DotWrap.MSBuild\bin\$(Configuration)\net8.0\DotWrap.MSBuild.dll"
       Pack="true"
       PackagePath="lib/net8.0"
-      Visible="true"
+      Visible="false"
     />
     <None
       Include="$(MSBuildProjectDirectory)\..\DotWrap.MSBuild\bin\$(Configuration)\net8.0\DotWrap.MSBuild.runtimeconfig.json"
       Pack="true"
       PackagePath="lib/net8.0"
-      Visible="true"
+      Visible="false"
     />
     <None
       Include="$(MSBuildProjectDirectory)\..\DotWrap.Shared\bin\$(Configuration)\netstandard2.0\DotWrap.Shared.dll"
       Pack="true"
       PackagePath="lib/net8.0"
-      Visible="true"
+      Visible="false"
+    />
+    <None
+      Include="$(MSBuildProjectDirectory)\..\DotWrap.MSBuild\bin\$(Configuration)\net9.0\DotWrap.MSBuild.dll"
+      Pack="true"
+      PackagePath="lib/net9.0"
+      Visible="false"
+    />
+    <None
+      Include="$(MSBuildProjectDirectory)\..\DotWrap.MSBuild\bin\$(Configuration)\net9.0\DotWrap.MSBuild.runtimeconfig.json"
+      Pack="true"
+      PackagePath="lib/net9.0"
+      Visible="false"
+    />
+    <None
+      Include="$(MSBuildProjectDirectory)\..\DotWrap.Shared\bin\$(Configuration)\netstandard2.0\DotWrap.Shared.dll"
+      Pack="true"
+      PackagePath="lib/net9.0"
+      Visible="false"
     />
     <None
       Include="$(MSBuildProjectDirectory)\..\DotWrap.MSBuild\bin\$(Configuration)\net10.0\DotWrap.MSBuild.dll"
       Pack="true"
       PackagePath="lib/net10.0"
-      Visible="true"
+      Visible="false"
     />
     <None
       Include="$(MSBuildProjectDirectory)\..\DotWrap.MSBuild\bin\$(Configuration)\net10.0\DotWrap.MSBuild.runtimeconfig.json"
       Pack="true"
       PackagePath="lib/net10.0"
-      Visible="true"
+      Visible="false"
     />
     <None
       Include="$(MSBuildProjectDirectory)\..\DotWrap.Shared\bin\$(Configuration)\netstandard2.0\DotWrap.Shared.dll"
       Pack="true"
       PackagePath="lib/net10.0"
-      Visible="true"
+      Visible="false"
     />
   </ItemGroup>
 </Project>

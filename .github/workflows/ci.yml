@@ -41,9 +41,6 @@ jobs:
           dotnet-version: "10.0.x"
           dotnet-quality: "preview"
 
-      #   - name: Restore .NET dependencies
-      #     run: dotnet restore
-
       - name: Create local NuGet feed directory
         shell: bash
         run: |
@@ -63,15 +60,13 @@ jobs:
       - name: Build all source projects (Release)
         run: |
           dotnet build src/DotWrap/DotWrap.csproj --configuration Release -p:DotWrapVersion=$DOTWRAP_NUGET_VERSION
-      # dotnet build src/DotWrap.Generator/DotWrap.Generator.csproj --configuration Release
-      # dotnet build src/DotWrap.MSBuild/DotWrap.MSBuild.csproj --configuration Release
 
-      # - name: Build test projects
-      #   run: |
-      #     dotnet build tests/DotWrap.Tests/DotWrap.Tests.csproj --configuration Release
+      - name: Build test projects
+        run: |
+          dotnet build tests/DotWrap.Tests/DotWrap.Tests.csproj --configuration Release
 
-      # - name: Run .NET tests
-      #   run: dotnet test tests/DotWrap.Tests/DotWrap.Tests.csproj --configuration Release --no-build --verbosity normal
+      - name: Run .NET tests
+        run: dotnet test tests/DotWrap.Tests/DotWrap.Tests.csproj --configuration Release --no-build --verbosity normal
 
       - name: Pack DotWrap.PackMe project
         shell: bash
@@ -80,27 +75,6 @@ jobs:
           dotnet pack ./src/DotWrap/DotWrap.csproj --configuration Release --no-build --output ./nupkgs/ -p:Version=$DOTWRAP_NUGET_VERSION
           echo "Package created successfully:"
           ls -la ./nupkgs/
-
-      #   - name: Push package to local feed
-      #     shell: bash
-      #     run: |
-      #       # Find the generated package
-      #       PACKAGE_PATH=$(find ./nupkgs -name "DotWrap.*.nupkg" | head -1)
-      #       if [ -n "$PACKAGE_PATH" ]; then
-      #         cp "$PACKAGE_PATH" ./local-feed/
-      #         echo "Package copied to local feed: $PACKAGE_PATH"
-      #       else
-      #         echo "No DotWrap package found in ./nupkgs"
-      #         exit 1
-      #       fi
-
-      #   - name: Clear NuGet cache
-      #     run: dotnet nuget locals all --clear
-
-      #   - name: Build test library with DotWrapVersion flag
-      #     shell: bash
-      #     run: |
-      #       dotnet build tests/DotWrap.TestLib/DotWrap.TestLib.csproj --configuration Release -p:DotWrapVersion=$DOTWRAP_NUGET_VERSION
 
       - name: Publish test library (AOT)
         shell: bash
