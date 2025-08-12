@@ -148,6 +148,7 @@ def to_list(self) -> list[{genericArg}]:
 Converts the array data to a list of the specified dtype.
 """"""
 {ExceptionInfoArg} = {Ffi}.new(""ExceptionInfo *"")
+_raise_exception({ExceptionInfoArg})
 length = {Lib}.{typeInfo.EntryPrefix}{GetCount}(self.{Ptr}, {ExceptionInfoArg})
 arr = np.empty(length, dtype={numpyType})
 
@@ -155,6 +156,7 @@ arr = np.empty(length, dtype={numpyType})
 arr_ptr = _dotwrap_ffi.cast(""void*"", _dotwrap_ffi.from_buffer(arr))
 {ExceptionInfoArg}2 = {Ffi}.new(""ExceptionInfo *"")
 {Lib}.{typeInfo.EntryPrefix}{FillArr}(self.{Ptr}, arr_ptr, length, {ExceptionInfoArg}2)
+_raise_exception({ExceptionInfoArg}2)
                 "
         );
 

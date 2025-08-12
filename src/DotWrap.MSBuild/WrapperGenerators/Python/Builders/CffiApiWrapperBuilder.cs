@@ -38,8 +38,8 @@ public class CffiApiWrapperBuilder(GlobalContext globalContext, CSharpProjectInf
         File.WriteAllText(Path.Combine(dotWrapRoot, $"{libName}.h"), headerContent.ToString());
         File.WriteAllText(Path.Combine(dotWrapRoot, "lib_build.py"), buildPyContent.ToString());
 
-        var mainPy = CreateMainPy(pythonProjectInfo);
         var initPy = new IndentedPythonStringBuilder();
+        var mainPy = CreateMainPy(pythonProjectInfo, initPy);
         CffiApiClassBuilder classBuilder = new(globalContext, pythonProjectInfo, mainPy, initPy);
         classBuilder.AddClassesToMainAndInitPy(classes);
         CffiApiEnumBuilder enumBuilder = new(pythonProjectInfo, mainPy, initPy);
@@ -54,7 +54,10 @@ public class CffiApiWrapperBuilder(GlobalContext globalContext, CSharpProjectInf
         File.WriteAllText(Path.Combine(dotWrapRoot, "__init__.py"), initPy.ToString());
     }
 
-    private IndentedPythonStringBuilder CreateMainPy(PythonProjectInfo pythonProjectInfo)
+    private IndentedPythonStringBuilder CreateMainPy(
+        PythonProjectInfo pythonProjectInfo,
+        IndentedPythonStringBuilder initPy
+    )
     {
         var projectName = pythonProjectInfo.ProjectName;
         var mainPy = new IndentedPythonStringBuilder();
@@ -72,6 +75,8 @@ public class CffiApiWrapperBuilder(GlobalContext globalContext, CSharpProjectInf
             config.ConfigureImports(mainPy);
         }
 
+        var exceptionClass = pythonProjectInfo.CSharpProjectInfo.LibName.Replace(".", "") + "Error";
+        initPy.AppendLine($"from .main import {exceptionClass}");
         mainPy.AppendLine(
             @$"
 class CString:
@@ -87,6 +92,40 @@ class CString:
 
     def __del__(self):
         {Lib}.DotWrap_BuiltIn_CString_Free(self.{Ptr})
+
+class {exceptionClass}(Exception):
+    def __init__(
+        self,
+        message: str,
+        stack_trace: str = None,
+        inner_exception_message: str = None,
+        inner_exception_stack_trace: str = None,
+    ):
+        super().__init__(message)
+        self.message = message
+        self.stack_trace = stack_trace
+        self.inner_exception_message = inner_exception_message
+        self.inner_exception_stack_trace = inner_exception_stack_trace
+
+    def __str__(self):
+        return f""""""
+An exception occurred in {pythonProjectInfo.ProjectName}:
+Message: {{self.message}}
+Stack Trace: {{self.stack_trace}}
+Inner Exception Message: {{self.inner_exception_message}}
+Inner Exception Stack Trace: {{self.inner_exception_stack_trace}}
+        """"""
+
+# create a method to raise exceptions from ExceptionInfo objects
+def _raise_exception(exception_info):
+    if exception_info.Message == _dotwrap_ffi.NULL:
+        return
+
+    message = str(CString(exception_info.Message))
+    stack_trace = str(CString(exception_info.StackTrace))
+    inner_exception_message = str(CString(exception_info.InnerExceptionMessage)) if exception_info.InnerExceptionMessage != _dotwrap_ffi.NULL else None
+    inner_exception_stack_trace = str(CString(exception_info.InnerExceptionStackTrace)) if exception_info.InnerExceptionStackTrace != _dotwrap_ffi.NULL else None
+    raise {exceptionClass}(message, stack_trace, inner_exception_message, inner_exception_stack_trace)
 "
         );
         return mainPy;
