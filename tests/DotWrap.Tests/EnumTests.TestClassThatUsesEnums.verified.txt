@@ -36,28 +36,54 @@ namespace DotWrap.Tests
             }
         }
 
+
         [UnmanagedCallersOnly(EntryPoint = "c44AD4CEC_get_EnumProperty0811C9DC")]
-        public static long get_EnumProperty0811C9DC(IntPtr __dotwrapSelfPtr)
+        public static long get_EnumProperty0811C9DC(IntPtr __dotwrapSelfPtr, IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapObj = __dotwrapGet(__dotwrapSelfPtr);
             var __dotwrapResult = __dotwrapObj.EnumProperty;
 
             var __dotwrapExResult = (long)__dotwrapResult;
             return __dotwrapExResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "c44AD4CEC_set_EnumProperty0EE98ABB")]
-        public static void set_EnumProperty0EE98ABB(IntPtr __dotwrapSelfPtr, long value)
+        public static void set_EnumProperty0EE98ABB(IntPtr __dotwrapSelfPtr, long value, IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapObj = __dotwrapGet(__dotwrapSelfPtr);
             var value__dotwrapTyped = (DotWrap.Tests.TestEnum)value;
 
             __dotwrapObj.EnumProperty = value__dotwrapTyped;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                ;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "c44AD4CEC_GetEnum0EE98ABB")]
-        public static long GetEnum0EE98ABB(IntPtr __dotwrapSelfPtr, long input)
+        public static long GetEnum0EE98ABB(IntPtr __dotwrapSelfPtr, long input, IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapObj = __dotwrapGet(__dotwrapSelfPtr);
             var input__dotwrapTyped = (DotWrap.Tests.TestEnum)input;
 
@@ -65,32 +91,61 @@ namespace DotWrap.Tests
 
             var __dotwrapExResult = (long)__dotwrapResult;
             return __dotwrapExResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "c44AD4CEC_GetValueFive0811C9DC")]
-        public static long GetValueFive0811C9DC(IntPtr __dotwrapSelfPtr)
+        public static long GetValueFive0811C9DC(IntPtr __dotwrapSelfPtr, IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapObj = __dotwrapGet(__dotwrapSelfPtr);
             var __dotwrapResult = __dotwrapObj.GetValueFive();
 
             var __dotwrapExResult = (long)__dotwrapResult;
             return __dotwrapExResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "c44AD4CEC_Constructor0811C9DC")]
-        public static IntPtr Constructor0811C9DC()
+        public static IntPtr Constructor0811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = new DotWrap.Tests.ClassWithEnums();
 
             var __dotwrapExResult = DotWrap.Tests.ClassWithEnumsDotWrapWrapper.__dotwrapCreate(__dotwrapResult);
             return __dotwrapExResult;
-        }
 
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
+        }
+        
 
 #pragma warning disable CS0414 // Field is assigned to but its value is never used
         private static readonly string __dotwrapMetadata =  
         """
-        {"Id":{"Id":"DotWrap.Tests.ClassWithEnums"},"AssemblyQualifiedName":"DotWrap.Tests.ClassWithEnums, DotWrap.Generator, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null","FullyQualifiedName":"DotWrap.Tests.ClassWithEnums","SimplifiedAssemblyQualifiedName":"DotWrap.Tests.ClassWithEnums","EntryPrefix":"c44AD4CEC_","GenericTypeArgumentsToParameters":{},"TypeNameNoGenerics":"DotWrap.Tests.ClassWithEnums","ExportedType":11,"SpecialCaseFlags":1,"SummaryComment":null,"IsSameAsExposedType":false,"OriginalTypeWrapperName":"DotWrap.Tests.ClassWithEnumsDotWrapWrapper","Methods":[{"OriginalName":"get_EnumProperty","StampedName":"get_EnumProperty0811C9DC","OriginalTypeName":"DotWrap.Tests.TestEnum","ExposedTypeIfDifferent":"long","GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"DotWrap.Tests.TestEnum"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":false,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":17,"Parameters":[]},{"OriginalName":"set_EnumProperty","StampedName":"set_EnumProperty0EE98ABB","OriginalTypeName":"void","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.Void"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":false,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":2,"Parameters":[{"Name":"value","Type":{"DefinitionId":{"Id":"DotWrap.Tests.TestEnum"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"OriginalTypeName":"DotWrap.Tests.TestEnum","ExposedTypeIfDifferent":"long","GenericTypeName":null,"Comment":null}]},{"OriginalName":"GetEnum","StampedName":"GetEnum0EE98ABB","OriginalTypeName":"DotWrap.Tests.TestEnum","ExposedTypeIfDifferent":"long","GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"DotWrap.Tests.TestEnum"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":false,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":16,"Parameters":[{"Name":"input","Type":{"DefinitionId":{"Id":"DotWrap.Tests.TestEnum"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"OriginalTypeName":"DotWrap.Tests.TestEnum","ExposedTypeIfDifferent":"long","GenericTypeName":null,"Comment":null}]},{"OriginalName":"GetValueFive","StampedName":"GetValueFive0811C9DC","OriginalTypeName":"DotWrap.Tests.TestEnum","ExposedTypeIfDifferent":"long","GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"DotWrap.Tests.TestEnum"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":false,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":16,"Parameters":[]},{"OriginalName":"Constructor","StampedName":"Constructor0811C9DC","OriginalTypeName":"DotWrap.Tests.ClassWithEnums","ExposedTypeIfDifferent":"IntPtr","GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"DotWrap.Tests.ClassWithEnums"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":0,"Parameters":[]}]}
+        {"Id":{"Id":"DotWrap.Tests.ClassWithEnums"},"AssemblyQualifiedName":"DotWrap.Tests.ClassWithEnums, DotWrap.Generator, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null","FullyQualifiedName":"DotWrap.Tests.ClassWithEnums","SimplifiedAssemblyQualifiedName":"DotWrap.Tests.ClassWithEnums","EntryPrefix":"c44AD4CEC_","GenericTypeArgumentsToParameters":{},"TypeNameNoGenerics":"DotWrap.Tests.ClassWithEnums","ExportedType":11,"SpecialCaseFlags":1,"SummaryComment":null,"IsSameAsExposedType":false,"OriginalTypeWrapperName":"DotWrap.Tests.ClassWithEnumsDotWrapWrapper","Methods":[{"OriginalName":"get_EnumProperty","StampedName":"get_EnumProperty0811C9DC","OriginalTypeName":"DotWrap.Tests.TestEnum","ExposedTypeIfDifferent":"long","GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"DotWrap.Tests.TestEnum"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":false,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":17,"Parameters":[]},{"OriginalName":"set_EnumProperty","StampedName":"set_EnumProperty0EE98ABB","OriginalTypeName":"void","ExposedTypeIfDifferent":null,"GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"System.Void"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":false,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":2,"Parameters":[{"Name":"value","Type":{"DefinitionId":{"Id":"DotWrap.Tests.TestEnum"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"OriginalTypeName":"DotWrap.Tests.TestEnum","ExposedTypeIfDifferent":"long","GenericTypeName":null,"Comment":null,"SpecialCaseFlags":0}]},{"OriginalName":"GetEnum","StampedName":"GetEnum0EE98ABB","OriginalTypeName":"DotWrap.Tests.TestEnum","ExposedTypeIfDifferent":"long","GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"DotWrap.Tests.TestEnum"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":false,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":16,"Parameters":[{"Name":"input","Type":{"DefinitionId":{"Id":"DotWrap.Tests.TestEnum"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"OriginalTypeName":"DotWrap.Tests.TestEnum","ExposedTypeIfDifferent":"long","GenericTypeName":null,"Comment":null,"SpecialCaseFlags":0}]},{"OriginalName":"GetValueFive","StampedName":"GetValueFive0811C9DC","OriginalTypeName":"DotWrap.Tests.TestEnum","ExposedTypeIfDifferent":"long","GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"DotWrap.Tests.TestEnum"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":false,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":16,"Parameters":[]},{"OriginalName":"Constructor","StampedName":"Constructor0811C9DC","OriginalTypeName":"DotWrap.Tests.ClassWithEnums","ExposedTypeIfDifferent":"IntPtr","GenericTypeName":null,"ReturnType":{"DefinitionId":{"Id":"DotWrap.Tests.ClassWithEnums"},"DefinitionGenericArgs":[],"GenericName":null,"IsNullable":false},"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":0,"Parameters":[]}]}
         """;
 #pragma warning restore CS0414 // Field is assigned to but its value is never used
     }

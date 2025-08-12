@@ -36,206 +36,503 @@ namespace DotWrap.Tests
             }
         }
 
+
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxSByte0811C9DC")]
-        public static sbyte MaxSByte0811C9DC()
+        public static sbyte MaxSByte0811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MaxSByte();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinSByte0811C9DC")]
-        public static sbyte MinSByte0811C9DC()
+        public static sbyte MinSByte0811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MinSByte();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxByte0811C9DC")]
-        public static byte MaxByte0811C9DC()
+        public static byte MaxByte0811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MaxByte();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinByte0811C9DC")]
-        public static byte MinByte0811C9DC()
+        public static byte MinByte0811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MinByte();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxInt160811C9DC")]
-        public static short MaxInt160811C9DC()
+        public static short MaxInt160811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MaxInt16();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinInt160811C9DC")]
-        public static short MinInt160811C9DC()
+        public static short MinInt160811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MinInt16();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxUInt160811C9DC")]
-        public static ushort MaxUInt160811C9DC()
+        public static ushort MaxUInt160811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MaxUInt16();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinUInt160811C9DC")]
-        public static ushort MinUInt160811C9DC()
+        public static ushort MinUInt160811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MinUInt16();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxInt320811C9DC")]
-        public static int MaxInt320811C9DC()
+        public static int MaxInt320811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MaxInt32();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinInt320811C9DC")]
-        public static int MinInt320811C9DC()
+        public static int MinInt320811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MinInt32();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxUInt320811C9DC")]
-        public static uint MaxUInt320811C9DC()
+        public static uint MaxUInt320811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MaxUInt32();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinUInt320811C9DC")]
-        public static uint MinUInt320811C9DC()
+        public static uint MinUInt320811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MinUInt32();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxInt640811C9DC")]
-        public static long MaxInt640811C9DC()
+        public static long MaxInt640811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MaxInt64();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinInt640811C9DC")]
-        public static long MinInt640811C9DC()
+        public static long MinInt640811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MinInt64();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxUInt640811C9DC")]
-        public static ulong MaxUInt640811C9DC()
+        public static ulong MaxUInt640811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MaxUInt64();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinUInt640811C9DC")]
-        public static ulong MinUInt640811C9DC()
+        public static ulong MinUInt640811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MinUInt64();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxHalf0811C9DC")]
-        public static IntPtr MaxHalf0811C9DC()
+        public static IntPtr MaxHalf0811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MaxHalf();
 
             var __dotwrapExResult = <global namespace>.HalfDotWrapWrapper.__dotwrapCreate(__dotwrapResult);
             return __dotwrapExResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinHalf0811C9DC")]
-        public static IntPtr MinHalf0811C9DC()
+        public static IntPtr MinHalf0811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MinHalf();
 
             var __dotwrapExResult = <global namespace>.HalfDotWrapWrapper.__dotwrapCreate(__dotwrapResult);
             return __dotwrapExResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxSingle0811C9DC")]
-        public static float MaxSingle0811C9DC()
+        public static float MaxSingle0811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MaxSingle();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinSingle0811C9DC")]
-        public static float MinSingle0811C9DC()
+        public static float MinSingle0811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MinSingle();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MaxDouble0811C9DC")]
-        public static double MaxDouble0811C9DC()
+        public static double MaxDouble0811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MaxDouble();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_MinDouble0811C9DC")]
-        public static double MinDouble0811C9DC()
+        public static double MinDouble0811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.MinDouble();
             return __dotwrapResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_True0811C9DC")]
-        public static int True0811C9DC()
+        public static int True0811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.True();
 
             var __dotwrapExResult = __dotwrapResult ? 1 : 0;
             return __dotwrapExResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_False0811C9DC")]
-        public static int False0811C9DC()
+        public static int False0811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.False();
 
             var __dotwrapExResult = __dotwrapResult ? 1 : 0;
             return __dotwrapExResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_HelloWorld0811C9DC")]
-        public static IntPtr HelloWorld0811C9DC()
+        public static IntPtr HelloWorld0811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = ReturnTypesSimple.HelloWorld();
 
             var __dotwrapExResult = global::DotWrap.BuiltIn.CString.Create(__dotwrapResult);
             return __dotwrapExResult;
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_DoNothing0811C9DC")]
-        public static void DoNothing0811C9DC()
+        public static void DoNothing0811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             ReturnTypesSimple.DoNothing();
+
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                ;
+            }
         }
+        
 
         [UnmanagedCallersOnly(EntryPoint = "cD778F257_Constructor0811C9DC")]
-        public static IntPtr Constructor0811C9DC()
+        public static IntPtr Constructor0811C9DC(IntPtr __dotwrapExceptionInfoPtr)
         {
+            try
+            {
+        
             var __dotwrapResult = new ReturnTypesSimple();
 
             var __dotwrapExResult = DotWrap.Tests.ReturnTypesSimpleDotWrapWrapper.__dotwrapCreate(__dotwrapResult);
             return __dotwrapExResult;
-        }
 
+            }
+            catch (Exception e)
+            {
+                DotWrap.Operations.ExceptionOps.HandleException(e, __dotwrapExceptionInfoPtr);
+                return default!;
+            }
+        }
+        
 
 #pragma warning disable CS0414 // Field is assigned to but its value is never used
         private static readonly string __dotwrapMetadata =  
