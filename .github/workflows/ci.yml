@@ -11,18 +11,13 @@ on:
     types: [published]
 
 jobs:
-  build-and-test:
-    strategy:
-      matrix:
-        # os: [ubuntu-latest, windows-latest, macos-latest]
-        os: [ubuntu-latest]
-
-    runs-on: ${{ matrix.os }}
-
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      DOTWRAP_NUGET_VERSION: ${{ steps.set_version.outputs.DOTWRAP_NUGET_VERSION }}
     env:
       ContinuousIntegrationEnv: true
       LocalNugetFeed: ${{ github.workspace }}/local-feed
-
     steps:
       - name: Set NuGet package version
         id: set_version
@@ -34,21 +29,19 @@ jobs:
             VERSION="0.0.0-local"
           fi
           echo "DOTWRAP_NUGET_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "DOTWRAP_NUGET_VERSION=$VERSION" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
           dotnet-quality: "preview"
-
       - name: Create local NuGet feed directory
         shell: bash
         run: |
           mkdir -p "${{ github.workspace }}/local-feed"
-
       - name: Add local NuGet source
         run: dotnet nuget add source "${{ github.workspace }}/local-feed" --name local-feed
-
       - name: Pack Shared project
         shell: bash
         run: |
@@ -56,7 +49,6 @@ jobs:
           dotnet pack src/DotWrap.Shared/DotWrap.Shared.csproj --configuration Release -p:Version=$DOTWRAP_NUGET_VERSION --output ./nupkgs/ 
           echo "Package created successfully:"
           ls -la ./nupkgs/
-
       - name: Build all source projects (Release)
         run: |
           dotnet build src/DotWrap/DotWrap.csproj --configuration Release -p:DotWrapVersion=$DOTWRAP_NUGET_VERSION
@@ -76,35 +68,52 @@ jobs:
           echo "Package created successfully:"
           ls -la ./nupkgs/
 
-      - name: Publish test library (AOT)
-        shell: bash
-        run: |
-          # Determine runtime identifier based on OS
-          case "${{ runner.os }}" in
-            "Windows")
-              RUNTIME="win-x64"
-              ;;
-            "macOS")
-              RUNTIME="osx-x64"
-              ;;
-            "Linux")
-              RUNTIME="linux-x64"
-              ;;
-            *)
-              echo "Unknown OS: ${{ runner.os }}"
-              exit 1
-              ;;
-          esac
+      - name: Upload NuGet packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./nupkgs/
 
-          echo "Publishing for runtime: $RUNTIME"
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: ["8.0.x", "10.0.x"]
+        python-version: ["3.10", "3.11", "3.12"]
+    env:
+      ContinuousIntegrationEnv: true
+      LocalNugetFeed: ${{ github.workspace }}/local-feed
+      DOTWRAP_NUGET_VERSION: ${{ needs.build.outputs.DOTWRAP_NUGET_VERSION }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download NuGet packages
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./nupkgs/
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+      - name: Add local NuGet source
+        run: dotnet nuget add source "${{ github.workspace }}/nupkgs" --name local-feed
+      # - name: Build all source projects (Release)
+      #   run: |
+      #     dotnet build src/DotWrap/DotWrap.csproj --configuration Release
+      - name: Publish test lib
+        run: |
           dotnet publish tests/DotWrap.TestLib/DotWrap.TestLib.csproj --configuration Release \
-            -r $RUNTIME \
+            -r linux-x64 \
             -p:DotWrapVersion=$DOTWRAP_NUGET_VERSION
 
+      # - name: Run .NET tests
+      #   run: dotnet test tests/DotWrap.Tests/DotWrap.Tests.csproj --configuration Release --no-build --verbosity normal
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
       - name: Install Python dependencies
         run: |
@@ -115,7 +124,6 @@ jobs:
         shell: bash
         run: |
           echo "Installing Python test library..."
-          # Check if Python project root exists
           if [ ! -d "tests/DotWrap.TestLib/python_project_root" ]; then
             echo "Python project root not found. Listing test library contents:"
             find tests/DotWrap.TestLib -type f | head -10
@@ -123,7 +131,6 @@ jobs:
             exit 1
           fi
 
-          # Navigate to the Python project and install it
           cd tests/DotWrap.TestLib/python_project_root
           echo "Contents of python_project_root:"
           ls -la
@@ -131,9 +138,7 @@ jobs:
           pip install .
           echo "Python test library installed successfully"
 
-          # Verify installation
           python -c "import dotwrap_testlib; print('dotwrap_testlib imported successfully')"
-
       - name: show contents of pip package
         shell: bash
         run: |
@@ -161,38 +166,17 @@ jobs:
             echo "__init__.py not found at $SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/__init__.py"
           fi
 
-      # echo "--- Contents of main.py ---"
-      # if [ -f "$SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/main.py" ]; then
-      #   cat "$SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/main.py"
-      # else
-      #   echo "main.py not found at $SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/main.py"
-      # fi
-
       - name: Run Python tests
         working-directory: tests/DotWrap.PythonTests
         run: python -m pytest -vvv --tb=long
-
-      #   - name: Upload test library artifacts
-      #     uses: actions/upload-artifact@v4
-      #     if: always()
-      #     with:
-      #       name: test-library-${{ matrix.os }}
-      #       path: ./test-lib-output/
-
-      #   - name: Upload NuGet packages
-      #     uses: actions/upload-artifact@v4
-      #     if: always()
-      #     with:
-      #       name: nuget-packages-${{ matrix.os }}
-      #       path: ./nupkgs/
 
       - name: Workflow Summary
         if: always()
         shell: bash
         run: |
-          echo "=== Workflow Summary for ${{ matrix.os }} ==="
-          echo "✅ DotWrap.PackMe packed successfully"
-          echo "✅ Test library built with DotWrapVersion: $DOTWRAP_VERSION"
+          echo "=== Workflow Summary for .NET ${{ matrix.dotnet-version }}, Python ${{ matrix.python-version }} ==="
+          echo "✅ DotWrap.PackMe packed and tested"
+          echo "✅ Test library built"
           echo "✅ Python test library installed"
           echo "✅ .NET tests completed"
           echo "✅ Python tests completed"

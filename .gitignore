@@ -117,3 +117,4 @@ cover/
 *.received/
 
 DotWrap.user.props
+.artifacts/
