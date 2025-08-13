@@ -167,7 +167,16 @@ typedef struct {
 current_dir = os.path.dirname(os.path.abspath(__file__))
 # Conditionally add RPATH only on Linux/Unix systems
 extra_link_args = []
-if platform.system() in ['Linux', 'Darwin']:  # Linux or macOS
+libraries = [""{libName}""]
+
+if platform.system() == ""Darwin"":  # macOS
+    extra_link_args = [""-Wl,-rpath,@loader_path""]
+    # On macOS, we might need to link directly to the dylib file
+    dylib_path = os.path.join(current_dir, ""libDotWrap.TestLib.dylib"")
+    if os.path.exists(dylib_path):
+        libraries = []
+        extra_link_args.extend([dylib_path, ""-Wl,-rpath,@loader_path""])
+elif platform.system() == ""Linux"":  # Linux
     extra_link_args = [""-Wl,-rpath,$ORIGIN""]
 
 ffibuilder.set_source(
@@ -175,7 +184,7 @@ ffibuilder.set_source(
     """"""
     #include ""{libName}.h""
     """""",
-    libraries=[""{libName}""],
+    libraries=libraries,
     library_dirs=[current_dir],
     include_dirs=[current_dir],
     extra_link_args=extra_link_args,
