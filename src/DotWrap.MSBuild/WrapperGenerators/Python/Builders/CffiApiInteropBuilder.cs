@@ -161,12 +161,15 @@ typedef struct {
         build.Append("\"\"\")");
         build.AppendLine();
 
+        var libNameWithLibPrefix = libName.StartsWith("lib") ? libName : "lib" + libName;
         build.AppendLine(
             $@"
 current_dir = os.path.dirname(os.path.abspath(__file__))
 # Conditionally add RPATH only on Linux/Unix systems
 extra_link_args = []
-if platform.system() in ['Linux']:  # Linux or macOS
+lib_name = ""{libName}""
+if platform.system() in ['Linux', 'Darwin']:  # Linux or macOS
+    lib_name = ""{libNameWithLibPrefix}""
     extra_link_args = [""-Wl,-rpath,$ORIGIN""]
 
 ffibuilder.set_source(
@@ -174,7 +177,7 @@ ffibuilder.set_source(
     """"""
     #include ""{libName}.h""
     """""",
-    libraries=[""{libName}""],
+    libraries=[lib_name],
     library_dirs=[current_dir],
     include_dirs=[current_dir],
     extra_link_args=extra_link_args,
