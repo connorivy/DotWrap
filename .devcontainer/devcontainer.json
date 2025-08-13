@@ -1,0 +1,20 @@
+{
+    "name": "DotWrap DevContainer (.NET 10 + Python 3.12)",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "terminal.integrated.shell.linux": "/bin/bash"
+            },
+            "extensions": [
+                "ms-dotnettools.csdevkit-preview",
+                "ms-dotnettools.csharp-preview",
+                "ms-python.python"
+            ]
+        }
+    },
+    "postCreateCommand": "chmod +x ./scripts/init_devcontainer.sh && ./scripts/init_devcontainer.sh",
+    "remoteUser": "root"
+}
