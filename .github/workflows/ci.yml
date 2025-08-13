@@ -141,6 +141,7 @@ jobs:
         run: dotnet nuget add source "${{ github.workspace }}/nupkgs" --name local-feed
 
       - name: Publish test lib
+        shell: bash
         run: |
           # Determine runtime identifier based on OS
           case "${{ runner.os }}" in
