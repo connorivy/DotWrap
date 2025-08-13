@@ -88,37 +88,37 @@ jobs:
         include:
           # use default values for latest .NET and Python on ubuntu
           - dotnet-version: "10.0"
-            python-version: 3.13
+            python-version: "3.13"
             os: ubuntu-latest
 
           # All .NET versions with default Python and os
           - dotnet-version: "8.0"
-            python-version: 3.13
+            python-version: "3.13"
             os: ubuntu-latest
           - dotnet-version: "9.0"
-            python-version: 3.13
+            python-version: "3.13"
             os: ubuntu-latest
 
           # All Python versions with default .NET and os
           - dotnet-version: "10.0"
-            python-version: 3.10
+            python-version: "3.10"
             os: ubuntu-latest
           - dotnet-version: "10.0"
-            python-version: 3.11
+            python-version: "3.11"
             os: ubuntu-latest
           - dotnet-version: "10.0"
-            python-version: 3.12
+            python-version: "3.12"
             os: ubuntu-latest
           - dotnet-version: "10.0"
-            python-version: 3.13
+            python-version: "3.13"
             os: ubuntu-latest
 
           # All OSes with default .NET and Python
           - dotnet-version: "10.0"
-            python-version: 3.13
+            python-version: "3.13"
             os: windows-latest
           - dotnet-version: "10.0"
-            python-version: 3.13
+            python-version: "3.13"
             os: macos-latest
     env:
       ContinuousIntegrationEnv: true
@@ -141,6 +141,7 @@ jobs:
         run: dotnet nuget add source "${{ github.workspace }}/nupkgs" --name local-feed
 
       - name: Publish test lib
+        shell: bash
         run: |
           # Determine runtime identifier based on OS
           case "${{ runner.os }}" in
@@ -148,7 +149,7 @@ jobs:
               RUNTIME="win-x64"
               ;;
             "macOS")
-              RUNTIME="osx-x64"
+              RUNTIME="osx-arm64"
               ;;
             "Linux")
               RUNTIME="linux-x64"
@@ -223,7 +224,7 @@ jobs:
               RUNTIME="win-x64"
               ;;
             "macOS")
-              RUNTIME="osx-x64"
+              RUNTIME="osx-arm64"
               ;;
             "Linux")
               RUNTIME="linux-x64"
@@ -247,19 +248,18 @@ jobs:
             echo "No .log files found in $LOGDIR"
           fi
 
-      - name: show contents of pip package
-        if: failure()
-        shell: bash
-        run: |
-          echo "Detecting site-packages location..."
-          SITE_PACKAGES=$(python -c "import site; print([p for p in site.getsitepackages() if 'site-packages' in p][0])")
-          echo "site-packages path: $SITE_PACKAGES"
-          echo "Checking for dotwrap_testlib in $SITE_PACKAGES:"
-          pip list
-          ls -ld "$SITE_PACKAGES" || echo "$SITE_PACKAGES directory not found"
-          ls -ld "$SITE_PACKAGES/dotwrap_testlib" || echo "dotwrap_testlib directory not found in $SITE_PACKAGES"
-          find "$SITE_PACKAGES/dotwrap_testlib" -type f | head -10 || echo "No files found in dotwrap_testlib"
-          find "$SITE_PACKAGES/dotwrap_testlib" -type d | head -10 || echo "No directories found in dotwrap_testlib"
+      # - name: show contents of pip package
+      #   shell: bash
+      #   run: |
+      #     echo "Detecting site-packages location..."
+      #     SITE_PACKAGES=$(python -c "import site; print([p for p in site.getsitepackages() if 'site-packages' in p][0])")
+      #     echo "site-packages path: $SITE_PACKAGES"
+      #     echo "Checking for dotwrap_testlib in $SITE_PACKAGES:"
+      #     pip list
+      #     ls -ld "$SITE_PACKAGES" || echo "$SITE_PACKAGES directory not found"
+      #     ls -ld "$SITE_PACKAGES/dotwrap_testlib" || echo "dotwrap_testlib directory not found in $SITE_PACKAGES"
+      #     find "$SITE_PACKAGES/dotwrap_testlib" -type f | head -10 || echo "No files found in dotwrap_testlib"
+      #     find "$SITE_PACKAGES/dotwrap_testlib" -type d | head -10 || echo "No directories found in dotwrap_testlib"
 
       - name: Run Python tests
         working-directory: tests/DotWrap.PythonTests
@@ -278,6 +278,7 @@ jobs:
           echo "=== End Summary ==="
 
       - name: Push nuget package if published
+        if: github.event_name == 'release'
         run: |
           echo "Pushing NuGet package to local feed..."
           dotnet nuget push "./nupkgs/*.nupkg" --api-key ${{secrets.nuget_api_key}} --source https://api.nuget.org/v3/index.json
