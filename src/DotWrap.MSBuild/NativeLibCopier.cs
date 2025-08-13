@@ -34,6 +34,7 @@ public class NativeLibCopier
             if (
                 (
                     RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                    || RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
                 ) && !fileName.StartsWith("lib")
             )
             {
@@ -45,4 +46,3 @@ public class NativeLibCopier
         }
     }
 }
-
