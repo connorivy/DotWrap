@@ -31,15 +31,16 @@ public class NativeLibCopier
             Logger.LogInfo($"Copying {file} to {dotWrapGeneratedRoot}");
 
             var fileName = Path.GetFileName(file);
-            if (
-                (
-                    RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-                    || RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-                ) && !fileName.StartsWith("lib")
-            )
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && !fileName.StartsWith("lib"))
             {
                 Logger.LogInfo($"Renaming {file} to lib{fileName}");
                 fileName = "lib" + fileName;
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && !fileName.StartsWith("lib"))
+            {
+                Logger.LogInfo($"Creating copy of file {file} as lib{fileName}");
+                var destFileLib = Path.Combine(dotWrapGeneratedRoot, "lib" + fileName);
+                File.Copy(file, destFileLib, overwrite: true);
             }
             var destFile = Path.Combine(dotWrapGeneratedRoot, fileName);
             File.Copy(file, destFile, overwrite: true);
