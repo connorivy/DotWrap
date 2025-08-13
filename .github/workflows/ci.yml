@@ -88,37 +88,37 @@ jobs:
         include:
           # use default values for latest .NET and Python on ubuntu
           - dotnet-version: "10.0"
-            python-version: 3.13
+            python-version: "3.13"
             os: ubuntu-latest
 
           # All .NET versions with default Python and os
           - dotnet-version: "8.0"
-            python-version: 3.13
+            python-version: "3.13"
             os: ubuntu-latest
           - dotnet-version: "9.0"
-            python-version: 3.13
+            python-version: "3.13"
             os: ubuntu-latest
 
           # All Python versions with default .NET and os
           - dotnet-version: "10.0"
-            python-version: 3.10
+            python-version: "3.10"
             os: ubuntu-latest
           - dotnet-version: "10.0"
-            python-version: 3.11
+            python-version: "3.11"
             os: ubuntu-latest
           - dotnet-version: "10.0"
-            python-version: 3.12
+            python-version: "3.12"
             os: ubuntu-latest
           - dotnet-version: "10.0"
-            python-version: 3.13
+            python-version: "3.13"
             os: ubuntu-latest
 
           # All OSes with default .NET and Python
           - dotnet-version: "10.0"
-            python-version: 3.13
+            python-version: "3.13"
             os: windows-latest
           - dotnet-version: "10.0"
-            python-version: 3.13
+            python-version: "3.13"
             os: macos-latest
     env:
       ContinuousIntegrationEnv: true
