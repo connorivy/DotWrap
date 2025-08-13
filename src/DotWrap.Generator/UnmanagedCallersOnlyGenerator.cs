@@ -4,6 +4,7 @@ using System.Text.Json;
 using DotWrap.Generator.Builders;
 using DotWrap.Generator.Builders.Class;
 using DotWrap.Generator.Builders.Method;
+using DotWrap.Generator.Configuration;
 using DotWrap.Generator.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;

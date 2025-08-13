@@ -4,7 +4,7 @@ using DotWrap.Configuration;
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 
 public record ClassBuilderContext(
-    GlobalContext GlobalContext,
+    PythonContext PythonContext,
     PythonProjectInfo ProjectInfo,
     ExportedTypeDefinition ClassInfo
 )

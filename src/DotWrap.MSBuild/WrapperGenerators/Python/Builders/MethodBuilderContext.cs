@@ -87,7 +87,7 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
         //     $"{p.Name}: {p.MapOriginalTypeToPython(genericParamsToArgsDict)}"
         // );
         var paramListWithHints = this.MethodInfo.Parameters.Select(p =>
-            $"{p.Name}: {p.PythonizeTypeName(genericParamsToArgsDict, this.ClassContext.GlobalContext.TypeDefinitions)}"
+            $"{p.Name}: {p.PythonizeTypeName(genericParamsToArgsDict, this.ClassContext.PythonContext.GlobalContext.TypeDefinitions)}"
         );
 
         if (!this.MethodInfo.IsStatic)
@@ -136,7 +136,7 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
                 continue;
             }
 
-            var definition = ClassContext.GlobalContext.TypeDefinitions[
+            var definition = ClassContext.PythonContext.GlobalContext.TypeDefinitions[
                 param.Type.DefinitionId.ToString()
             ];
 
@@ -144,9 +144,11 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
             {
                 var outTypeName = param.PythonizeTypeName(
                     null,
-                    this.ClassContext.GlobalContext.TypeDefinitions
+                    this.ClassContext.PythonContext.GlobalContext.TypeDefinitions
                 );
-                ClassContext.GlobalContext.OutParams.Add(new OutParamInfo(outTypeName, definition));
+                ClassContext.PythonContext.GlobalContext.OutParams.Add(
+                    new OutParamInfo(outTypeName, definition)
+                );
                 yield return $"{param.Name}{Typed} = {param.Name}.{OutVal}";
             }
             else if (definition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.Enum))

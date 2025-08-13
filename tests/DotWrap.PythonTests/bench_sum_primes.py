@@ -1,4 +1,5 @@
 import time
+import dotwrap_testlib
 from dotwrap_testlib import IsPrimeBench as bench
 
 
@@ -26,6 +27,9 @@ def benchmark():
     py_time = time.perf_counter() - start
     print(f"Python sum_of_primes: {py_result} (Time: {py_time:.6f}s)")
 
+    # init the cffi module here to avoid measuring import time
+    # todo: we'll bake this into the import statement in the future
+    dotwrap_testlib.ReturnTypesSimple.do_nothing()
     print("Benchmarking c# sum_of_primes...")
     start = time.perf_counter()
     cs_result = bench.sum_of_primes()

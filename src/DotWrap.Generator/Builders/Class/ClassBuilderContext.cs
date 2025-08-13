@@ -35,7 +35,7 @@ public class ClassBuilderContext(
         + string.Join(", ", TypeArguments.Select(t => t.ToDisplayString()))
             .AddOnIfNotNullOrEmpty("<", ">");
 
-    public string Namespace => ClassSymbol.ContainingNamespace?.ToDisplayString() ?? "System";
+    public string Namespace => ClassSymbol.ContainingNamespace?.ToDisplayString() ?? "global";
 
     public List<INamedTypeSymbol> ContainingTypes
     {

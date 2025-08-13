@@ -60,6 +60,7 @@ public class ExportedTypeDefinition
     public required ExportedTypeId Id { get; set; }
     public required string AssemblyQualifiedName { get; set; }
     public required string FullyQualifiedName { get; set; }
+    public required string Namespace { get; set; }
     public required string SimplifiedAssemblyQualifiedName { get; set; }
     public required string EntryPrefix { get; set; }
     public required Dictionary<string, string> GenericTypeArgumentsToParameters { get; set; }

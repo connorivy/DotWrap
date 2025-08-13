@@ -10,11 +10,11 @@ namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders
         public static void CreateOutParamWrapper(
             OutParamInfo outParamInfo,
             IndentedPythonStringBuilder mainPy,
-            IndentedPythonStringBuilder initPy
+            InitFileBuilder initFileBuilder
         )
         {
             var typeName = outParamInfo.TypeName.Replace("\"", string.Empty);
-            initPy.AppendLine($"from .main import {typeName}");
+            initFileBuilder.AddTypeImport(typeName);
 
             var externalResultAssignment = PythonInteropUtils.GetExternalResultAssignment(
                 outParamInfo.ExportedTypeDefinition

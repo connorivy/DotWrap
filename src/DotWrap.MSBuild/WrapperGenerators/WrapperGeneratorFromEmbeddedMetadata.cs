@@ -66,8 +66,8 @@ public class WrapperGeneratorFromEmbeddedMetadata
         GlobalContext globalContext = new(
             exportedTypes,
             // [.. exportedEnums.Select(e => $"{e.Namespace}.{e.Name}")],
-            configTypes,
-            new List<OutParamInfo>()
+            new List<OutParamInfo>(),
+            assembly
         );
         CffiApiWrapperBuilder pythonWrapperBuilder = new(globalContext, projectInfo);
         pythonWrapperBuilder.BuildWrapper(

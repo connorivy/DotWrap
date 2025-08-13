@@ -20,5 +20,5 @@ async def test_task_of_int_await():
 
 @pytest.mark.asyncio
 async def test_value_task_of_int_await():
-    result = test_lib.Async.value_task_of_55()
-    assert await result == 55
+    result = await test_lib.Async.value_task_of_55()
+    assert result == 55

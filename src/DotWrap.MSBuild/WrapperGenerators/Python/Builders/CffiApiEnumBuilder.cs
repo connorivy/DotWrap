@@ -1,23 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Text.Json;
 using DotWrap.Configuration;
 using DotWrap.Utils;
 using DotWrap.Utils.Python;
-using static DotWrap.Internal.Constants;
-using static DotWrap.Utils.PythonConstants;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 
-internal class CffiApiEnumBuilder(
-    PythonProjectInfo pythonProjectInfo,
-    IndentedStringBuilder mainPy,
-    IndentedStringBuilder initPy
-)
+internal class CffiApiEnumBuilder(PythonContext pythonProjectInfo, IndentedStringBuilder mainPy)
 {
     public void AddClassesToMainAndInitPy(IEnumerable<ExportedEnumInfo> enums)
     {
@@ -30,7 +17,8 @@ internal class CffiApiEnumBuilder(
     public void AddClassToMainAndInitPy(ExportedEnumInfo cls)
     {
         string className = PythonNamingUtils.PythonizeClassName(cls.TypeNameNoGenerics);
-        initPy.AppendLine($"from .main import {className}");
+        var initFileBuilder = pythonProjectInfo.ModuleBuilder.GetImportFile(cls.Namespace);
+        initFileBuilder.AddTypeImport(className);
 
         mainPy.AppendLine($"class {className}(Enum):");
         using var indent = mainPy.IndentUntilDispose();

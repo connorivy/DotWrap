@@ -11,16 +11,16 @@ using static DotWrap.Utils.PythonConstants;
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 
 internal class CffiApiClassBuilder(
-    GlobalContext globalContext,
+    PythonContext pythonContext,
     PythonProjectInfo pythonProjectInfo,
-    IndentedStringBuilder mainPy,
-    IndentedStringBuilder initPy
+    IndentedStringBuilder mainPy
 )
 {
     private HashSet<string> classNames = new();
 
     public void AddClassesToMainAndInitPy(IEnumerable<ExportedTypeDefinition> classes)
     {
+        var globalContext = pythonContext.GlobalContext;
         foreach (var cls in classes)
         {
             if (
@@ -41,10 +41,16 @@ internal class CffiApiClassBuilder(
             }
 
             using var indentGeneric = genericClassBodyBuilder?.IndentUntilDispose();
-            AddClassToMainAndInitPy(cls, classBodyBuilder, genericClassBodyBuilder);
+            var initFileBuilder = pythonContext.ModuleBuilder.GetImportFile(cls.Namespace);
+            AddClassToMainAndInitPy(
+                cls,
+                classBodyBuilder,
+                genericClassBodyBuilder,
+                initFileBuilder
+            );
 
             using var indent = classBodyBuilder.IndentUntilDispose();
-            foreach (var config in GetApplicableConfigs(globalContext.Configs, cls))
+            foreach (var config in GetApplicableConfigs(pythonContext.Configs, cls))
             {
                 PythonTypeConfigContext context = new(
                     globalContext.TypeDefinitions,
@@ -114,7 +120,8 @@ def __del__(self) -> None:
     private void AddClassToMainAndInitPy(
         ExportedTypeDefinition classInfo,
         IndentedPythonStringBuilder classBodyBuilder,
-        IndentedPythonStringBuilder? genericClassBodyBuilder
+        IndentedPythonStringBuilder? genericClassBodyBuilder,
+        InitFileBuilder initFileBuilder
     )
     {
         var baseClassName = PythonNamingUtils.PythonizeClassName(classInfo.TypeNameNoGenerics);
@@ -125,7 +132,7 @@ def __del__(self) -> None:
         var isGeneric = classInfo.GenericTypeArgumentsToParameters.Count > 0;
         if (!isGeneric || genericClassBodyBuilder is not null)
         {
-            initPy.AppendLine($"from .main import {baseClassName}");
+            initFileBuilder.AddTypeImport(baseClassName);
         }
 
         var genericDef = string.Join(
@@ -152,7 +159,7 @@ def __del__(self) -> None:
             );
         }
 
-        var classContext = new ClassBuilderContext(globalContext, pythonProjectInfo, classInfo);
+        var classContext = new ClassBuilderContext(pythonContext, pythonProjectInfo, classInfo);
         var methodBuilder = new CffiApiMethodBuilder(classContext, classBodyBuilder);
         Logger.LogDebug(
             $"Adding class {className} to main.py with number of methods: {classInfo.Methods.Count}"

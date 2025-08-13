@@ -2,14 +2,14 @@ using DotWrap;
 using DotWrap.Configuration;
 using DotWrap.Utils;
 
-[assembly: DotWrapExternalPropertyMeta(typeof(Task<>), nameof(Task<int>.Result))]
-[assembly: DotWrapExternalPropertyMeta(typeof(Task), nameof(Task.Status))]
-[assembly: DotWrapExternalPropertyMeta(typeof(ValueTask<>), nameof(ValueTask<int>.Result))]
-[assembly: DotWrapExternalPropertyMeta(typeof(ValueTask<>), nameof(ValueTask<int>.IsFaulted))]
-[assembly: DotWrapExternalPropertyMeta(
-    typeof(ValueTask<>),
-    nameof(ValueTask<int>.IsCompletedSuccessfully)
-)]
+// [assembly: DotWrapExternalPropertyMeta(typeof(Task<>), nameof(Task<int>.Result))]
+// [assembly: DotWrapExternalPropertyMeta(typeof(Task), nameof(Task.Status))]
+// [assembly: DotWrapExternalPropertyMeta(typeof(ValueTask<>), nameof(ValueTask<int>.Result))]
+// [assembly: DotWrapExternalPropertyMeta(typeof(ValueTask<>), nameof(ValueTask<int>.IsFaulted))]
+// [assembly: DotWrapExternalPropertyMeta(
+//     typeof(ValueTask<>),
+//     nameof(ValueTask<int>.IsCompletedSuccessfully)
+// )]
 
 // [assembly: DotWrapExternalMethodMeta(typeof(Task<>), nameof(Task<>.ContinueWith))]
 
@@ -34,11 +34,6 @@ public class Async
 public class TaskConfig : DotWrapPythonTypeConfig
 {
     public override Type TypeToConfigure => typeof(Task);
-
-    public override void ConfigureImports(IndentedStringBuilder sb)
-    {
-        sb.AppendLine("import asyncio");
-    }
 
     public override void ConfigureGenericClassBody(PythonTypeConfigContext context)
     {

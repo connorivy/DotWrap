@@ -181,17 +181,17 @@ jobs:
       #     echo "=== Displaying contents of generated Python files ==="
 
       #     echo "--- Contents of __init__.py ---"
-      #     if [ -f "$SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/__init__.py" ]; then
-      #       cat "$SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/__init__.py"
+      #     if [ -f "$SITE_PACKAGES/dotwrap_testlib/__dotwrap_generated/__init__.py" ]; then
+      #       cat "$SITE_PACKAGES/dotwrap_testlib/__dotwrap_generated/__init__.py"
       #     else
-      #       echo "__init__.py not found at $SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/__init__.py"
+      #       echo "__init__.py not found at $SITE_PACKAGES/dotwrap_testlib/__dotwrap_generated/__init__.py"
       #     fi
 
       # echo "--- Contents of main.py ---"
-      # if [ -f "$SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/main.py" ]; then
-      #   cat "$SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/main.py"
+      # if [ -f "$SITE_PACKAGES/dotwrap_testlib/__dotwrap_generated/main.py" ]; then
+      #   cat "$SITE_PACKAGES/dotwrap_testlib/__dotwrap_generated/main.py"
       # else
-      #   echo "main.py not found at $SITE_PACKAGES/dotwrap_testlib/dotwrap_generated/main.py"
+      #   echo "main.py not found at $SITE_PACKAGES/dotwrap_testlib/__dotwrap_generated/main.py"
       # fi
 
       - name: Install Python test library
