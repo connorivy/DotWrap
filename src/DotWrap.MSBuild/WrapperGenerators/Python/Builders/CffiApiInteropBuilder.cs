@@ -166,7 +166,7 @@ typedef struct {
 current_dir = os.path.dirname(os.path.abspath(__file__))
 # Conditionally add RPATH only on Linux/Unix systems
 extra_link_args = []
-if platform.system() in ['Linux', 'Darwin']:  # Linux or macOS
+if platform.system() in ['Linux']:  # Linux or macOS
     extra_link_args = [""-Wl,-rpath,$ORIGIN""]
 
 ffibuilder.set_source(
