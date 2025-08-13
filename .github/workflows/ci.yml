@@ -109,9 +109,6 @@ jobs:
           - dotnet-version: "10.0"
             python-version: "3.12"
             os: ubuntu-latest
-          - dotnet-version: "10.0"
-            python-version: "3.13"
-            os: ubuntu-latest
 
           # All OSes with default .NET and Python
           - dotnet-version: "10.0"

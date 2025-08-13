@@ -172,7 +172,7 @@ libraries = [""{libName}""]
 if platform.system() == ""Darwin"":  # macOS
     extra_link_args = [""-Wl,-rpath,@loader_path""]
     # On macOS, we might need to link directly to the dylib file
-    dylib_path = os.path.join(current_dir, ""libDotWrap.TestLib.dylib"")
+    dylib_path = os.path.join(current_dir, ""{libNameWithLibPrefix}.dylib"")
     if os.path.exists(dylib_path):
         libraries = []
         extra_link_args.extend([dylib_path, ""-Wl,-rpath,@loader_path""])
