@@ -25,11 +25,12 @@ The generated Python package would look like:
 ```
 python_project_root/
 ├── setup.py
-├── my_project
-    ├── __init__.py # my contain the line "from ._dotwrap_generated import *"
+└── my_project
+    ├── __init__.py # must contain the line "from .__dotwrap_generated.__dotwrap_exports import *"
     ├── ... user can add their own stuff here
     └── _dotwrap_generated/
-        ├── __init__.py # export visible types and top-level modules
+        ├── __init__.py
+        ├── __dotwrap_exports.py # export visible types and top-level modules
         |   # Creating modules with special names (e.g. collections) in the lower level was causing issues for me
         ├── modules/
         |   ├── __init__.py
@@ -37,13 +38,12 @@ python_project_root/
         |   ├── models.py
         |   └── services.py
         ├── main.py
-        ├── lib_build.py
-        └── modules/
+        └── lib_build.py
 ```
 
 -   Each C# namespace becomes a Python submodule.
--   The `_dotwrap_generated` folder contains the generated wrapper code for each namespace.
--   The `main.py` file inside `_dotwrap_generated` contains the Python classes that wrap the corresponding C# classes.
+-   The `__dotwrap_generated` folder contains the generated wrapper code for each namespace.
+-   The `main.py` file inside `__dotwrap_generated` contains the Python classes that wrap the corresponding C# classes.
 -   `__init__.py` files are included to ensure proper module initialization and import behavior.
 
 ## Notes

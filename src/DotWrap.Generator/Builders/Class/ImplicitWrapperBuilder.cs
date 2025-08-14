@@ -42,14 +42,6 @@ public class ImplicitWrapperBuilder(
             baseSymbol = baseSymbol.BaseType;
         }
 
-        // if (classSymbol.TypeKind is TypeKind.Array)
-        // {
-        //     applicableNamedTypeSymbols = applicableNamedTypeSymbols.Append(
-        //         classSymbol.BaseType
-        //             ?? throw new InvalidOperationException("Array type must have a base type.")
-        //     );
-        // }
-
         var applicableMetaMethods = GetExternalMethodExposeContext(Context, externalMethodMeta)
             .GroupBy(meta => meta.methodName)
             .ToList();
@@ -68,11 +60,7 @@ public class ImplicitWrapperBuilder(
         HashSet<IMethodSymbol> visitedSymbols = new(new NameParamReturnComparer());
         foreach (var metaMethodGroup in applicableMetaMethods)
         {
-            if (
-                metaMethodGroup.Any(m =>
-                    (m.parameters is null || m.parameters == default) && m.ignore
-                )
-            )
+            if (metaMethodGroup.Any(m => (m.parameters == default) && m.ignore))
             {
                 continue;
             }

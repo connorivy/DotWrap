@@ -34,6 +34,10 @@ using static DotWrap.Utils.PythonConstants;
 // [assembly: DotWrapExternalMethodMeta(typeof(System.Array), "Add", ignore: true)]
 // [assembly: DotWrapExternalMethodMeta(typeof(System.Array), "Remove", ignore: true)]
 // [assembly: DotWrapExternalPropertyMeta(typeof(System.Array), "Count", PropertyType.None)]
+// [assembly: DotWrapExternalExpose(
+//     typeof(System.Array),
+//     namespaceAlias: "System.Collections.Generic"
+// )]
 
 namespace DotWrap.TestLib;
 

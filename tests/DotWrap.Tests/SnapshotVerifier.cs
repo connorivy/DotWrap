@@ -17,22 +17,39 @@ using System;
 namespace DotWrap;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public class DotWrapExposeAttribute(string? alias = null) : Attribute
+public class DotWrapExposeAttribute(string? alias = null, string? namespaceAlias = null) : Attribute
 {
     internal string? alias { get; } = alias;
+    internal string? namespaceAlias { get; } = namespaceAlias;
 }
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-public class DotWrapMetaAttribute(string? alias = null) : Attribute
+public class DotWrapIgnoreAttribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+public class DotWrapGeneratedAttribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+public class DotWrapGeneratedEnumMetaAttribute : DotWrapGeneratedAttribute { }
+
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+public class DotWrapGeneratedClassWrapperAttribute : DotWrapGeneratedAttribute { }
+
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+public class DotWrapMetaAttribute(string? alias = null, string? namespaceAlias = null) : Attribute
 {
     public string? alias { get; } = alias;
+    public string? namespaceAlias { get; } = namespaceAlias;
 }
 
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-public class DotWrapExternalExposeAttribute(Type typeToWrap, string? alias = null) : Attribute
+public class DotWrapExternalExposeAttribute(
+    Type typeWithMetadata,
+    string? alias = null,
+    string? namespaceAlias = null
+) : DotWrapExposeAttribute(alias, namespaceAlias)
 {
-    public Type typeToWrap { get; } = typeToWrap;
-    public string? alias { get; } = alias;
+    public Type typeWithMetadata { get; } = typeWithMetadata;
 }
 
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]

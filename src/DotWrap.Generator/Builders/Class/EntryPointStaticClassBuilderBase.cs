@@ -51,7 +51,7 @@ public abstract class EntryPointStaticClassBuilderBase(ClassBuilderContext conte
 using System;
 using System.Runtime.InteropServices;
 
-namespace {Context.Namespace}
+namespace {Context.WrapperNamespace}
 {{
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 

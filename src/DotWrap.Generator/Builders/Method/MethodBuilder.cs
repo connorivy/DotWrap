@@ -227,7 +227,7 @@ public class MethodBuilder(
 
     protected string GetWrapperName(ITypeSymbol returnType)
     {
-        ClassBuilderContext newContext = new(classContext.GlobalContext, returnType);
+        ClassBuilderContext newContext = new(classContext.GlobalContext, returnType, new());
         return newContext.FullyQualifiedWrapperName;
     }
 

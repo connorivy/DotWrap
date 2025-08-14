@@ -7,7 +7,11 @@ using static DotWrap.Internal.Constants;
 
 namespace DotWrap.Generator.Builders.Method;
 
-public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderContext ClassContext)
+public record MethodBuilderContext(
+    IMethodSymbol MethodSymbol,
+    ClassBuilderContext ClassContext,
+    DotWrapExternalMethodMeta? ExternalMethodMeta = null
+)
 {
     public string MethodName =>
         Alias
@@ -126,7 +130,8 @@ public record MethodBuilderContext(IMethodSymbol MethodSymbol, ClassBuilderConte
             {
                 var paramTypeClassContext = new ClassBuilderContext(
                     ClassContext.GlobalContext,
-                    param.OriginalTypeIfDifferent
+                    param.OriginalTypeIfDifferent,
+                    new()
                 );
                 sb.Append(
                     $"            var {param.Name}{Typed} = {paramTypeClassContext.WrapperName}.{Get}({param.Name});"

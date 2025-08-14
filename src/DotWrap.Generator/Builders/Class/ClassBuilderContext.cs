@@ -1,5 +1,4 @@
-using System.Text;
-using DotWrap.Configuration;
+using System.Text.Json.Serialization;
 using DotWrap.Generator.Extensions;
 using DotWrap.Utils;
 using Microsoft.CodeAnalysis;
@@ -9,12 +8,12 @@ namespace DotWrap.Generator.Builders.Class;
 public class ClassBuilderContext(
     GlobalContext globalContext,
     ITypeSymbol classSymbol,
-    string? alias = null
+    DotWrapExposeAttribute typeMetadata
 )
 {
     public GlobalContext GlobalContext => globalContext;
     public ITypeSymbol ClassSymbol => classSymbol;
-    public string? Alias => alias;
+    public string? Alias => typeMetadata.alias;
     public string ClassNameWithoutGenerics
     {
         get
@@ -35,7 +34,13 @@ public class ClassBuilderContext(
         + string.Join(", ", TypeArguments.Select(t => t.ToDisplayString()))
             .AddOnIfNotNullOrEmpty("<", ">");
 
-    public string Namespace => ClassSymbol.ContainingNamespace?.ToDisplayString() ?? "global";
+    public string Namespace => typeMetadata.namespaceAlias ?? OriginalNamespace;
+
+    private string OriginalNamespace =>
+        ClassSymbol.ContainingNamespace?.ToDisplayString() ?? "global";
+
+    [JsonIgnore]
+    public string WrapperNamespace => OriginalNamespace;
 
     public List<INamedTypeSymbol> ContainingTypes
     {
@@ -82,7 +87,7 @@ public class ClassBuilderContext(
         + string.Join("_", TypeArguments.Select(t => t.ToDisplayString().Replace("?", "")))
             .AddOnIfNotNullOrEmpty("_");
     public bool IsStatic => ClassSymbol.IsStatic;
-    public string FullyQualifiedWrapperName => $"{Namespace}.{WrapperName}";
+    public string FullyQualifiedWrapperName => $"{WrapperNamespace}.{WrapperName}";
     public string FullyQualifiedClassName => ClassSymbol.ToDisplayString();
     public string EntryPrefix => field ??= $"c{DotWrapUtils.GetStamp(FullyQualifiedClassName)}_";
 }

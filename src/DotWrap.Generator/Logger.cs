@@ -69,14 +69,67 @@ internal static partial class Logger
                 new DiagnosticDescriptor(
                     "DW0004",
                     "DotWrap Error",
-                    $"[ERROR] {DateTime.Now:HH:mm:ss.fff}: {message}",
+                    $@"[ERROR] {DateTime.Now:HH:mm:ss.fff}: {{0}}",
                     "DotWrap",
                     DiagnosticSeverity.Error,
                     isEnabledByDefault: true,
                     description: "Error from DotWrap source generator"
                 ),
-                Location.None
+                Location.None,
+                messageArgs: message
             )
         );
+    }
+
+    public static void LogException(Exception ex)
+    {
+        var now = DateTime.Now.ToString("HH:mm:ss.fff");
+        void Emit(string msg)
+        {
+            if (string.IsNullOrWhiteSpace(msg))
+                return;
+            Context.ReportDiagnostic(
+                Diagnostic.Create(
+                    new DiagnosticDescriptor(
+                        "DW0004",
+                        "DotWrap Error",
+                        "{0}",
+                        "DotWrap",
+                        DiagnosticSeverity.Error,
+                        isEnabledByDefault: true,
+                        description: "Error from DotWrap source generator"
+                    ),
+                    Location.None,
+                    messageArgs: msg
+                )
+            );
+        }
+
+        Emit($"[ERROR] {now} An exception occurred while generating the native interface:");
+        Emit($"Message: {ex.Message}");
+
+        if (!string.IsNullOrEmpty(ex.StackTrace))
+        {
+            var stackLines = ex.StackTrace.Split(
+                new[] { "\r\n", "\n", "\r" },
+                StringSplitOptions.RemoveEmptyEntries
+            );
+            foreach (var s in stackLines)
+                Emit($"StackTrace: {s}");
+        }
+
+        if (ex.InnerException != null)
+        {
+            Emit($"InnerExceptionMessage: {ex.InnerException.Message}");
+            if (!string.IsNullOrEmpty(ex.InnerException.StackTrace))
+            {
+                var innerStackLines = ex.InnerException.StackTrace.Split(
+                    new[] { "\r\n", "\n", "\r" },
+                    StringSplitOptions.RemoveEmptyEntries
+                );
+                foreach (var s in innerStackLines)
+                    Emit($"InnerExceptionStackTrace: {s}");
+            }
+        }
     }
 }
