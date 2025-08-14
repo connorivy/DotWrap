@@ -62,15 +62,6 @@ public class DotWrapExternalPropertyMeta(
     public PropertyType propertyType { get; } = propertyType;
 }
 
-[Flags]
-public enum PropertyType
-{
-    None = 0,
-    Get = 1 << 0,
-    Set = 1 << 1,
-    GetAndSet = Get | Set,
-}
-
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
 public class DotWrapExternalIndexerMeta(
     Type containingType,
@@ -81,4 +72,13 @@ public class DotWrapExternalIndexerMeta(
     public Type containingType { get; } = containingType;
 
     public PropertyType propertyType { get; } = propertyType;
+}
+
+[Flags]
+public enum PropertyType
+{
+    None = 0,
+    Get = 1 << 0,
+    Set = 1 << 1,
+    GetAndSet = Get | Set,
 }
