@@ -1,5 +1,7 @@
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using DotWrap.Configuration.Python;
 
 namespace DotWrap.MSBuild;
 
@@ -12,7 +14,22 @@ public class NativeLibCopier
     public void CopyNativeLibs(string dllPath)
     {
         CSharpProjectInfo projectInfo = new(dllPath);
-        PythonProjectInfo pythonProjectInfo = new(projectInfo);
+        var assembly = Assembly.LoadFrom(dllPath);
+
+        var allPythonGlobalConfigs = assembly
+            .GetTypes()
+            .Where(t => t.IsSubclassOf(typeof(DotWrapPythonGlobalConfig)))
+            .Select(t => (DotWrapPythonGlobalConfig)Activator.CreateInstance(t)!)
+            .ToList();
+
+        if (allPythonGlobalConfigs.Count > 1)
+        {
+            throw new InvalidOperationException(
+                $"Expected one or zero global Python configuration classes, but found {allPythonGlobalConfigs.Count}. Configuration classes found: {string.Join(", ", allPythonGlobalConfigs.Select(c => c.GetType().Name))}"
+            );
+        }
+        var pythonGlobalConfig = allPythonGlobalConfigs.SingleOrDefault();
+        PythonProjectInfo pythonProjectInfo = new(projectInfo, pythonGlobalConfig);
 
         var libDirectory = projectInfo.NativeLibsDirectory;
         var dotWrapGeneratedRoot = pythonProjectInfo.DotWrapGeneratedRoot;

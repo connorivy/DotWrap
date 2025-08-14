@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using DotWrap.Configuration.Python;
 
 namespace DotWrap.MSBuild;
 
@@ -9,12 +10,19 @@ public record PythonProjectInfo
     public const string DotWrapGeneratedDir = "__dotwrap_generated";
     public const string DotWrapExports = "__dotwrap_exports";
     private string[] projectRootParts;
+    private readonly DotWrapPythonGlobalConfig? pythonGlobalConfig;
 
-    public PythonProjectInfo(CSharpProjectInfo cSharpProjectInfo)
+    public PythonProjectInfo(
+        CSharpProjectInfo cSharpProjectInfo,
+        DotWrapPythonGlobalConfig? pythonGlobalConfig
+    )
     {
         CSharpProjectInfo = cSharpProjectInfo;
+        this.pythonGlobalConfig = pythonGlobalConfig;
         projectRootParts = CSharpProjectInfo.LibName.Split('.');
-        ProjectName = CSharpProjectInfo.LibName.Replace(".", "_").ToLowerInvariant();
+        ProjectName =
+            pythonGlobalConfig?.PythonPackageName
+            ?? CSharpProjectInfo.LibName.Replace(".", "_").ToLowerInvariant();
 
         Directory.CreateDirectory(PythonProjectRoot);
         Directory.CreateDirectory(PythonPackageRoot);
@@ -29,6 +37,11 @@ public record PythonProjectInfo
 
     public IEnumerable<string> MapNamespacePartToModule(string csNamespace)
     {
+        foreach (var namespaceReplace in pythonGlobalConfig?.NamespaceOverrides ?? [])
+        {
+            csNamespace = csNamespace.Replace(namespaceReplace.Key, namespaceReplace.Value);
+        }
+
         var sameAsProjectName = true;
         var loopCount = -1;
         foreach (var part in csNamespace.Split('.'))

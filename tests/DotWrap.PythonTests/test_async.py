@@ -1,5 +1,5 @@
 import pytest
-import dotwrap_testlib as test_lib
+import testlib as test_lib
 
 
 def test_task_of_int_result():

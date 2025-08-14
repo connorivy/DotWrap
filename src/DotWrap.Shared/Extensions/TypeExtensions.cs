@@ -5,7 +5,7 @@ using DotWrap.Utils;
 
 namespace DotWrap.Extensions;
 
-public static class TypeExtensions
+internal static class TypeExtensions
 {
     extension(Type type)
     {

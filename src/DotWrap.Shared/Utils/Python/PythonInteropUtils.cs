@@ -1,6 +1,6 @@
 using System;
 using DotWrap.Configuration;
-using static DotWrap.Utils.PythonConstants;
+using static DotWrap.Utils.Python.PythonConstants;
 
 namespace DotWrap.Utils.Python;
 

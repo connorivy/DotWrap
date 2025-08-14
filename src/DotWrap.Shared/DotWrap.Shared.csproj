@@ -5,6 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
+    <RootNamespace>DotWrap</RootNamespace>
+    <PolySharpExcludeGeneratedTypes>System.Runtime.CompilerServices.ModuleInitializerAttribute</PolySharpExcludeGeneratedTypes>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="PolySharp">

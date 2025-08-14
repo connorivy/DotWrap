@@ -1,6 +1,6 @@
 import time
-import dotwrap_testlib
-from dotwrap_testlib import IsPrimeBench as bench
+import testlib
+from testlib import IsPrimeBench as bench
 
 
 def is_prime(number):
@@ -29,7 +29,7 @@ def benchmark():
 
     # init the cffi module here to avoid measuring import time
     # todo: we'll bake this into the import statement in the future
-    dotwrap_testlib.ReturnTypesSimple.do_nothing()
+    testlib.ReturnTypesSimple.do_nothing()
     print("Benchmarking c# sum_of_primes...")
     start = time.perf_counter()
     cs_result = bench.sum_of_primes()

@@ -1,5 +1,4 @@
-import dotwrap_testlib as test_lib
-import numpy as np
+import testlib as test_lib
 
 
 def test_static_hello_world():

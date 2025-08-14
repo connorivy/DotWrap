@@ -1,5 +1,5 @@
 using DotWrap;
-using DotWrap.Configuration;
+using DotWrap.Configuration.Python;
 using DotWrap.Utils;
 
 // [assembly: DotWrapExternalPropertyMeta(typeof(Task<>), nameof(Task<int>.Result))]

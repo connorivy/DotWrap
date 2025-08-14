@@ -1,4 +1,4 @@
-namespace DotWrap.Utils;
+namespace DotWrap.Utils.Python;
 
 public static class PythonConstants
 {

@@ -1,6 +1,7 @@
 using DotWrap.Configuration;
+using DotWrap.Configuration.Python;
 using DotWrap.Utils;
-using static DotWrap.Utils.PythonConstants;
+using static DotWrap.Utils.Python.PythonConstants;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 
@@ -17,20 +18,38 @@ public class CffiApiWrapperBuilder(GlobalContext globalContext, CSharpProjectInf
             .Select(t => (DotWrapPythonTypeConfig)Activator.CreateInstance(t)!)
             .ToDictionary(t => t.TypeToConfigure);
 
-        PythonProjectInfo pythonProjectInfo = new(projectInfo);
+        var allPythonGlobalConfigs = globalContext
+            .Assembly.GetTypes()
+            .Where(t => t.IsSubclassOf(typeof(DotWrapPythonGlobalConfig)))
+            .Select(t => (DotWrapPythonGlobalConfig)Activator.CreateInstance(t)!)
+            .ToList();
+
+        if (allPythonGlobalConfigs.Count > 1)
+        {
+            throw new InvalidOperationException(
+                $"Expected one or zero global Python configuration classes, but found {allPythonGlobalConfigs.Count}. Configuration classes found: {string.Join(", ", allPythonGlobalConfigs.Select(c => c.GetType().Name))}"
+            );
+        }
+        var pythonGlobalConfig = allPythonGlobalConfigs.SingleOrDefault();
+
+        PythonProjectInfo pythonProjectInfo = new(projectInfo, pythonGlobalConfig);
         PythonContext pythonContext = new(
             globalContext,
             pythonProjectInfo,
             new ModuleBuilder(pythonProjectInfo),
-            configTypes
+            configTypes,
+            pythonGlobalConfig
         );
 
         CffiApiInteropBuilder interopBuilder = new(pythonProjectInfo);
-        var setupPyContent = interopBuilder.CreateSetupPy();
         var pythonPackageRoot = pythonProjectInfo.PythonPackageRoot;
         var pythonProjectRoot = pythonProjectInfo.PythonProjectRoot;
 
-        File.WriteAllText(Path.Combine(pythonProjectRoot, "setup.py"), setupPyContent);
+        if (pythonGlobalConfig?.CreateSetupPy != false)
+        {
+            var setupPyContent = interopBuilder.CreateSetupPy();
+            File.WriteAllText(Path.Combine(pythonProjectRoot, "setup.py"), setupPyContent);
+        }
 
         // Create the __init__.py file if it doesn't exist
         if (!File.Exists(Path.Combine(pythonPackageRoot, "__init__.py")))

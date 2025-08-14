@@ -2,6 +2,7 @@ using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
 using DotWrap.Configuration;
+using DotWrap.Generated;
 using DotWrap.Generator.Extensions;
 using Microsoft.CodeAnalysis;
 using static DotWrap.Internal.Constants;
@@ -56,7 +57,7 @@ namespace {Context.WrapperNamespace}
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
     [global::System.CodeDom.Compiler.GeneratedCode(""DotWrap"", ""1.0.0"")]
-    [global::{nameof(DotWrap)}.{attrName}]
+    [global::{nameof(DotWrap)}.{nameof(DotWrap.Generated)}.{attrName}]
     internal static class {Context.WrapperName}
     {{
 {classBody.ToString().TrimEnd()}

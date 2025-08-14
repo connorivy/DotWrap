@@ -22,6 +22,7 @@ public class GlobalContext(
             typeSymbol.TypeKind
             is TypeKind.Class
                 or TypeKind.Struct
+                or TypeKind.Structure
                 or TypeKind.Interface
                 or TypeKind.Array
                 or TypeKind.Enum

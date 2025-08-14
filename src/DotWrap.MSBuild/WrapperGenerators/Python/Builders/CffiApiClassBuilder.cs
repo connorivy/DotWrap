@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using DotWrap.Configuration;
+using DotWrap.Configuration.Python;
 using DotWrap.Utils;
 using DotWrap.Utils.Python;
 using static DotWrap.Internal.Constants;
-using static DotWrap.Utils.PythonConstants;
+using static DotWrap.Utils.Python.PythonConstants;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 

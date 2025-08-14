@@ -1,9 +1,9 @@
 using System.Runtime.InteropServices;
 
-namespace DotWrap.Configuration;
+namespace DotWrap.Internal;
 
 [StructLayout(LayoutKind.Sequential)]
-public readonly struct ExceptionInfo
+internal readonly struct ExceptionInfo
 {
     public IntPtr Message { get; init; }
     public IntPtr StackTrace { get; init; }

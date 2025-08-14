@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using DotWrap.MSBuild;
 using DotWrap.MSBuild.WrapperGenerators;
 
@@ -29,7 +27,7 @@ try
             break;
         default:
             throw new ArgumentException(
-                $"Operation {args[1]} does not match any known operations."
+                $"Operation {operationMagicString} does not match any known operations."
             );
     }
 }

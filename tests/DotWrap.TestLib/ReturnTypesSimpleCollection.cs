@@ -2,12 +2,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using DotWrap;
-using DotWrap.Configuration;
+using DotWrap.Configuration.Python;
 using DotWrap.Extensions;
 using DotWrap.Utils;
 using DotWrap.Utils.Python;
 using static DotWrap.Internal.Constants;
-using static DotWrap.Utils.PythonConstants;
+using static DotWrap.Utils.Python.PythonConstants;
 
 // using static DotWrap.MSBuild.WrapperGenerators.Python.PythonConstants;
 

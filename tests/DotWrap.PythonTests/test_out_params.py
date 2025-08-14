@@ -1,4 +1,4 @@
-import dotwrap_testlib as test_lib
+import testlib as test_lib
 
 
 def test_out_params_int():
@@ -14,7 +14,3 @@ def test_out_params_string():
     print("Hello:", hello.value)
     assert hello.value == "HelloWorld", "Expected the output to be 'HelloWorld'"
     assert hello.value == "HelloWorld", "Expected the output to be 'HelloWorld'"
-
-
-# test_out_params_int()
-# test_out_params_string()

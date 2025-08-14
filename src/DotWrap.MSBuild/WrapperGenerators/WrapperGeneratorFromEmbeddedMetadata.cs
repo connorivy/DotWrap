@@ -1,6 +1,8 @@
 using System.Reflection;
 using System.Text.Json;
 using DotWrap.Configuration;
+using DotWrap.Configuration.Python;
+using DotWrap.Generated;
 using DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 using static DotWrap.Internal.Constants;
 

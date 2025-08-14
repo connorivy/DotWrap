@@ -1,4 +1,4 @@
-import dotwrap_testlib as test_lib
+import testlib as test_lib
 
 
 def test_enum_value_two():

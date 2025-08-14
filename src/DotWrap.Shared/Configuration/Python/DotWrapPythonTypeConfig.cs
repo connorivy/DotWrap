@@ -1,7 +1,7 @@
 using System;
 using DotWrap.Utils;
 
-namespace DotWrap.Configuration;
+namespace DotWrap.Configuration.Python;
 
 public abstract class DotWrapPythonTypeConfig
 {

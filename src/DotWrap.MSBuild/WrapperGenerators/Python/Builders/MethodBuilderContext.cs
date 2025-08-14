@@ -3,7 +3,7 @@ using System.Linq;
 using DotWrap.Configuration;
 using DotWrap.MSBuild.WrapperGenerators.Python.Extensions;
 using DotWrap.Utils.Python;
-using static DotWrap.Utils.PythonConstants;
+using static DotWrap.Utils.Python.PythonConstants;
 
 namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 

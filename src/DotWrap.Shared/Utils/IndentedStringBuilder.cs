@@ -65,12 +65,6 @@ public abstract class IndentedStringBuilder
         AppendLine(line);
         return new StringBuilderIndenter(this);
     }
-
-    public IndentedStringBuilder Append(string text)
-    {
-        _sb.Append(new string(' ', _indentLevel * IndentString.Length) + text);
-        return this;
-    }
 }
 
 internal class IndentedCSharpStringBuilder : IndentedStringBuilder

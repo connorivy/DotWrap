@@ -275,9 +275,20 @@ jobs:
           echo "✅ Python tests completed"
           echo "=== End Summary ==="
 
-      - name: Push nuget package if published
-        if: github.event_name == 'release'
+  push_nuget:
+    if: github.event_name == 'release'
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download NuGet packages
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./nupkgs/
+
+      - name: Push to nuget.org
         run: |
-          echo "Pushing NuGet package to local feed..."
+          echo "Pushing NuGet package to nuget..."
           dotnet nuget push "./nupkgs/*.nupkg" --api-key ${{secrets.nuget_api_key}} --source https://api.nuget.org/v3/index.json
           echo "NuGet package pushed successfully"

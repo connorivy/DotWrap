@@ -37,7 +37,11 @@ public class ClassBuilderContext(
     public string Namespace => typeMetadata.namespaceAlias ?? OriginalNamespace;
 
     private string OriginalNamespace =>
-        ClassSymbol.ContainingNamespace?.ToDisplayString() ?? "global";
+        ClassSymbol.ContainingNamespace?.IsGlobalNamespace ?? true
+            ? defaultNamespace
+            : ClassSymbol.ContainingNamespace.ToDisplayString();
+
+    private const string defaultNamespace = "global";
 
     [JsonIgnore]
     public string WrapperNamespace => OriginalNamespace;

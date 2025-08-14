@@ -6,7 +6,7 @@ namespace DotWrap.Tests;
 
 public static class GlobalSetup
 {
-    [ModuleInitializer]
+    [System.Runtime.CompilerServices.ModuleInitializer]
     public static void Initialize()
     {
         VerifySourceGenerators.Initialize();
