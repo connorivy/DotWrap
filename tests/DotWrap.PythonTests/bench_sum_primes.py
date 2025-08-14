@@ -30,6 +30,7 @@ def benchmark():
     # init the cffi module here to avoid measuring import time
     # todo: we'll bake this into the import statement in the future
     dotwrap_testlib.ReturnTypesSimple.do_nothing()
+    # dotwrap_testlib.system.threading.tasks.
     print("Benchmarking c# sum_of_primes...")
     start = time.perf_counter()
     cs_result = bench.sum_of_primes()

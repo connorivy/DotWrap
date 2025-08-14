@@ -179,37 +179,69 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
             // a file containing the generated code for the CString class.
             var sourceText = SourceText.From(
                 $$"""
-                using System;
-                using System.Runtime.InteropServices;
+using System;
+using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using DotWrap;
 
-                namespace DotWrap.BuiltIn
-                {
-                    internal static class CString
-                    {
-                        public static IntPtr Create(string str)
-                        {
-                            if (string.IsNullOrEmpty(str))
-                            {
-                                return IntPtr.Zero;
-                            }
+[assembly: DotWrapExternalMethodMeta(
+    typeof(IList<>),
+    nameof(IList<int>.Add)
+)]
+[assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<int>.Remove))]
+[assembly: DotWrapExternalPropertyMeta(typeof(ICollection<>), nameof(ICollection<int>.Count))]
+[assembly: DotWrapExternalPropertyMeta(
+    typeof(IReadOnlyCollection<>),
+    nameof(IReadOnlyCollection<int>.Count)
+)]
+[assembly: DotWrapExternalPropertyMeta(typeof(IDictionary<,>), nameof(IDictionary<int, int>.Keys))]
+[assembly: DotWrapExternalPropertyMeta(typeof(KeyValuePair<,>), nameof(KeyValuePair<int, int>.Key))]
+[assembly: DotWrapExternalPropertyMeta(
+    typeof(KeyValuePair<,>),
+    nameof(KeyValuePair<int, int>.Value)
+)]
+[assembly: DotWrapExternalPropertyMeta(typeof(System.Array), nameof(System.Array.Length))]
+[assembly: DotWrapExternalIndexerMeta(typeof(IList<>))]
+[assembly: DotWrapExternalMethodMeta(typeof(System.Array), "Add", ignore: true)]
+[assembly: DotWrapExternalMethodMeta(typeof(System.Array), "Remove", ignore: true)]
+[assembly: DotWrapExternalPropertyMeta(typeof(System.Array), "Count", PropertyType.None)]
+[assembly: DotWrapExternalPropertyMeta(typeof(Task<>), nameof(Task<int>.Result))]
+[assembly: DotWrapExternalPropertyMeta(typeof(Task), nameof(Task.Status))]
+[assembly: DotWrapExternalPropertyMeta(typeof(ValueTask<>), nameof(ValueTask<int>.Result))]
+[assembly: DotWrapExternalPropertyMeta(typeof(ValueTask<>), nameof(ValueTask<int>.IsFaulted))]
+[assembly: DotWrapExternalPropertyMeta(
+    typeof(ValueTask<>),
+    nameof(ValueTask<int>.IsCompletedSuccessfully)
+)]
 
-                            var ptr = Marshal.StringToHGlobalAnsi(str);
-                            return ptr;
-                        }
+namespace DotWrap.BuiltIn
+{
+    internal static class CString
+    {
+        public static IntPtr Create(string str)
+        {
+            if (string.IsNullOrEmpty(str))
+            {
+                return IntPtr.Zero;
+            }
 
-                        [UnmanagedCallersOnly(EntryPoint = "DotWrap_BuiltIn_CString_Free")]
-                        public static void Free(IntPtr ptr)
-                        {
-                            if (ptr == IntPtr.Zero)
-                            {
-                                return;
-                            }
+            var ptr = Marshal.StringToHGlobalAnsi(str);
+            return ptr;
+        }
 
-                            Marshal.FreeHGlobal(ptr);
-                        }
-                    }
-                }
-                """,
+        [UnmanagedCallersOnly(EntryPoint = "DotWrap_BuiltIn_CString_Free")]
+        public static void Free(IntPtr ptr)
+        {
+            if (ptr == IntPtr.Zero)
+            {
+                return;
+            }
+
+            Marshal.FreeHGlobal(ptr);
+        }
+    }
+}
+""",
                 Encoding.UTF8
             );
             spc.AddSource("DotWrap.BuiltIn.CString.g.cs", sourceText);
