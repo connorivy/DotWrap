@@ -4,16 +4,32 @@ using Microsoft.CodeAnalysis;
 namespace DotWrap.Generator.Builders;
 
 public class GlobalContext(
-    HashSet<ITypeSymbol> allExplicitTypes,
+    HashSet<INamedTypeSymbol> allExplicitTypes,
     HashSet<ITypeSymbol> allInferedTypes,
     List<ITypeSymbol> inferedTypesToWrap
 )
 {
-    // public List<ExportedEnumInfo> ExportedEnums { get; } = [];
-
     public void AddInferedType(ITypeSymbol typeSymbol)
     {
-        if (!allInferedTypes.Add(typeSymbol) || allExplicitTypes.Contains(typeSymbol))
+        if (
+            typeSymbol.IsReferenceType
+            && typeSymbol.NullableAnnotation is NullableAnnotation.Annotated
+        )
+        {
+            // remove nullable annotation for reference types
+            typeSymbol = typeSymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+        }
+
+        // even though I'm removing the nullable annotation, the comparision with includeNullibility is still
+        // returning false for the same symbols and I'm not sure why
+        var symbolComparer = typeSymbol.IsReferenceType
+            ? SymbolEqualityComparer.Default
+            : SymbolEqualityComparer.IncludeNullability;
+
+        if (
+            !allInferedTypes.Add(typeSymbol)
+            || allExplicitTypes.Contains(typeSymbol, symbolComparer)
+        )
         {
             return;
         }
@@ -32,7 +48,9 @@ public class GlobalContext(
         }
         else
         {
-            // log skipping type
+            Logger.LogWarning(
+                $"Skipping inferred type '{typeSymbol.ToDisplayString()}' because it is not a class, struct, interface, array, or enum."
+            );
         }
     }
 }

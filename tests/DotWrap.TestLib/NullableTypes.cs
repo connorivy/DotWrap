@@ -19,5 +19,5 @@ public static class NullableTypes
     }
 }
 
-// [DotWrapExpose]
+[DotWrapExpose]
 public class CustomClass { }

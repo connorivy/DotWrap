@@ -127,13 +127,12 @@ namespace DotWrap.BuiltIn
         // collect all assembly attributes that are marked for external exposure
         var assemblyAttrs = compilation.Assembly.GetAttributes();
 
-        HashSet<ITypeSymbol> allExplicitTypes = [];
+        HashSet<INamedTypeSymbol> allExplicitTypes = [];
         HashSet<ITypeSymbol> allInferedTypes = [];
         List<ITypeSymbol> inferedTypes = [];
         GlobalContext globalContext = new(allExplicitTypes, allInferedTypes, inferedTypes);
 
         // System.Diagnostics.Debugger.Launch();
-
         foreach (var classDecl in classes)
         {
             var semanticModel = compilation.GetSemanticModel(classDecl.SyntaxTree);
@@ -143,6 +142,16 @@ namespace DotWrap.BuiltIn
                 continue;
             }
 
+            if (namedTypeSymbol.GetDotWrapExposeAttribute() is not AttributeData exposeAttr)
+            {
+                // if the class is not marked for wrapper generation, skip it
+                continue;
+            }
+            allExplicitTypes.Add(namedTypeSymbol);
+        }
+
+        foreach (var namedTypeSymbol in allExplicitTypes)
+        {
             if (namedTypeSymbol.GetDotWrapExposeAttribute() is not AttributeData exposeAttr)
             {
                 // if the class is not marked for wrapper generation, skip it
