@@ -98,7 +98,8 @@ _raise_exception({ExceptionInfoArg}2)
             var innerTypeId = collectionType.GetExportedTypeIdFromType();
             var internalTypeDefinition = typeDefinitions[innerTypeId.ToString()];
             var externalTypeAssignment = PythonInteropUtils.GetExternalResultAssignment(
-                internalTypeDefinition
+                internalTypeDefinition,
+                false // todo: this is hardcoded for now
             );
             classBody.AppendLine("final_list = []");
             using (var forBlock = classBody.AppendLineWithNewBlock("for i in range(length):"))

@@ -6,14 +6,17 @@ namespace DotWrap.Utils.Python;
 
 public class PythonInteropUtils
 {
-    public static string? GetExternalResultAssignment(ExportedTypeDefinition typeDefinition)
+    public static string? GetExternalResultAssignment(
+        ExportedTypeDefinition typeDefinition,
+        bool isNullable
+    )
     {
-        return typeDefinition switch
+        var resultAssignment = typeDefinition switch
         {
             _ when typeDefinition.FullyQualifiedName.Equals(
                     "string",
                     StringComparison.OrdinalIgnoreCase
-                ) => $"{ExportedPyResult} = CString({InternalPyResult})._get_str_or_none()",
+                ) => $"{ExportedPyResult} = str(CString({InternalPyResult}))",
 
             _ when typeDefinition.FullyQualifiedName.Equals(
                     "bool",
@@ -30,5 +33,16 @@ public class PythonInteropUtils
             ),
             _ => null,
         };
+
+        if (isNullable)
+        {
+            return $"""
+if {InternalPyResult} == {Ffi}.NULL:
+    {ExportedPyResult} = None
+else:
+    {resultAssignment}
+""";
+        }
+        return resultAssignment;
     }
 }

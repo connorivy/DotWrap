@@ -143,8 +143,6 @@ class CString:
         self.{Ptr} = {Ffi}.cast(""char *"", ptr)
 
     def __str__(self):
-        if self._dotwrap_ptr == _dotwrap_ffi.NULL:
-            return None
         return {Ffi}.string(self.{Ptr}).decode(""utf-8"")
 
     def __del__(self):

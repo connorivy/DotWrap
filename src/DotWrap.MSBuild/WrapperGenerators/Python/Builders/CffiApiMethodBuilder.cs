@@ -24,7 +24,8 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStri
         );
 
         var exportedResultAssignment = PythonInteropUtils.GetExternalResultAssignment(
-            context.ReturnTypeDefinition
+            context.ReturnTypeDefinition,
+            context.MethodInfo.ReturnType.IsNullable
         );
 
         this.GenerateSingleMethod(context, exportedResultAssignment, genericClassBodyBuilder);

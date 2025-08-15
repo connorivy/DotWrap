@@ -15,7 +15,11 @@ public record GlobalContext(
     Assembly Assembly
 );
 
-public record OutParamInfo(string TypeName, ExportedTypeDefinition ExportedTypeDefinition);
+public record OutParamInfo(
+    string TypeName,
+    ExportedTypeInstanceInfo ExportedTypeInstanceInfo,
+    ExportedTypeDefinition ExportedTypeDefinition
+);
 
 // public record ImportFileInfo( string ModuleName,
 //     IndentedPythonStringBuilder Builder,

@@ -154,8 +154,12 @@ public record MethodBuilderContext(
                     param.OriginalTypeIfDifferent,
                     new()
                 );
+                var get =
+                    param.OriginalTypeIfDifferent.NullableAnnotation == NullableAnnotation.Annotated
+                        ? GetOrDefault
+                        : Get;
                 sb.Append(
-                    $"            var {param.Name}{Typed} = {paramTypeClassContext.WrapperName}.{Get}({param.Name});"
+                    $"            var {param.Name}{Typed} = {paramTypeClassContext.WrapperName}.{get}({param.Name});"
                 );
             }
         }

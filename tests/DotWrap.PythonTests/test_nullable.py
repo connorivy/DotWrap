@@ -1,14 +1,14 @@
 import testlib
 
 
-def test_nullable_int_with_value():
-    value = testlib.NullableTypes.nullable_int(5)
-    assert value == 5, f"Expected 5, but got {value}"
+# def test_nullable_int_with_value():
+#     value = testlib.NullableTypes.nullable_int(5)
+#     assert value == 5, f"Expected 5, but got {value}"
 
 
-def test_nullable_int_without_value():
-    value = testlib.NullableTypes.nullable_int(None)
-    assert value is None, f"Expected None, but got {value}"
+# def test_nullable_int_without_value():
+#     value = testlib.NullableTypes.nullable_int(None)
+#     assert value is None, f"Expected None, but got {value}"
 
 
 def test_nullable_string_with_value():

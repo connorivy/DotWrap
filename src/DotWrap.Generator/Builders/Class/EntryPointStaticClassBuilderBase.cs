@@ -78,7 +78,23 @@ namespace {Context.WrapperNamespace}
         methodsSource.Append(
             @$"
         internal static {SelfPtrType} {Create}({className} {Obj})
-        {{
+        {{"
+        );
+
+        if (Context.ClassSymbol.IsReferenceType)
+        {
+            methodsSource.Append(
+                @$"
+            if ({Obj} is null)
+            {{
+                return IntPtr.Zero;
+            }}
+"
+            );
+        }
+
+        methodsSource.Append(
+            @$"
             var handle = GCHandle.Alloc({Obj}, GCHandleType.Normal);
             return GCHandle.ToIntPtr(handle);
         }}
@@ -94,8 +110,20 @@ namespace {Context.WrapperNamespace}
             if (!handle.IsAllocated) throw new System.ArgumentException($""Invalid handle: {{{SelfPointerName}}}"");
             var {Obj} = ({className})handle.Target;
             return {Obj};
-        }}
-"
+        }}"
+        );
+
+        // internal get or default method
+        methodsSource.AppendLine(
+            @$"
+        internal static {className} {GetOrDefault}({SelfPtrType} {SelfPointerName})
+        {{
+            if ({SelfPointerName} == IntPtr.Zero)
+            {{
+                return default;
+            }}
+            return {Get}({SelfPointerName});
+        }}"
         );
 
         // Destroy method

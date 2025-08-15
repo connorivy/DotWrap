@@ -153,7 +153,7 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
                     this.ClassContext.PythonContext.GlobalContext.TypeDefinitions
                 );
                 ClassContext.PythonContext.GlobalContext.OutParams.Add(
-                    new OutParamInfo(outTypeName, definition)
+                    new OutParamInfo(outTypeName, param.Type, definition)
                 );
                 typedVarAssignment = $"{param.Name}{Typed} = {param.Name}.{OutVal}";
             }

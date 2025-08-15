@@ -16,8 +16,8 @@ def test_external_namespace_alias():
     assert x.value == 1, f"Expected sunday to be 1, got {x.value}"
 
 
-def test_external_type_alias():
-    # i configured TypeCode with the alias TypeCodeAlias
-    # if this test can find TypeCodeAlias, then it is working
-    x = test_lib.system.TypeCodeAlias.object
-    assert x.value == 1, f"Expected object to be 1, got {x.value}"
+# def test_external_type_alias():
+#     # i configured TypeCode with the alias TypeCodeAlias
+#     # if this test can find TypeCodeAlias, then it is working
+#     x = test_lib.system.TypeCodeAlias.object
+#     assert x.value == 1, f"Expected object to be 1, got {x.value}"

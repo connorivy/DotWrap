@@ -17,7 +17,8 @@ namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders
             initFileBuilder.AddTypeImport(typeName);
 
             var externalResultAssignment = PythonInteropUtils.GetExternalResultAssignment(
-                outParamInfo.ExportedTypeDefinition
+                outParamInfo.ExportedTypeDefinition,
+                outParamInfo.ExportedTypeInstanceInfo.IsNullable
             );
             Logger.LogDebug(
                 $"Creating out param wrapper for {typeName} {outParamInfo.ExportedTypeDefinition.TypeNameNoGenerics} with assignment: {externalResultAssignment}"

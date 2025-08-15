@@ -22,5 +22,4 @@ internal static class TypeExtensions
             // return new ExportedTypeId(ns, name, typeArgs);
         }
     }
-
 }
