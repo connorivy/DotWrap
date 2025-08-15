@@ -155,10 +155,42 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
             {
                 yield return $"{param.Name}{Typed} = {PythonNamingUtils.MapTypeToPython(param.ExposedTypeIfDifferent)}({param.Name}.value)";
             }
+            else if (
+                definition.FullyQualifiedName.Equals("string", StringComparison.OrdinalIgnoreCase)
+            )
+            {
+                yield return $"{param.Name}{Typed} = {Ffi}.new(\"char[]\", {param.Name}.encode(\"utf-8\"))";
+            }
+            else if (
+                definition.FullyQualifiedName.Equals("bool", StringComparison.OrdinalIgnoreCase)
+            )
+            {
+                yield return $"{param.Name}{Typed} = int({param.Name})";
+            }
+            else if (
+                definition.FullyQualifiedName.Equals("char", StringComparison.OrdinalIgnoreCase)
+            )
+            {
+                yield return $"{param.Name}{Typed} = ord({param.Name})";
+            }
+            else if (
+                definition.FullyQualifiedName.Equals(
+                    "System.Half",
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+            {
+                yield return $"{param.Name}{Typed} = {param.Name}"; // half is already represented by a float and does not need conversion
+            }
             else
             {
                 yield return $"{param.Name}{Typed} = {param.Name}.{Ptr}";
             }
         }
     }
+
+    public ExportedTypeDefinition ReturnTypeDefinition =>
+        field ??= ClassContext.PythonContext.GlobalContext.TypeDefinitions[
+            MethodInfo.ReturnType.DefinitionId.ToString()
+        ];
 };

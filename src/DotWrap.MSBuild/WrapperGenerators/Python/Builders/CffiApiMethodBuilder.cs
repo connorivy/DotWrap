@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using DotWrap.Configuration;
 using DotWrap.MSBuild.WrapperGenerators.Python.Extensions;
 using DotWrap.Utils;
@@ -22,41 +23,15 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStri
     )
     {
         var context = new MethodBuilderContext(classContext, method);
-        var exportedResultAssignment = GetExternalResultAssignment(method);
+        Logger.LogDebug(
+            $"Return type definition: {JsonSerializer.Serialize(context.ReturnTypeDefinition)}"
+        );
+
+        var exportedResultAssignment = PythonInteropUtils.GetExternalResultAssignment(
+            context.ReturnTypeDefinition
+        );
 
         this.GenerateSingleMethod(context, exportedResultAssignment, genericClassBodyBuilder);
-    }
-
-    public static (string prefix, string suffix) GetToPythonTransformation(
-        IHasOriginalAndExposedTypes method
-    )
-    {
-        return method switch
-        {
-            { OriginalTypeName: "string" } => ($"str(CString(", "))"),
-            { OriginalTypeName: "bool" } => ($"bool(", ")"),
-            { ExposedTypeIfDifferent: not null } => (
-                $"{method.OriginalTypeWrapper}.{FromPtr}(",
-                ")"
-            ),
-            _ => ("", ""),
-        };
-    }
-
-    public static string? GetExternalResultAssignment(ExportedMethodInfo method)
-    {
-        return method switch
-        {
-            { OriginalTypeName: "string" } =>
-                $"{ExportedPyResult} = str(CString({InternalPyResult}))",
-            { OriginalTypeName: "bool" } => $"{ExportedPyResult} = bool({InternalPyResult})",
-            _ when method.SpecialCaseFlags.HasFlag(MethodSpecialCaseFlags.EnumReturnType) =>
-                $"{ExportedPyResult} = {PythonNamingUtils.PythonizeClassName(method.OriginalTypeName)}({InternalPyResult})",
-            { ExposedTypeIfDifferent: not null } => (
-                $"{ExportedPyResult} = {method.OriginalTypeWrapper}.{FromPtr}({InternalPyResult})"
-            ),
-            _ => null,
-        };
     }
 
     public void GenerateSingleMethod(
@@ -70,12 +45,12 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStri
 
         // var pyReturnType = context.GetReturnType(null);
         var pyReturnType = PythonNamingUtils.MapTypeToPython(
-            context.MethodInfo.OriginalTypeName,
+            context.ReturnTypeDefinition.TypeNameNoGenerics,
             context.ClassContext.ClassInfo.GenericTypeArgumentsToParameters,
             false
         );
         var genericReturnType = PythonNamingUtils.MapTypeToPython(
-            context.MethodInfo.OriginalTypeName,
+            context.ReturnTypeDefinition.TypeNameNoGenerics,
             context.ClassContext.ClassInfo.GenericTypeArgumentsToParameters,
             true
         );

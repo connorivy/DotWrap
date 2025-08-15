@@ -18,15 +18,20 @@ public class ClassBuilderContext(
     {
         get
         {
+            string csharpName;
             if (Alias is not null)
             {
-                return Alias;
+                csharpName = Alias;
             }
-            if (ClassSymbol is IArrayTypeSymbol arraySymbol)
+            else if (ClassSymbol is IArrayTypeSymbol arraySymbol)
             {
-                return DotWrapUtils.ReplaceArraySymbols(arraySymbol.ToDisplayString());
+                csharpName = DotWrapUtils.ReplaceArraySymbols(arraySymbol.ToDisplayString());
             }
-            return ClassSymbol.Name;
+            else
+            {
+                csharpName = ClassSymbol.Name;
+            }
+            return DotWrapUtils.NormalizeCsTypeName(csharpName);
         }
     }
     public string ClassName =>

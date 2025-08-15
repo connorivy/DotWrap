@@ -48,7 +48,7 @@ public class MethodBuilder(
             exportedResultAssignment = null;
         }
         else if (
-            GetBlittableExternalTypeAssignment(context.OriginalReturnType) is string assignment
+            context.OriginalReturnType.GetBlittableExternalTypeAssignment() is string assignment
         )
         {
             exportedResultAssignment = assignment;
@@ -229,44 +229,5 @@ public class MethodBuilder(
     {
         ClassBuilderContext newContext = new(classContext.GlobalContext, returnType, new());
         return newContext.FullyQualifiedWrapperName;
-    }
-
-    public static string? GetBlittableExternalTypeAssignment(ITypeSymbol typeSymbol)
-    {
-        if (typeSymbol is null)
-        {
-            throw new ArgumentNullException(nameof(typeSymbol));
-        }
-
-        if (typeSymbol.Name == "Half" && typeSymbol.ContainingNamespace?.ToString() == "System")
-        {
-            return @$"
-            var {ExportedResult} = (float){InternalResult};";
-        }
-        else if (typeSymbol.SpecialType == SpecialType.System_String)
-        {
-            return @$"
-            var {ExportedResult} = global::DotWrap.BuiltIn.CString.Create({InternalResult});";
-        }
-        else if (typeSymbol.SpecialType == SpecialType.System_Boolean)
-        {
-            return @$"
-            var {ExportedResult} = {InternalResult} ? 1 : 0;";
-        }
-        else if (typeSymbol.TypeKind == TypeKind.Enum)
-        {
-            var namedType =
-                typeSymbol as INamedTypeSymbol
-                ?? throw new ArgumentException(
-                    "Expected typeSymbol to be a named type symbol for enum handling.",
-                    nameof(typeSymbol)
-                );
-            var underlyingType =
-                namedType.EnumUnderlyingType
-                ?? throw new InvalidOperationException("Enum underlying type is null.");
-            return @$"
-            var {ExportedResult} = ({underlyingType.ToDisplayString()}){InternalResult};";
-        }
-        return null;
     }
 }

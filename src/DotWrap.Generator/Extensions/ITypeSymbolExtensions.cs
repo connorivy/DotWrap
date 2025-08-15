@@ -20,52 +20,37 @@ public static class ITypedSymbolExtensions
                 symbol = underlyingType;
             }
 
-            switch (symbol)
+            var originalReturnTypeString = symbol switch
             {
-                case { SpecialType: SpecialType.System_SByte }:
-                    return "sbyte";
-                case { SpecialType: SpecialType.System_Byte }:
-                    return "byte";
-                case { SpecialType: SpecialType.System_Int16 }:
-                    return "short";
-                case { SpecialType: SpecialType.System_UInt16 }:
-                    return "ushort";
-                case { SpecialType: SpecialType.System_Int32 }:
-                    return "int";
-                case { SpecialType: SpecialType.System_UInt32 }:
-                    return "uint";
-                case { SpecialType: SpecialType.System_Int64 }:
-                    return "long";
-                case { SpecialType: SpecialType.System_UInt64 }:
-                    return "ulong";
-                case { SpecialType: SpecialType.System_Single }:
-                    return "float";
-                case { SpecialType: SpecialType.System_Double }:
-                    return "double";
+                { SpecialType: SpecialType.System_SByte } => "sbyte",
+                { SpecialType: SpecialType.System_Byte } => "byte",
+                { SpecialType: SpecialType.System_Int16 } => "short",
+                { SpecialType: SpecialType.System_UInt16 } => "ushort",
+                { SpecialType: SpecialType.System_Int32 } => "int",
+                { SpecialType: SpecialType.System_UInt32 } => "uint",
+                { SpecialType: SpecialType.System_Int64 } => "long",
+                { SpecialType: SpecialType.System_UInt64 } => "ulong",
+                { SpecialType: SpecialType.System_Single } => "float",
+                { SpecialType: SpecialType.System_Double } => "double",
+                { SpecialType: SpecialType.System_IntPtr } => "IntPtr",
+                { SpecialType: SpecialType.System_Void } => "void",
+                _ => null
+            };
 
-                case { SpecialType: SpecialType.System_IntPtr }:
-                    return "IntPtr";
-                case { SpecialType: SpecialType.System_Void }:
-                    return "void";
-                case { SpecialType: SpecialType.System_Char }:
-                    return "char";
-
-                // Begin types that don't match original type, but are close enough to not need a wrapper
-                case ITypeSymbol when symbol.Name == "Half" && symbol.ContainingNamespace?.ToString() == "System":
-                    return "float";
-
-
-                // Begin types that don't match original type
-                case { SpecialType: SpecialType.System_Boolean }:
-                    isOriginalType = false;
-                    return "int";
-                case { SpecialType: SpecialType.System_String }:
-                    isOriginalType = false;
-                    return "IntPtr";
-                default:
-                    isOriginalType = false;
-                    return "IntPtr"; // Default to IntPtr for unsupported types
+            if (originalReturnTypeString is not null)
+            {
+                return originalReturnTypeString;
             }
+            isOriginalType = false;
+
+            return symbol switch
+            {
+                ITypeSymbol when symbol.Name == "Half" && symbol.ContainingNamespace?.ToString() == "System" => "float",
+                { SpecialType: SpecialType.System_Char } => "int",
+                { SpecialType: SpecialType.System_Boolean } => "int",
+                { SpecialType: SpecialType.System_String } => "IntPtr",
+                _ => "IntPtr",// Default to IntPtr for unsupported types
+            };
         }
 
         public ExportedType GetExportedType(out bool isOriginalType)
@@ -188,17 +173,22 @@ public static class ITypedSymbolExtensions
             if (symbol.Name == "Half" && symbol.ContainingNamespace?.ToString() == "System")
             {
                 return @$"
-                var {ExportedResult} = (float){InternalResult};";
+            var {ExportedResult} = (float){InternalResult};";
             }
             else if (symbol.SpecialType == SpecialType.System_String)
             {
                 return @$"
-                var {ExportedResult} = global::DotWrap.BuiltIn.CString.Create({InternalResult});";
+            var {ExportedResult} = global::DotWrap.BuiltIn.CString.Create({InternalResult});";
             }
             else if (symbol.SpecialType == SpecialType.System_Boolean)
             {
                 return @$"
-                var {ExportedResult} = {InternalResult} ? 1 : 0;";
+            var {ExportedResult} = {InternalResult} ? 1 : 0;";
+            }
+            else if (symbol.SpecialType == SpecialType.System_Char)
+            {
+                return @$"
+            var {ExportedResult} = (int){InternalResult};";
             }
             else if (symbol.TypeKind == TypeKind.Enum)
             {
@@ -212,7 +202,7 @@ public static class ITypedSymbolExtensions
                     namedType.EnumUnderlyingType
                     ?? throw new InvalidOperationException("Enum underlying type is null.");
                 return @$"
-                var {ExportedResult} = ({underlyingType.ToDisplayString()}){InternalResult};";
+            var {ExportedResult} = ({underlyingType.ToDisplayString()}){InternalResult};";
             }
             return null;
         }
@@ -275,7 +265,7 @@ public static class ITypedSymbolExtensions
             {
                 return true;
             }
-            if (MethodBuilder.GetBlittableExternalTypeAssignment(symbol) is not null)
+            if (symbol.GetBlittableExternalTypeAssignment() is not null)
             {
                 return true;
             }

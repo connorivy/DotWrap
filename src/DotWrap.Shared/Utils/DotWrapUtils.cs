@@ -63,6 +63,7 @@ public static class DotWrapUtils
             "uint32" => "uint",
             "int64" => "long",
             "uint64" => "ulong",
+            "single" => "float",
             "string" => "string", // make sure string is lowercase
             _ => null,
         };

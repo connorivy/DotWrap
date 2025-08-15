@@ -10,15 +10,19 @@ public class PythonInteropUtils
     {
         return typeDefinition switch
         {
-            _ when typeDefinition.TypeNameNoGenerics.Equals(
+            _ when typeDefinition.FullyQualifiedName.Equals(
                     "string",
-                    StringComparison.InvariantCultureIgnoreCase
+                    StringComparison.OrdinalIgnoreCase
                 ) => $"{ExportedPyResult} = str(CString({InternalPyResult}))",
 
-            _ when typeDefinition.TypeNameNoGenerics.Equals(
+            _ when typeDefinition.FullyQualifiedName.Equals(
                     "bool",
-                    StringComparison.InvariantCultureIgnoreCase
+                    StringComparison.OrdinalIgnoreCase
                 ) => $"{ExportedPyResult} = bool({InternalPyResult})",
+            _ when typeDefinition.FullyQualifiedName.Equals(
+                    "char",
+                    StringComparison.OrdinalIgnoreCase
+                ) => $"{ExportedPyResult} = chr({InternalPyResult})",
             _ when typeDefinition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.Enum) =>
                 $"{ExportedPyResult} = {PythonNamingUtils.PythonizeClassName(typeDefinition.TypeNameNoGenerics)}({InternalPyResult})",
             { IsSameAsExposedType: false } => (

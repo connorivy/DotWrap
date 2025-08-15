@@ -126,6 +126,27 @@ public record MethodBuilderContext(
                     $"            var {param.Name}{Typed} = ({param.OriginalTypeIfDifferent.ToDisplayString()}){param.Name};"
                 );
             }
+            else if (param.OriginalTypeIfDifferent.SpecialType is SpecialType.System_String)
+            {
+                sb.AppendLine(
+                    $"            var {param.Name}{Typed} = System.Runtime.InteropServices.Marshal.PtrToStringAnsi({param.Name});"
+                );
+            }
+            else if (param.OriginalTypeIfDifferent.SpecialType is SpecialType.System_Boolean)
+            {
+                sb.AppendLine($"            var {param.Name}{Typed} = {param.Name} != 0;");
+            }
+            else if (param.OriginalTypeIfDifferent.SpecialType is SpecialType.System_Char)
+            {
+                sb.AppendLine($"            var {param.Name}{Typed} = (char){param.Name};");
+            }
+            else if (
+                param.OriginalTypeIfDifferent.Name == "Half"
+                && param.OriginalTypeIfDifferent.ContainingNamespace?.ToString() == "System"
+            )
+            {
+                sb.AppendLine($"            var {param.Name}{Typed} = (Half){param.Name};");
+            }
             else
             {
                 var paramTypeClassContext = new ClassBuilderContext(

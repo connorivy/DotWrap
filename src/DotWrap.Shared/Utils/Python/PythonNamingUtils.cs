@@ -271,11 +271,10 @@ public static class PythonNamingUtils
             or "long"
             or "uint64"
             or "ulong" => "int",
-            "float" or "double" => "float",
+            "half" or "float" or "double" => "float",
             "boolean" or "bool" => "bool",
             "void" => "None",
-            "string" => "str",
-            "intptr" => "cffi.FFI.CData",
+            "string" or "char" => "str",
             _ => $"\"{PythonizeTypeName(t, genericArgsToParamsDict, useGenericParams)}\"",
         };
     }
