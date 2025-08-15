@@ -209,7 +209,7 @@ jobs:
           pip install .
           echo "Python test library installed successfully"
 
-          python -c "import dotwrap_testlib; print('dotwrap_testlib imported successfully')"
+          python -c "import testlib; print('testlib imported successfully')"
 
       - name: Show .log files on failure
         if: failure()
