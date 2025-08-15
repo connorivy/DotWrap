@@ -1,5 +1,6 @@
 using DotWrap.Configuration;
 using DotWrap.Configuration.Python;
+using DotWrap.MSBuild.WrapperGenerators.Python.Configs;
 using DotWrap.Utils;
 using static DotWrap.Utils.Python.PythonConstants;
 
@@ -16,7 +17,14 @@ public class CffiApiWrapperBuilder(GlobalContext globalContext, CSharpProjectInf
             .Assembly.GetTypes()
             .Where(t => t.IsSubclassOf(typeof(DotWrapPythonTypeConfig)))
             .Select(t => (DotWrapPythonTypeConfig)Activator.CreateInstance(t)!)
+            .Concat(DefaultConfigs.GetDefaultConfigs())
             .ToDictionary(t => t.TypeToConfigure);
+
+        Dictionary<Type, DotWrapPythonTypeConfig> configTypesDict = new();
+        foreach (var config in configTypes)
+        {
+            configTypesDict.TryAdd(config.Key, config.Value);
+        }
 
         var allPythonGlobalConfigs = globalContext
             .Assembly.GetTypes()
@@ -37,7 +45,7 @@ public class CffiApiWrapperBuilder(GlobalContext globalContext, CSharpProjectInf
             globalContext,
             pythonProjectInfo,
             new ModuleBuilder(pythonProjectInfo),
-            configTypes,
+            configTypesDict,
             pythonGlobalConfig
         );
 

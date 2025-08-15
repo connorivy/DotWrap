@@ -7,7 +7,7 @@ namespace DotWrap.Tests
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
     [global::System.CodeDom.Compiler.GeneratedCode("DotWrap", "1.0.0")]
-    [global::DotWrap.DotWrapGeneratedClassWrapperAttribute]
+    [global::DotWrap.Generated.DotWrapGeneratedClassWrapperAttribute]
     internal static class ReturnTypesSimpleDotWrapWrapper
     {
 
@@ -333,7 +333,7 @@ namespace DotWrap.Tests
         
             var __dotwrapResult = ReturnTypesSimple.MaxHalf();
 
-            var __dotwrapExResult = <global namespace>.HalfDotWrapWrapper.__dotwrapCreate(__dotwrapResult);
+            var __dotwrapExResult = global.HalfDotWrapWrapper.__dotwrapCreate(__dotwrapResult);
             return __dotwrapExResult;
 
             }
@@ -353,7 +353,7 @@ namespace DotWrap.Tests
         
             var __dotwrapResult = ReturnTypesSimple.MinHalf();
 
-            var __dotwrapExResult = <global namespace>.HalfDotWrapWrapper.__dotwrapCreate(__dotwrapResult);
+            var __dotwrapExResult = global.HalfDotWrapWrapper.__dotwrapCreate(__dotwrapResult);
             return __dotwrapExResult;
 
             }

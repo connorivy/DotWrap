@@ -72,7 +72,7 @@ using DotWrap;
 [assembly: DotWrapExternalMethodMeta(typeof(System.Array), "Add", ignore: true)]
 [assembly: DotWrapExternalMethodMeta(typeof(System.Array), "Remove", ignore: true)]
 [assembly: DotWrapExternalPropertyMeta(typeof(System.Array), "Count", PropertyType.None)]
-[assembly: DotWrapExternalExpose(typeof(System.Array), namespaceAlias: "System.Collections.Generic")]
+[assembly: DotWrapExternalTypeConfig(typeof(System.Array), namespaceAlias: "System.Collections.Generic")]
 
 [assembly: DotWrapExternalPropertyMeta(typeof(Task<>), nameof(Task<int>.Result))]
 [assembly: DotWrapExternalPropertyMeta(typeof(Task), nameof(Task.Status))]
@@ -166,7 +166,9 @@ namespace DotWrap.BuiltIn
         }
 
         var externallyExposedTypeMeta = assemblyAttrs
-            .Where(a => a.AttributeClass?.Name == nameof(DotWrap.DotWrapExternalExposeAttribute))
+            .Where(a =>
+                a.AttributeClass?.Name == nameof(DotWrap.DotWrapExternalTypeConfigAttribute)
+            )
             .Select(a => DotWrapExternalExposeAttribute.FromAttributeData(a))
             .OrderByDescending(meta =>
                 (
@@ -367,12 +369,15 @@ public class DotWrapExternalExposeAttribute(
         return new(
             attribute.GetCtorArg<ITypeSymbol>(
                 0,
-                nameof(DotWrap.DotWrapExternalExposeAttribute.typeWithMetadata)
+                nameof(DotWrap.DotWrapExternalTypeConfigAttribute.typeWithMetadata)
             ),
-            attribute.GetCtorArg<string?>(1, nameof(DotWrap.DotWrapExternalExposeAttribute.alias)),
+            attribute.GetCtorArg<string?>(
+                1,
+                nameof(DotWrap.DotWrapExternalTypeConfigAttribute.alias)
+            ),
             attribute.GetCtorArg<string?>(
                 2,
-                nameof(DotWrap.DotWrapExternalExposeAttribute.namespaceAlias)
+                nameof(DotWrap.DotWrapExternalTypeConfigAttribute.namespaceAlias)
             )
         );
     }

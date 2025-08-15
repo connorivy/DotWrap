@@ -64,7 +64,7 @@ namespace CoolCalc
 #pragma warning disable CS0414 // Field is assigned to but its value is never used
         private static readonly string __dotwrapMetadata =
         """
-        {"Namespace":"CoolCalc","ClassName":"Calculator","EntryPrefix":"CoolCalc_Calculator_","IsStatic":false,"GenericTypeParametersToArguments":{},"Interfaces":[],"SpecialCaseFlags":0,"SummaryComment":null,"Methods":[{"OriginalName":"Add","StampedName":"Add_1FD58AC2","OriginalType":"int","ExposedTypeIfDifferent":null,"GenericTypeName":null,"IsStatic":false,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":0,"Parameters":[{"Name":"a","OriginalType":"int","ExposedTypeIfDifferent":null,"GenericTypeName":null,"Comment":null},{"Name":"b","OriginalType":"int","ExposedTypeIfDifferent":null,"GenericTypeName":null,"Comment":null}]},{"OriginalName":"Constructor","StampedName":"Constructor","OriginalType":"CoolCalc.Calculator","ExposedTypeIfDifferent":"IntPtr","GenericTypeName":null,"IsStatic":true,"SummaryComment":null,"ReturnsComment":null,"SpecialCaseFlags":0,"Parameters":[]}],"Properties":[]}
+        ... some metadata that is used later
         """;
 #pragma warning restore CS0414 // Field is assigned to but its value is never used
     }

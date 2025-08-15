@@ -7,7 +7,7 @@ namespace DotWrap.Tests
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
     [global::System.CodeDom.Compiler.GeneratedCode("DotWrap", "1.0.0")]
-    [global::DotWrap.DotWrapGeneratedClassWrapperAttribute]
+    [global::DotWrap.Generated.DotWrapGeneratedClassWrapperAttribute]
     internal static class DotWrap.Tests.ClassWithEnumsDotWrapWrapper
     {
 
