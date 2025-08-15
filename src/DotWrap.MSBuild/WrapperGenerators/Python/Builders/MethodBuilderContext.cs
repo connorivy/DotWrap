@@ -83,12 +83,15 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
         IDictionary<string, string>? genericParamsToArgsDict = null
     )
     {
-        // var paramListWithHints = this.MethodInfo.Parameters.Select(p =>
-        //     $"{p.Name}: {p.MapOriginalTypeToPython(genericParamsToArgsDict)}"
-        // );
         var paramListWithHints = this.MethodInfo.Parameters.Select(p =>
-            $"{p.Name}: {p.PythonizeTypeName(genericParamsToArgsDict, this.ClassContext.PythonContext.GlobalContext.TypeDefinitions)}"
-        );
+        {
+            var IsNullable = p.Type.IsNullable;
+            var returnTypeAnnotation = p.PythonizeTypeName(
+                genericParamsToArgsDict,
+                this.ClassContext.PythonContext.GlobalContext.TypeDefinitions
+            );
+            return $"{p.Name}: {(IsNullable ? "Optional[" + returnTypeAnnotation + "]" : returnTypeAnnotation)}";
+        });
 
         if (!this.MethodInfo.IsStatic)
         {
@@ -140,6 +143,9 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
                 param.Type.DefinitionId.ToString()
             ];
 
+            // string nullableSuffix;
+
+            string typedVarAssignment;
             if (param.SpecialCaseFlags.HasFlag(ParameterSpecialCaseFlags.Out))
             {
                 var outTypeName = param.PythonizeTypeName(
@@ -149,29 +155,31 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
                 ClassContext.PythonContext.GlobalContext.OutParams.Add(
                     new OutParamInfo(outTypeName, definition)
                 );
-                yield return $"{param.Name}{Typed} = {param.Name}.{OutVal}";
+                typedVarAssignment = $"{param.Name}{Typed} = {param.Name}.{OutVal}";
             }
             else if (definition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.Enum))
             {
-                yield return $"{param.Name}{Typed} = {PythonNamingUtils.MapTypeToPython(param.ExposedTypeIfDifferent)}({param.Name}.value)";
+                typedVarAssignment =
+                    $"{param.Name}{Typed} = {PythonNamingUtils.MapTypeToPython(param.ExposedTypeIfDifferent)}({param.Name}.value)";
             }
             else if (
                 definition.FullyQualifiedName.Equals("string", StringComparison.OrdinalIgnoreCase)
             )
             {
-                yield return $"{param.Name}{Typed} = {Ffi}.new(\"char[]\", {param.Name}.encode(\"utf-8\"))";
+                typedVarAssignment =
+                    $"{param.Name}{Typed} = {Ffi}.new(\"char[]\", {param.Name}.encode(\"utf-8\"))";
             }
             else if (
                 definition.FullyQualifiedName.Equals("bool", StringComparison.OrdinalIgnoreCase)
             )
             {
-                yield return $"{param.Name}{Typed} = int({param.Name})";
+                typedVarAssignment = $"{param.Name}{Typed} = int({param.Name})";
             }
             else if (
                 definition.FullyQualifiedName.Equals("char", StringComparison.OrdinalIgnoreCase)
             )
             {
-                yield return $"{param.Name}{Typed} = ord({param.Name})";
+                typedVarAssignment = $"{param.Name}{Typed} = ord({param.Name})";
             }
             else if (
                 definition.FullyQualifiedName.Equals(
@@ -180,11 +188,27 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
                 )
             )
             {
-                yield return $"{param.Name}{Typed} = {param.Name}"; // half is already represented by a float and does not need conversion
+                typedVarAssignment = $"{param.Name}{Typed} = {param.Name}"; // half is already represented by a float and does not need conversion
             }
             else
             {
-                yield return $"{param.Name}{Typed} = {param.Name}.{Ptr}";
+                typedVarAssignment = $"{param.Name}{Typed} = {param.Name}.{Ptr}";
+            }
+
+            if (param.Type.IsNullable)
+            {
+                // nullableSuffix = $" or {Ffi}.NULL";
+                yield return $"""
+if {param.Name} is None:
+    {param.Name}{Typed} = {Ffi}.NULL
+else:
+    {typedVarAssignment}
+
+""";
+            }
+            else
+            {
+                yield return typedVarAssignment;
             }
         }
     }

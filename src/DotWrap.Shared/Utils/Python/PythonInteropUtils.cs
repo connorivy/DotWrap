@@ -13,7 +13,7 @@ public class PythonInteropUtils
             _ when typeDefinition.FullyQualifiedName.Equals(
                     "string",
                     StringComparison.OrdinalIgnoreCase
-                ) => $"{ExportedPyResult} = str(CString({InternalPyResult}))",
+                ) => $"{ExportedPyResult} = CString({InternalPyResult})._get_str_or_none()",
 
             _ when typeDefinition.FullyQualifiedName.Equals(
                     "bool",
@@ -26,7 +26,7 @@ public class PythonInteropUtils
             _ when typeDefinition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.Enum) =>
                 $"{ExportedPyResult} = {PythonNamingUtils.PythonizeClassName(typeDefinition.TypeNameNoGenerics)}({InternalPyResult})",
             { IsSameAsExposedType: false } => (
-                $"{ExportedPyResult} = {PythonNamingUtils.PythonizeClassName(typeDefinition.FullyQualifiedName)}.{FromPtr}({InternalPyResult})"
+                $"{ExportedPyResult} = {PythonNamingUtils.PythonizeClassName(typeDefinition.SimplifiedAssemblyQualifiedName)}.{FromPtr}({InternalPyResult})"
             ),
             _ => null,
         };

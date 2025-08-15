@@ -126,7 +126,9 @@ def __del__(self) -> None:
     )
     {
         var baseClassName = PythonNamingUtils.PythonizeClassName(classInfo.TypeNameNoGenerics);
-        var className = PythonNamingUtils.PythonizeClassName(classInfo.FullyQualifiedName);
+        var className = PythonNamingUtils.PythonizeClassName(
+            classInfo.SimplifiedAssemblyQualifiedName
+        );
         Logger.LogDebug(
             $"Adding class {className} with baseClass {baseClassName} to main.py with number of methods: {classInfo.Methods.Count}"
         );
@@ -190,71 +192,6 @@ def __del__(self):
 "
             );
         }
-
-        //         if (
-        //             classInfo.TryGetICollectionType(out var genericType)
-        //             || classInfo.TryGetIReadonlyCollectionType(out genericType)
-        //         )
-        //         {
-        //             var genericArg = PythonNamingUtils.MapTypeToPython(genericType);
-        //             var exposedType = DotWrapUtils.GetExposedTypeFromCsType(
-        //                 genericType,
-        //                 out bool isOriginalType
-        //             );
-        //             var numpyType = PythonNamingUtils.MapTypeToNumpy(exposedType);
-        //             var tolistMethodDef = $"def to_list(self) -> list[\"{genericArg}\"]:";
-        //             classBodyBuilder.AppendLine(tolistMethodDef);
-        //             genericClassBodyBuilder?.AppendLine(tolistMethodDef);
-        //             genericClassBodyBuilder?.AppendLine("    pass");
-        //             using var indent1 = classBodyBuilder.IndentUntilDispose();
-        //             classBodyBuilder.AppendLine(
-        //                 @$"
-        // """"""
-        // Converts the array data to a list of the specified dtype.
-        // """"""
-        // length = {Lib}.{classInfo.EntryPrefix}{GetCount}(self.{Ptr})
-        // arr = np.empty(length, dtype={numpyType})
-
-        // # get stable pointer to the array data
-        // arr_ptr = _dotwrap_ffi.cast(""int*"", _dotwrap_ffi.from_buffer(arr))
-        // {Lib}.{classInfo.EntryPrefix}{FillArr}(self.{Ptr}, arr_ptr, length)
-        //         "
-        //             );
-
-        //             if (isOriginalType)
-        //             {
-        //                 classBodyBuilder.AppendLine("return arr.tolist()");
-        //             }
-        //             else
-        //             {
-        //                 OriginalAndExposedTypeInfo genericTypeInfo = new(
-        //                     genericType,
-        //                     isOriginalType ? null : exposedType
-        //                 );
-
-        //                 var (prefix, suffix) = CffiApiMethodBuilder.GetToPythonTransformation(
-        //                     genericTypeInfo
-        //                 );
-        //                 classBodyBuilder.AppendLine("final_list = []");
-        //                 using (
-        //                     var forBlock = classBodyBuilder.AppendLineWithNewBlock(
-        //                         "for i in range(length):"
-        //                     )
-        //                 )
-        //                 {
-        //                     if (numpyType == "np.intp")
-        //                     {
-        //                         classBodyBuilder.AppendLine($"val = {Ffi}.cast('void *', arr[i])");
-        //                     }
-        //                     else
-        //                     {
-        //                         classBodyBuilder.AppendLine($"val = arr[i]");
-        //                     }
-        //                     classBodyBuilder.AppendLine($"final_list.append({prefix}val{suffix})");
-        //                 }
-        //                 classBodyBuilder.AppendLine("return final_list");
-        //             }
-        //         }
     }
 
     /// <summary>

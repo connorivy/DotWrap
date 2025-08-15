@@ -255,7 +255,7 @@ public static class ITypedSymbolExtensions
                 DefinitionId = symbol.GetExportedTypeId(),
                 DefinitionGenericArgs = symbol.GetTypeArguments()?.Select(arg => arg.ToDisplayString())?.ToArray() ?? [],
                 GenericName = genericName,
-                IsNullable = symbol.NullableAnnotation == NullableAnnotation.Annotated
+                IsNullable = symbol.NullableAnnotation == NullableAnnotation.Annotated && symbol.IsReferenceType
             };
         }
 

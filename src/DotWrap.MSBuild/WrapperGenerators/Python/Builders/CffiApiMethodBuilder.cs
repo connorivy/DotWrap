@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
 using DotWrap.Configuration;
 using DotWrap.MSBuild.WrapperGenerators.Python.Extensions;
@@ -43,12 +39,15 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStri
         var methodInfo = context.MethodInfo;
         var cLibMethodArgs = context.GetCMethodCallArgumentsString();
 
-        // var pyReturnType = context.GetReturnType(null);
         var pyReturnType = PythonNamingUtils.MapTypeToPython(
-            context.ReturnTypeDefinition.TypeNameNoGenerics,
+            context.ReturnTypeDefinition.SimplifiedAssemblyQualifiedName,
             context.ClassContext.ClassInfo.GenericTypeArgumentsToParameters,
             false
         );
+        pyReturnType = context.MethodInfo.ReturnType.IsNullable
+            ? $"Optional[{pyReturnType}]"
+            : pyReturnType;
+
         var genericReturnType = PythonNamingUtils.MapTypeToPython(
             context.ReturnTypeDefinition.TypeNameNoGenerics,
             context.ClassContext.ClassInfo.GenericTypeArgumentsToParameters,

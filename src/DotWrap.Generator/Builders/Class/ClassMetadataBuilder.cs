@@ -55,7 +55,7 @@ public class ClassMetadataBuilder
             SimplifiedAssemblyQualifiedName =
                 DotWrap.Utils.AssemblyNameUtils.GetSimplifiedAssemblyName(assemblyQualifiedName),
             Namespace = classContext.Namespace,
-            FullyQualifiedName = classContext.ClassSymbol.ToDisplayString(),
+            FullyQualifiedName = classContext.ClassSymbol.ToDisplayString().TrimEnd("?").ToString(),
             TypeNameNoGenerics = classContext.ClassNameWithoutGenerics,
             EntryPrefix = classContext.EntryPrefix,
             ExportedType = classContext.ClassSymbol.GetExportedType(out _),

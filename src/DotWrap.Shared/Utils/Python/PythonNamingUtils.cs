@@ -257,12 +257,15 @@ public static class PythonNamingUtils
                 t = mappedType.Value.Key;
             }
         }
+
         return t.ToLowerInvariant().Replace("system.", "") switch
         {
             "sbyte"
             or "byte"
             or "short"
             or "ushort"
+            or "int16"
+            or "uint16"
             or "int32"
             or "int"
             or "uint32"

@@ -55,6 +55,9 @@ public static class DotWrapUtils
 
     public static string NormalizeCsTypeName(string typeName)
     {
+        // Normalize the C# type name to a more Pythonic format
+        // it may look like some of these assignments don't do anything,
+        // but actually they are enforcing lowercase
         var normalized = typeName.ToLowerInvariant().Replace("system.", "") switch
         {
             "int16" => "short",
@@ -63,8 +66,9 @@ public static class DotWrapUtils
             "uint32" => "uint",
             "int64" => "long",
             "uint64" => "ulong",
-            "single" => "float",
-            "string" => "string", // make sure string is lowercase
+            "single" or "float" => "float",
+            "double" => "double",
+            "string" => "string",
             _ => null,
         };
         return normalized ?? typeName;
@@ -99,7 +103,10 @@ public static class DotWrapUtils
             }
         );
 
-        return typeName;
+        return string.Join(
+            "Array",
+            typeName.Split(new[] { "Array" }, StringSplitOptions.None).Select(NormalizeCsTypeName)
+        );
     }
 
     /// <summary>
