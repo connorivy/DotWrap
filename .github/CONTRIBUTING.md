@@ -6,18 +6,7 @@ Thank you for your interest in contributing to DotWrap! This project bridges .NE
 
 1. **Fork the repository** and clone it locally.
 2. **Set up your environment:**
-    - .NET 8+ SDK (for building and running C# projects)
-    - Python 3.8+ (for testing Python bindings)
-    - (Optional) Visual Studio or VS Code for development
-    - (Optional) Docker for devcontainer support
-3. **Install Python dependencies:**
-    ```sh
-    pip install -r requirements.txt
-    ```
-4. **Build the .NET projects:**
-    ```sh
-    dotnet build
-    ```
+    - The repo has a devcontainer which should setup you env with everything you need
 
 ## Testing
 
