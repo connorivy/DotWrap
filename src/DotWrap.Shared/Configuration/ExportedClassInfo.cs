@@ -94,7 +94,7 @@ public record ExportedTypeId
         Id = id;
     }
 
-    public ExportedTypeId(string @namespace, string typeName, params string[] typeArgs)
+    public ExportedTypeId(string @namespace, string typeName, params IEnumerable<string> typeArgs)
     {
         var genericPart = string.Join("_", typeArgs);
         if (!string.IsNullOrEmpty(genericPart))
