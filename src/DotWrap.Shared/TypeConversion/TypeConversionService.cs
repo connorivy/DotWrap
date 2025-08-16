@@ -100,21 +100,45 @@ else:
         TypeSpecialCaseFlags flags,
         bool isNullable)
     {
-        var context = new ConversionContext(
-            ConversionDirection.ExposedToInternal,
-            isNullable,
-            IsOutParameter: false,
-            new ExportedTypeDefinition { FullyQualifiedName = fullyQualifiedTypeName, SpecialCaseFlags = flags },
-            variableName);
-
+        // For this simplified case, we'll only pass the minimal type information needed
+        // The converters that need full ExportedTypeDefinition should handle this gracefully
         var converter = FindConverter(fullyQualifiedTypeName, flags);
         if (converter == null)
         {
             return null; // No conversion needed
         }
 
+        // Create a minimal type definition for the conversion context
+        // This is a temporary solution - ideally we'd have the full ExportedTypeDefinition
+        var minimalTypeDefinition = CreateMinimalTypeDefinition(fullyQualifiedTypeName, flags);
+        var context = new ConversionContext(
+            ConversionDirection.ExposedToInternal,
+            isNullable,
+            IsOutParameter: false,
+            minimalTypeDefinition,
+            variableName);
+
         var result = converter.Convert(context);
         return result.ConversionExpression;
+    }
+
+    private static ExportedTypeDefinition CreateMinimalTypeDefinition(string fullyQualifiedTypeName, TypeSpecialCaseFlags flags)
+    {
+        return new ExportedTypeDefinition
+        {
+            Id = new ExportedTypeId(fullyQualifiedTypeName),
+            AssemblyQualifiedName = fullyQualifiedTypeName,
+            FullyQualifiedName = fullyQualifiedTypeName,
+            Namespace = string.Empty,
+            SimplifiedAssemblyQualifiedName = fullyQualifiedTypeName,
+            EntryPrefix = string.Empty,
+            GenericTypeArgumentsToParameters = new Dictionary<string, string>(),
+            TypeNameNoGenerics = fullyQualifiedTypeName,
+            ExportedType = ExportedType.Undefined, // Default assumption
+            SpecialCaseFlags = flags,
+            IsSameAsExposedType = true,
+            OriginalTypeWrapperName = string.Empty
+        };
     }
 
     private ITypeConverter? FindConverter(string fullyQualifiedTypeName, TypeSpecialCaseFlags flags)

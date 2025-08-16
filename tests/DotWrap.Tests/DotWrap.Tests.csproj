@@ -17,5 +17,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\DotWrap.Generator\DotWrap.Generator.csproj" />
     <ProjectReference Include="..\..\src\DotWrap\DotWrap.csproj" />
+    <ProjectReference Include="..\..\src\DotWrap.Shared\DotWrap.Shared.csproj" />
   </ItemGroup>
 </Project>
