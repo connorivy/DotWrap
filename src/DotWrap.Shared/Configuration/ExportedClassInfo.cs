@@ -160,6 +160,7 @@ public enum TypeSpecialCaseFlags
     /// (e.g. a bool is not blittable, but it can be transformed into an int).
     /// </summary>
     IndirectlyBlittable = 1 << 6,
+    ValueType = 1 << 7,
 }
 
 public interface IHasOriginalAndExposedTypes

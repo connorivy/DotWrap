@@ -43,9 +43,6 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
         return string.Join(", ", parameterStrings);
     }
 
-    public string GetReturnType(IDictionary<string, string>? genericParamsToArgsDict) =>
-        this.MethodInfo.MapOriginalTypeToPython(genericParamsToArgsDict);
-
     public string GetMethodName(HashSet<string> methodNames)
     {
         int numTries = 0;
@@ -190,6 +187,10 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
             {
                 typedVarAssignment = $"{param.Name}{Typed} = {param.Name}"; // half is already represented by a float and does not need conversion
             }
+            else if (definition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.DirectlyBlittable))
+            {
+                typedVarAssignment = $"{param.Name}{Typed} = {param.Name}";
+            }
             else
             {
                 typedVarAssignment = $"{param.Name}{Typed} = {param.Name}.{Ptr}";
@@ -197,14 +198,27 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
 
             if (param.Type.IsNullable)
             {
-                // nullableSuffix = $" or {Ffi}.NULL";
-                yield return $"""
+                if (definition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.ValueType))
+                {
+                    yield return $"""
+{typedVarAssignment}
+{param.Name}{Typed} = {PythonNamingUtils.PythonizeClassName(
+                            "Nullable[[" + definition.SimplifiedAssemblyQualifiedName + "]]"
+                        )}._create({param.Name}{Typed}).{Ptr}
+
+""";
+                }
+                else
+                {
+                    // nullableSuffix = $" or {Ffi}.NULL";
+                    yield return $"""
 if {param.Name} is None:
     {param.Name}{Typed} = {Ffi}.NULL
 else:
     {typedVarAssignment}
 
 """;
+                }
             }
             else
             {

@@ -10,5 +10,6 @@ internal static class DefaultConfigs
         yield return new ValueTaskConfig();
         yield return new ICollectionConfig();
         yield return new IReadOnlyCollectionConfig();
+        yield return new NullableConfig();
     }
 }

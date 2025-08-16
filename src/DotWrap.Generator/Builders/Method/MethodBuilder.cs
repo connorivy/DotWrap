@@ -177,6 +177,10 @@ public class MethodBuilder(
                     $"{obj}.{OriginalMethodName["set_".Length..]} = {internalMethodCallArgs}";
             }
         }
+        else if (methodContext.MethodSymbol.MethodKind is MethodKind.Conversion)
+        {
+            methodCall = $"({classContext.ClassSymbol.ToDisplayString()}){internalMethodCallArgs}";
+        }
         else
         {
             methodCall = $"{obj}.{OriginalMethodName}({internalMethodCallArgs})";

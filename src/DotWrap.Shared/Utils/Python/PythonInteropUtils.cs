@@ -11,7 +11,7 @@ public class PythonInteropUtils
         bool isNullable
     )
     {
-        var resultAssignment = typeDefinition switch
+        var resultAssignment = (typeDefinition, isNullable) switch
         {
             _ when typeDefinition.FullyQualifiedName.Equals(
                     "string",
@@ -28,7 +28,10 @@ public class PythonInteropUtils
                 ) => $"{ExportedPyResult} = chr({InternalPyResult})",
             _ when typeDefinition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.Enum) =>
                 $"{ExportedPyResult} = {PythonNamingUtils.PythonizeClassName(typeDefinition.TypeNameNoGenerics)}({InternalPyResult})",
-            { IsSameAsExposedType: false } => (
+            // (_, true)
+            //     when typeDefinition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.ValueType) =>
+            //     $"{ExportedPyResult} = {PythonNamingUtils.PythonizeClassName("Nullable[[" + typeDefinition.SimplifiedAssemblyQualifiedName + "]]")}.{FromPtr}({InternalPyResult})",
+            ({ IsSameAsExposedType: false }, _) => (
                 $"{ExportedPyResult} = {PythonNamingUtils.PythonizeClassName(typeDefinition.SimplifiedAssemblyQualifiedName)}.{FromPtr}({InternalPyResult})"
             ),
             _ => null,
@@ -36,6 +39,19 @@ public class PythonInteropUtils
 
         if (isNullable)
         {
+            if (typeDefinition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.ValueType))
+            {
+                return $"""
+{resultAssignment ?? $"{ExportedPyResult} = {InternalPyResult}"}
+{InternalPythonPrefix}nullable = {PythonNamingUtils.PythonizeClassName(
+                        "Nullable[[" + typeDefinition.SimplifiedAssemblyQualifiedName + "]]"
+                    )}.{FromPtr}({ExportedPyResult})
+if {InternalPythonPrefix}nullable.has_value:
+    {ExportedPyResult} = {InternalPythonPrefix}nullable.value
+else:
+    {ExportedPyResult} = None
+""";
+            }
             return $"""
 if {InternalPyResult} == {Ffi}.NULL:
     {ExportedPyResult} = None

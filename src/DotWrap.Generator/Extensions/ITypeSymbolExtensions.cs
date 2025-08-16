@@ -159,6 +159,10 @@ public static class ITypedSymbolExtensions
             {
                 flags |= TypeSpecialCaseFlags.IndirectlyBlittable;
             }
+            if (!symbol.IsReferenceType)
+            {
+                flags |= TypeSpecialCaseFlags.ValueType;
+            }
 
             return flags;
         }
@@ -248,14 +252,24 @@ public static class ITypedSymbolExtensions
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        public ExportedTypeInstanceInfo GetExportedTypeInstance(string? genericName)
+        public ExportedTypeInstanceInfo GetExportedTypeInstance(string? genericName, bool replaceNullable = true)
         {
+            ITypeSymbol nonNullableSymbol;
+            if (replaceNullable && symbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            {
+                nonNullableSymbol = ((INamedTypeSymbol)symbol).TypeArguments[0];
+            }
+
+            else
+            {
+                nonNullableSymbol = symbol;
+            }
             return new ExportedTypeInstanceInfo()
             {
-                DefinitionId = symbol.GetExportedTypeId(),
-                DefinitionGenericArgs = symbol.GetTypeArguments()?.Select(arg => arg.ToDisplayString())?.ToArray() ?? [],
+                DefinitionId = nonNullableSymbol.GetExportedTypeId(),
+                DefinitionGenericArgs = nonNullableSymbol.GetTypeArguments()?.Select(arg => arg.ToDisplayString())?.ToArray() ?? [],
                 GenericName = genericName,
-                IsNullable = symbol.NullableAnnotation == NullableAnnotation.Annotated && symbol.IsReferenceType
+                IsNullable = symbol.NullableAnnotation == NullableAnnotation.Annotated && replaceNullable
             };
         }
 

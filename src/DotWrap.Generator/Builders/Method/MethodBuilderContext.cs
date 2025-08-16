@@ -53,6 +53,10 @@ public record MethodBuilderContext(
         var genericName = (
             this.MethodSymbol.OriginalDefinition.ReturnType as ITypeParameterSymbol
         )?.Name;
+        var replaceNullable =
+            ClassContext.ClassSymbol.OriginalDefinition.SpecialType
+            != SpecialType.System_Nullable_T;
+
         return new ExportedMethodInfo
         {
             OriginalName = MethodName,
@@ -64,7 +68,10 @@ public record MethodBuilderContext(
             GenericTypeName = (
                 this.MethodSymbol.OriginalDefinition.ReturnType as ITypeParameterSymbol
             )?.Name,
-            ReturnType = this.OriginalReturnType.GetExportedTypeInstance(genericName),
+            ReturnType = this.OriginalReturnType.GetExportedTypeInstance(
+                genericName,
+                replaceNullable
+            ),
             SpecialCaseFlags = this.GetSpecialCaseFlags(),
             SummaryComment = XmlParser.ParseSummary(xmlDoc),
             ReturnsComment = XmlParser.ParseReturns(xmlDoc),
