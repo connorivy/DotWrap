@@ -92,6 +92,17 @@ namespace {Context.WrapperNamespace}
 "
             );
         }
+        else if (Context.ClassSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+        {
+            methodsSource.Append(
+                @$"
+            if (!{Obj}.HasValue)
+            {{
+                return IntPtr.Zero;
+            }}
+"
+            );
+        }
 
         methodsSource.Append(
             @$"
