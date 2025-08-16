@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using DotWrap.Configuration;
 using DotWrap.MSBuild.WrapperGenerators.Python.Extensions;
+using DotWrap.TypeConversion;
 using DotWrap.Utils.Python;
 using static DotWrap.Utils.Python.PythonConstants;
 
@@ -9,6 +11,7 @@ namespace DotWrap.MSBuild.WrapperGenerators.Python.Builders;
 
 public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMethodInfo MethodInfo)
 {
+    private static readonly ITypeConversionService ConversionService = new TypeConversionService();
     internal string GetCMethodCallArgumentsString()
     {
         var parameterStrings = this
@@ -143,9 +146,8 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
                 param.Type.DefinitionId.ToString()
             ];
 
-            // string nullableSuffix;
-
-            string typedVarAssignment;
+            // Handle out parameters - this special case still needs manual handling 
+            // since it involves adding to the global OutParams collection
             if (param.SpecialCaseFlags.HasFlag(ParameterSpecialCaseFlags.Out))
             {
                 var outTypeName = param.PythonizeTypeName(
@@ -155,60 +157,25 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
                 ClassContext.PythonContext.GlobalContext.OutParams.Add(
                     new OutParamInfo(outTypeName, param.Type, definition)
                 );
-                typedVarAssignment = $"{param.Name}{Typed} = {param.Name}.{OutVal}";
-            }
-            else if (definition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.Enum))
-            {
-                typedVarAssignment =
-                    $"{param.Name}{Typed} = {PythonNamingUtils.MapTypeToPython(param.ExposedTypeIfDifferent)}({param.Name}.value)";
-            }
-            else if (
-                definition.FullyQualifiedName.Equals("string", StringComparison.OrdinalIgnoreCase)
-            )
-            {
-                typedVarAssignment =
-                    $"{param.Name}{Typed} = {Ffi}.new(\"char[]\", {param.Name}.encode(\"utf-8\"))";
-            }
-            else if (
-                definition.FullyQualifiedName.Equals("bool", StringComparison.OrdinalIgnoreCase)
-            )
-            {
-                typedVarAssignment = $"{param.Name}{Typed} = int({param.Name})";
-            }
-            else if (
-                definition.FullyQualifiedName.Equals("char", StringComparison.OrdinalIgnoreCase)
-            )
-            {
-                typedVarAssignment = $"{param.Name}{Typed} = ord({param.Name})";
-            }
-            else if (
-                definition.FullyQualifiedName.Equals(
-                    "System.Half",
-                    StringComparison.OrdinalIgnoreCase
-                )
-            )
-            {
-                typedVarAssignment = $"{param.Name}{Typed} = {param.Name}"; // half is already represented by a float and does not need conversion
-            }
-            else
-            {
-                typedVarAssignment = $"{param.Name}{Typed} = {param.Name}.{Ptr}";
+                yield return $"{param.Name}{Typed} = {param.Name}.{OutVal}";
+                continue;
             }
 
-            if (param.Type.IsNullable)
+            // Use the consolidated conversion service for all other cases
+            try
             {
-                // nullableSuffix = $" or {Ffi}.NULL";
-                yield return $"""
-if {param.Name} is None:
-    {param.Name}{Typed} = {Ffi}.NULL
-else:
-    {typedVarAssignment}
+                var conversion = ConversionService.ConvertParameterPythonToC(
+                    param.Name,
+                    definition,
+                    param.Type.IsNullable,
+                    param.SpecialCaseFlags.HasFlag(ParameterSpecialCaseFlags.Out));
 
-""";
+                yield return conversion;
             }
-            else
+            catch (NotSupportedException)
             {
-                yield return typedVarAssignment;
+                // Fallback to the original complex object logic for unsupported types
+                yield return $"{param.Name}{Typed} = {param.Name}.{Ptr}";
             }
         }
     }
