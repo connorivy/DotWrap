@@ -45,7 +45,7 @@ public class PythonInteropUtils
 {resultAssignment ?? $"{ExportedPyResult} = {InternalPyResult}"}
 {InternalPythonPrefix}nullable = {PythonNamingUtils.PythonizeClassName(
                         "Nullable[[" + typeDefinition.SimplifiedAssemblyQualifiedName + "]]"
-                    )}.{FromPtr}({ExportedPyResult})
+                    )}.{FromPtr}({InternalPyResult})
 if {InternalPythonPrefix}nullable.has_value:
     {ExportedPyResult} = {InternalPythonPrefix}nullable.value
 else:
