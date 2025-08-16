@@ -7,9 +7,7 @@ namespace DotWrap.Extensions;
 
 internal static class TypeExtensions
 {
-    extension(Type type)
-    {
-        public ExportedTypeId GetExportedTypeIdFromType()
+    public static ExportedTypeId GetExportedTypeIdFromType(this Type type)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
             return new ExportedTypeId(AssemblyNameUtils.GetSimplifiedAssemblyName(type.AssemblyQualifiedName));
@@ -21,5 +19,4 @@ internal static class TypeExtensions
             //     : [];
             // return new ExportedTypeId(ns, name, typeArgs);
         }
-    }
 }
