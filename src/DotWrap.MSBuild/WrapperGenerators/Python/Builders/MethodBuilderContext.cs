@@ -202,9 +202,10 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
                 {
                     yield return $"""
 {typedVarAssignment}
-{param.Name}{Typed} = {PythonNamingUtils.PythonizeClassName(
+{param.Name}_dotwrap_nullable = {PythonNamingUtils.PythonizeClassName(
                             "Nullable[[" + definition.SimplifiedAssemblyQualifiedName + "]]"
-                        )}._create({param.Name}{Typed}).{Ptr}
+                        )}._create({param.Name}{Typed})
+{param.Name}{Typed} = {param.Name}_dotwrap_nullable.{Ptr}
 
 """;
                 }
