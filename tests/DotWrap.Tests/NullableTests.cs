@@ -8,6 +8,8 @@ public class NullableTests
         var source = $$"""
 using DotWrap;
 
+[assembly: DotWrapExternalMethodMeta(typeof(System.Nullable<>), ".ctor", [typeof(int)])]
+
 [DotWrapExpose]
 public static class NullableTypes
 {

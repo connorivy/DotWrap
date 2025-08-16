@@ -2,6 +2,7 @@ using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Text;
 using DotWrap.Generator.Builders.Method;
+using DotWrap.Generator.Extensions;
 using Microsoft.CodeAnalysis;
 
 namespace DotWrap.Generator.Builders.Class;
@@ -87,18 +88,22 @@ public class ImplicitWrapperBuilder(
                             {
                                 return true;
                             }
-                            for (int i = 0; i < methodMeta.Key.Value.Length; i++)
+                            if (methodMeta.Key.Value.Length != m.Parameters.Length)
                             {
-                                if (
-                                    !SymbolEqualityComparer.Default.Equals(
-                                        methodMeta.Key.Value[i].Type,
-                                        m.Parameters[i].Type
-                                    )
-                                )
-                                {
-                                    return false;
-                                }
+                                return false;
                             }
+                            // for (int i = 0; i < methodMeta.Key.Value.Length; i++)
+                            // {
+                            //     if (
+                            //         !SymbolEqualityComparer.Default.Equals(
+                            //             methodMeta.Key.Value[i].Type,
+                            //             m.Parameters[i].Type
+                            //         )
+                            //     )
+                            //     {
+                            //         return false;
+                            //     }
+                            // }
                             return true;
                         })
                         .OrderByDescending(m => m.TypeParameters.Length)
@@ -146,7 +151,7 @@ public class ImplicitWrapperBuilder(
             var exposeTypeSymbol = externalMethodMeta.containingType;
 
             // 1. Exact type match for classSymbol or base of classSymbol (e.g., List<int> == List<int>)
-            if (CurrentSymOrBaseOfCurrentMatchesCompareSymbol(classSymbol, exposeTypeSymbol))
+            if (classSymbol.HasInheritanceOrImplementationRelationship(exposeTypeSymbol))
             {
                 yield return externalMethodMeta;
                 continue;

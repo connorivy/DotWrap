@@ -1,3 +1,10 @@
+using DotWrap;
+using DotWrap.TestLib;
+
+[assembly: DotWrapExternalMethodMeta(typeof(System.Nullable<>), ".ctor", [typeof(Type)])]
+[assembly: DotWrapExternalPropertyMeta(typeof(System.Nullable<>), nameof(Nullable<int>.HasValue))]
+[assembly: DotWrapExternalPropertyMeta(typeof(System.Nullable<>), nameof(Nullable<int>.Value))]
+
 namespace DotWrap.TestLib;
 
 [DotWrapExpose]
