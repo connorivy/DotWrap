@@ -77,7 +77,7 @@ calc = cool_calc.Calculator()
 print(calc.add(2, 3)) # Output: 5
 ```
 
----
+Read the [Wiki](https://github.com/connorivy/DotWrap/wiki) for more examples and documentation
 
 ## 📦 Features of the Generated Python Package
 
@@ -88,7 +88,12 @@ When you wrap your .NET project with DotWrap, the resulting **Python package** h
 -   ✅ **Full type hints and docstrings** – IntelliSense and autocomplete work out of the box.
 -   ✅ **Microsecond overhead** – only ~0.3µs per call across the Python ↔ C# boundary.
 
----
+<div align="center">
+  <h2>⭐️ If you like DotWrap, please give the project a star on GitHub! ⭐️</h2>
+  <a href="https://github.com/connorivy/DotWrap/stargazers">
+    <img src="https://img.shields.io/github/stars/connorivy/DotWrap?style=social" alt="GitHub stars" />
+  </a>
+</div>
 
 ## ⚡ Performance
 
