@@ -133,6 +133,20 @@ you can set the ignore: true if you want to ignore a method or property that you
 [assembly: DotWrapExternalMethodMeta(typeof(Array), "Add", ignore: true)]
 ```
 
+#### Method Overloads
+
+If you want to expose an external method, but the name alone is not enough to uniquely identify the method, you can specify the method parameters like this
+
+```csharp
+[assembly: DotWrapExternalMethodMeta(typeof(IList<int>), "Add", parameters: [typeof(int)])]
+```
+
+If you don't know a parameter at compile time, maybe it is a generic parameter and could be many values, you can use a special marker type that signals that any parameter type is okay
+
+```csharp
+[assembly: DotWrapExternalMethodMeta(typeof(IList<>), "Add", parameters: [typeof(DotWrap.Configuration.AnyType)])]
+```
+
 ---
 
 ## Configuring Python

@@ -1,11 +1,3 @@
-using DotWrap;
-using DotWrap.TestLib;
-
-[assembly: DotWrapExternalMethodMeta(typeof(System.Nullable<>), ".ctor", [typeof(Type)])]
-[assembly: DotWrapExternalMethodMeta(typeof(System.Nullable<>), ".ctor", [], alias: "Default")]
-[assembly: DotWrapExternalPropertyMeta(typeof(System.Nullable<>), nameof(Nullable<int>.HasValue))]
-[assembly: DotWrapExternalPropertyMeta(typeof(System.Nullable<>), nameof(Nullable<int>.Value))]
-
 namespace DotWrap.TestLib;
 
 [DotWrapExpose]
@@ -13,7 +5,6 @@ public static class NullableTypes
 {
     public static int? NullableInt(int? value)
     {
-        Nullable<int> nullableValue = null;
         return value;
     }
 

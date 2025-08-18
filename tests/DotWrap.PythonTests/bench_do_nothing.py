@@ -6,7 +6,7 @@ def do_nothing():
     pass
 
 
-bench_range = 100_000
+bench_range = 1_000_000
 
 
 def benchmark():

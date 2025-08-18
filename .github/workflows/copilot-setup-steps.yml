@@ -39,5 +39,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Install .NET dependencies
+        run: dotnet restore
+
       - name: run tests
-        run: chmod +x ./scripts/python_tests.sh && ./scripts/python_tests.sh
+        run: chmod +x ./scripts/python_tests.sh

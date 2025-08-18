@@ -56,6 +56,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using DotWrap;
+using DotWrap.Configuration;
 
 [assembly: DotWrapExternalIndexerMeta(typeof(IList<>))]
 [assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<int>.Add))]
@@ -82,6 +83,11 @@ using DotWrap;
     typeof(ValueTask<>),
     nameof(ValueTask<int>.IsCompletedSuccessfully)
 )]
+
+[assembly: DotWrapExternalMethodMeta(typeof(System.Nullable<>), ".ctor", [typeof(AnyType)])]
+[assembly: DotWrapExternalMethodMeta(typeof(System.Nullable<>), ".ctor", [])]
+[assembly: DotWrapExternalPropertyMeta(typeof(System.Nullable<>), nameof(Nullable<int>.HasValue))]
+[assembly: DotWrapExternalPropertyMeta(typeof(System.Nullable<>), nameof(Nullable<int>.Value))]
 
 namespace DotWrap.BuiltIn
 {

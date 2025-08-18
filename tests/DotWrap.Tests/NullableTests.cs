@@ -7,30 +7,40 @@ public class NullableTests
     {
         var source = $$"""
 using DotWrap;
+using DotWrap.Configuration;
 
-[assembly: DotWrapExternalMethodMeta(typeof(System.Nullable<>), ".ctor", [typeof(int)])]
+[assembly: DotWrapExternalMethodMeta(typeof(System.Nullable<>), ".ctor", [typeof(AnyType)])]
+[assembly: DotWrapExternalMethodMeta(typeof(System.Nullable<>), ".ctor", [])]
 
-[DotWrapExpose]
-public static class NullableTypes
+namespace DotWrap.Configuration
 {
-    public static int? NullableInt(int? value)
-    {
-        return value;
-    }
-
-    public static string? NullableString(string? value)
-    {
-        return value;
-    }
-
-    public static CustomClass? NullableCustomClass(CustomClass? value)
-    {
-        return value;
-    }
+    public class AnyType;
 }
 
-[DotWrapExpose]
-public class CustomClass { }
+namespace DotWrap.Generator
+{
+    [DotWrapExpose]
+    public static class NullableTypes
+    {
+        public static int? NullableInt(int? value)
+        {
+            return value;
+        }
+
+        public static string? NullableString(string? value)
+        {
+            return value;
+        }
+
+        public static CustomClass? NullableCustomClass(CustomClass? value)
+        {
+            return value;
+        }
+    }
+
+    [DotWrapExpose]
+    public class CustomClass { }
+}
 
 """;
         await SnapshotVerifier.Verify(

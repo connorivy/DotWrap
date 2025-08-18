@@ -92,18 +92,31 @@ public class ImplicitWrapperBuilder(
                             {
                                 return false;
                             }
-                            // for (int i = 0; i < methodMeta.Key.Value.Length; i++)
-                            // {
-                            //     if (
-                            //         !SymbolEqualityComparer.Default.Equals(
-                            //             methodMeta.Key.Value[i].Type,
-                            //             m.Parameters[i].Type
-                            //         )
-                            //     )
-                            //     {
-                            //         return false;
-                            //     }
-                            // }
+                            for (int i = 0; i < methodMeta.Key.Value.Length; i++)
+                            {
+                                var typeArg = methodMeta.Key.Value[i].Value as ITypeSymbol;
+                                if (typeArg is null)
+                                {
+                                    return false;
+                                }
+                                if (
+                                    typeArg.Name == "AnyType"
+                                    && typeArg.ContainingNamespace.ToDisplayString()
+                                        == "DotWrap.Configuration"
+                                )
+                                {
+                                    continue;
+                                }
+                                if (
+                                    !SymbolEqualityComparer.Default.Equals(
+                                        typeArg,
+                                        m.Parameters[i].Type
+                                    )
+                                )
+                                {
+                                    return false;
+                                }
+                            }
                             return true;
                         })
                         .OrderByDescending(m => m.TypeParameters.Length)
