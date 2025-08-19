@@ -2,15 +2,15 @@
   <PropertyGroup>
     <DotWrapRoot Condition="'$(DotWrapRoot)' == ''">$(MSBuildThisFileDirectory)..</DotWrapRoot>
     <DotWrapToolsPath Condition="'$(DotWrapToolsPath)' == ''"
-      >$(DotWrapRoot)$(Slash)lib$(Slash)$(TargetFramework)</DotWrapToolsPath
+      >$(DotWrapRoot)$(DotWrapSlash)lib$(DotWrapSlash)$(TargetFramework)</DotWrapToolsPath
     >
   </PropertyGroup>
   <!-- <Target Name="RunWrapperGen" BeforeTargets="Publish"> -->
   <Target Name="RunWrapperGen" AfterTargets="Build">
-    <Exec Command="dotnet --roll-forward Major &quot;$(DotWrapToolsPath)$(Slash)DotWrap.MSBuild.dll&quot; &quot;$(TargetPath)&quot; build" />
+    <Exec Command="dotnet --roll-forward Major &quot;$(DotWrapToolsPath)$(DotWrapSlash)DotWrap.MSBuild.dll&quot; &quot;$(TargetPath)&quot; build" />
   </Target>
   <Target Name="CopyNativeLibs" AfterTargets="Publish">
-    <Exec Command="dotnet --roll-forward Major &quot;$(DotWrapToolsPath)$(Slash)DotWrap.MSBuild.dll&quot; &quot;$(TargetPath)&quot; publish" />
+    <Exec Command="dotnet --roll-forward Major &quot;$(DotWrapToolsPath)$(DotWrapSlash)DotWrap.MSBuild.dll&quot; &quot;$(TargetPath)&quot; publish" />
   </Target>
   <!-- <Target Name="CopyNativeLibs" AfterTargets="Publish">
     <ItemGroup>

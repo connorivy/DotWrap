@@ -1,6 +1,8 @@
 <Project>
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DotWrapSlash Condition=" '$(OS)' == 'Windows_NT' ">\</DotWrapSlash>
+    <DotWrapSlash Condition=" '$(OS)' != 'Windows_NT' ">/</DotWrapSlash>
     <NoWarn>
       CS1591 <!-- Missing XML comment for publicly visible type or member -->
     </NoWarn>

@@ -13,8 +13,6 @@
     <IsPackable>false</IsPackable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Slash Condition=" '$(OS)' == 'Windows_NT' ">\</Slash>
-    <Slash Condition=" '$(OS)' != 'Windows_NT' ">/</Slash>
     <!--<TUnitImplicitUsings>false</TUnitImplicitUsings>-->
     <!--<InvariantGlobalization>true</InvariantGlobalization>-->
     <NoWarn>
