@@ -7,6 +7,10 @@
     >
     <TargetFramework>$(DotWrapTargetFramework)</TargetFramework>
   </PropertyGroup>
+  <!-- In development, regenerate wrappers after build instead of after publish -->
+  <PropertyGroup Condition="'$(ContinuousIntegrationEnv)' == 'false'">
+    <DotWrapGenerateAfterBuild>true</DotWrapGenerateAfterBuild>
+  </PropertyGroup>
   <!-- Use project references locally, but use nuget package in CI -->
   <ItemGroup Condition="'$(ContinuousIntegrationEnv)' == 'false' and '$(DotWrapVersion)' == ''">
     <ProjectReference

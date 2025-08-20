@@ -205,11 +205,20 @@ def __del__(self):
         ExportedTypeDefinition typeInfo
     )
     {
-        var originalType =
-            Type.GetType(typeInfo.AssemblyQualifiedName)
-            ?? throw new InvalidOperationException(
-                $"Could not find type {typeInfo.AssemblyQualifiedName} for class {typeInfo.TypeNameNoGenerics}."
-            );
+        Type originalType;
+        try
+        {
+            originalType =
+                Type.GetType(typeInfo.AssemblyQualifiedName)
+                ?? throw new InvalidOperationException(
+                    $"Could not find type {typeInfo.AssemblyQualifiedName} for class {typeInfo.TypeNameNoGenerics}."
+                );
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex.Message + "\n" + ex.StackTrace);
+            yield break;
+        }
 
         foreach (var strongType in GetTypesThatCouldHaveConfigs(originalType))
         {

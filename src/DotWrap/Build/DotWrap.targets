@@ -4,21 +4,22 @@
     <DotWrapToolsPath Condition="'$(DotWrapToolsPath)' == ''"
       >$(DotWrapRoot)$(DotWrapSlash)lib$(DotWrapSlash)$(TargetFramework)</DotWrapToolsPath
     >
+    <DotWrapGenerateAfterBuild Condition="'$(DotWrapGenerateAfterBuild)' == ''"
+      >false</DotWrapGenerateAfterBuild
+    >
+    <WrapperGenTarget Condition="'$(DotWrapGenerateAfterBuild)' == 'true'">Build</WrapperGenTarget>
+    <WrapperGenTarget Condition="'$(DotWrapGenerateAfterBuild)' != 'true'"
+      >Publish</WrapperGenTarget
+    >
+    <CopyLibTarget Condition="'$(DotWrapGenerateAfterBuild)' == 'true'">Publish</CopyLibTarget>
+    <CopyLibTarget Condition="'$(DotWrapGenerateAfterBuild)' != 'true'"
+      >RunWrapperGen</CopyLibTarget
+    >
   </PropertyGroup>
-  <!-- <Target Name="RunWrapperGen" BeforeTargets="Publish"> -->
-  <Target Name="RunWrapperGen" AfterTargets="Build">
+  <Target Name="RunWrapperGen" AfterTargets="$(WrapperGenTarget)">
     <Exec Command="dotnet --roll-forward Major &quot;$(DotWrapToolsPath)$(DotWrapSlash)DotWrap.MSBuild.dll&quot; &quot;$(TargetPath)&quot; build" />
   </Target>
-  <Target Name="CopyNativeLibs" AfterTargets="Publish">
+  <Target Name="CopyNativeLibs" AfterTargets="$(CopyLibTarget)">
     <Exec Command="dotnet --roll-forward Major &quot;$(DotWrapToolsPath)$(DotWrapSlash)DotWrap.MSBuild.dll&quot; &quot;$(TargetPath)&quot; publish" />
   </Target>
-  <!-- <Target Name="CopyNativeLibs" AfterTargets="Publish">
-    <ItemGroup>
-      <NativeLibs Include="$(OutputPath)\*.dll" />
-      <NativeLibs Include="$(OutputPath)\*.lib" />
-      <NativeLibs Include="$(OutputPath)\*.so" />
-      <NativeLibs Include="$(OutputPath)\*.dylib" />
-    </ItemGroup>
-    <Copy SourceFiles="@(NativeLibs)" DestinationFolder="$(DotWrapRoot)\python\DotWrap_SampleAotLib" />
-  </Target> -->
 </Project>

@@ -4,6 +4,8 @@
     <!-- <Exec Command="echo DEBUG PRINT: publishPath: $(MSBuildProjectPublishPath)" /> -->
     <Exec Command="echo DEBUG PRINT: isPublishing: $(_IsPublishing)" />
     <Exec Command="echo DEBUG PRINT: dotWrapToolsPath: $(DotWrapToolsPath)" />
+    <Exec Command="echo DEBUG PRINT: DotWrapGenerateAfterBuild: $(DotWrapGenerateAfterBuild)" />
+    <Exec Command="echo DEBUG PRINT: WrapperGenTarget: $(WrapperGenTarget)" />
   </Target>
   <PropertyGroup Condition="'$(ContinuousIntegrationEnv)' == 'false'">
     <Configuration Condition=" '$(Configuration)' == '' and '$(_IsPublishing)' == 'true' "
@@ -17,6 +19,7 @@
     <DotWrapToolsPath Condition="'$(_IsPublishing)' == 'true'"
       >$(MSBuildProjectPublishPath)</DotWrapToolsPath
     >
-    <!-- <DotWrapToolsPath>$(MSBuildProjectBuildPath)</DotWrapToolsPath> -->
+    <!-- In development, regenerate wrappers after build instead of after publish -->
+    <DotWrapGenerateAfterBuild>true</DotWrapGenerateAfterBuild>
   </PropertyGroup>
 </Project>

@@ -18,12 +18,25 @@ public class WrapperGeneratorFromEmbeddedMetadata
         CSharpProjectInfo projectInfo = new(libFullPath);
         Dictionary<string, ExportedTypeDefinition> exportedTypes = [];
 
-        Logger.LogInfo($"Processing assembly with {assembly.GetTypes().Length} types");
+        Type[] definedTypes;
+        // definedTypes = assembly.GetTypes();
+        try
+        {
+            definedTypes = assembly
+                .GetTypes()
+                .Where(t => t.Assembly == assembly) // Ensure type is defined in this assembly
+                .ToArray();
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            // throw when dll references other types which cannot be loaded in this context (i.e. types from nuget packages)
+            definedTypes = ex.Types.OfType<Type>().ToArray();
+        }
+
+        Logger.LogInfo($"Processing assembly with {definedTypes.Length} types");
 
         // reflection strangely represents static classes as abstract sealed classes
-        foreach (
-            var type in assembly.GetTypes().Where(t => t.IsClass && t.IsAbstract && t.IsSealed)
-        )
+        foreach (var type in definedTypes.Where(t => t.IsClass && t.IsAbstract && t.IsSealed))
         {
             var attr = type.GetCustomAttribute<DotWrapGeneratedAttribute>();
             if (attr == null)
