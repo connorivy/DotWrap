@@ -93,7 +93,7 @@ public class ClassBuilderContext(
     public string WrapperName =>
         ClassNameWithoutGenerics
         + "DotWrapWrapper"
-        + string.Join("_", TypeArguments.Select(t => t.ToDisplayString().Replace("?", "")))
+        + string.Join("_", TypeArguments.Select(t => t.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat).Replace("?", "")))
             .AddOnIfNotNullOrEmpty("_");
     public bool IsStatic => ClassSymbol.IsStatic;
     public string FullyQualifiedWrapperName => $"{WrapperNamespace}.{WrapperName}";

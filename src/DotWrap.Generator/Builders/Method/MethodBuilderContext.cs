@@ -166,7 +166,7 @@ public record MethodBuilderContext(
                         ? GetOrDefault
                         : Get;
                 sb.Append(
-                    $"            var {param.Name}{Typed} = {paramTypeClassContext.WrapperName}.{get}({param.Name});"
+                    $"            var {param.Name}{Typed} = {paramTypeClassContext.FullyQualifiedWrapperName}.{get}({param.Name});"
                 );
             }
         }

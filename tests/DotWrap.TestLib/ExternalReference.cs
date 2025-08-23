@@ -1,5 +1,5 @@
-using System;
 using DotWrap;
+using Newtonsoft.Json;
 
 [assembly: DotWrapExternalPropertyMeta(
     typeof(Newtonsoft.Json.JsonSerializer),
@@ -11,8 +11,8 @@ namespace DotWrap.TestLib;
 [DotWrapExpose]
 public class ExternalReference
 {
-    public static Newtonsoft.Json.JsonSerializer GetJsonSerializer()
+    public static JsonSerializer GetJsonSerializer(JsonSerializer jsonSerializer)
     {
-        return new Newtonsoft.Json.JsonSerializer();
+        return jsonSerializer;
     }
 }
