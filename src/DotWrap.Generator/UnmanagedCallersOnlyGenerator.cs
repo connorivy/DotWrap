@@ -157,7 +157,6 @@ namespace DotWrap.BuiltIn
                 // if the class is not marked for wrapper generation, skip it
                 continue;
             }
-            Logger.LogError($"adding class: {namedTypeSymbol.ToDisplayString()}");
             allExplicitTypes.Add(namedTypeSymbol);
         }
 

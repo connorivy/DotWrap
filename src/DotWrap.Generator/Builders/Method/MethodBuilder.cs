@@ -39,6 +39,14 @@ public class MethodBuilder(
 
     public void GenerateSingleMethod(ClassBuilderContext classContext, IMethodSymbol method)
     {
+        if (method.Parameters.Select(p => p.Type).Concat<ITypeSymbol>([method.ReturnType]).Any(p => p.IsRefLikeType))
+        {
+            Logger.LogWarning(
+                $"Skipping method '{method.Name}' because it has a 'ref like' parameters or return type, which is not supported."
+            );
+            return;
+        }
+
         var context = new MethodBuilderContext(method, classContext);
         ExportedMethodInfo exportedMethodInfo = GenerateMetadata(method, context);
 

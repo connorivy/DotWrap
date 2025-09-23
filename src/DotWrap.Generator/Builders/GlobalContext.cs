@@ -20,6 +20,14 @@ public class GlobalContext(
             typeSymbol = typeSymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
         }
 
+        if (typeSymbol.IsRefLikeType)
+        {
+            Logger.LogWarning(
+                $"Skipping inferred type '{typeSymbol.ToDisplayString()}' because it is a ref-like type."
+            );
+            return;
+        }
+
         // even though I'm removing the nullable annotation, the comparision with includeNullibility is still
         // returning false for the same symbols and I'm not sure why
         var symbolComparer = typeSymbol.IsReferenceType
