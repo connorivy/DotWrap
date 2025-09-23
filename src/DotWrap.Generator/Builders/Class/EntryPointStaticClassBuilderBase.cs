@@ -49,6 +49,7 @@ public abstract class EntryPointStaticClassBuilderBase(ClassBuilderContext conte
 
         var sourceText =
             $@"
+#nullable enable
 using System;
 using System.Runtime.InteropServices;
 
@@ -108,7 +109,7 @@ namespace {Context.WrapperNamespace}
         {{
             var handle = GCHandle.FromIntPtr({SelfPointerName});
             if (!handle.IsAllocated) throw new System.ArgumentException($""Invalid handle: {{{SelfPointerName}}}"");
-            var {Obj} = ({className})handle.Target;
+            var {Obj} = ({className})(handle.Target ?? throw new System.InvalidOperationException(""Handle target is null""));
             return {Obj};
         }}"
         );

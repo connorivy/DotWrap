@@ -137,6 +137,9 @@ namespace DotWrap.BuiltIn
         HashSet<ITypeSymbol> allInferedTypes = [];
         List<ITypeSymbol> inferedTypes = [];
         GlobalContext globalContext = new(allExplicitTypes, allInferedTypes, inferedTypes);
+        var exposeEntireAssembly = assemblyAttrs.Any(a =>
+            a.AttributeClass?.Name == nameof(DotWrap.DotWrapExposeAssemblyAttribute)
+        );
 
         // System.Diagnostics.Debugger.Launch();
         foreach (var classDecl in classes)
@@ -148,22 +151,27 @@ namespace DotWrap.BuiltIn
                 continue;
             }
 
-            if (namedTypeSymbol.GetDotWrapExposeAttribute() is not AttributeData exposeAttr)
+            var isPublic = namedTypeSymbol.DeclaredAccessibility == Accessibility.Public;
+            if (!(isPublic && exposeEntireAssembly) && namedTypeSymbol.GetDotWrapExposeAttribute() is not AttributeData exposeAttr)
             {
                 // if the class is not marked for wrapper generation, skip it
                 continue;
             }
+            Logger.LogError($"adding class: {namedTypeSymbol.ToDisplayString()}");
             allExplicitTypes.Add(namedTypeSymbol);
         }
 
         foreach (var namedTypeSymbol in allExplicitTypes)
         {
+            DotWrapExposeAttribute exposeAttribute;
             if (namedTypeSymbol.GetDotWrapExposeAttribute() is not AttributeData exposeAttr)
             {
-                // if the class is not marked for wrapper generation, skip it
-                continue;
+                exposeAttribute = new DotWrapExposeAttribute();
             }
-            var exposeAttribute = DotWrapExposeData.FromAttributeData(exposeAttr);
+            else
+            {
+                exposeAttribute = DotWrapExposeData.FromAttributeData(exposeAttr);
+            }
 
             allExplicitTypes.Add(namedTypeSymbol);
             var context = new ClassBuilderContext(globalContext, namedTypeSymbol, exposeAttribute);
@@ -236,7 +244,7 @@ namespace DotWrap.BuiltIn
                 ).GenerateClassFile();
 
                 spc.AddSource(
-                    $"{context.WrapperName.Replace("<", "_").Replace(">", "_")}.g.cs",
+                    $"{context.WrapperName}.g.cs",
                     SourceText.From(sourceText, Encoding.UTF8)
                 );
             }

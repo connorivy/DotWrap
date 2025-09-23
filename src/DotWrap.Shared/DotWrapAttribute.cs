@@ -16,6 +16,16 @@ public class DotWrapExposeAttribute(string? alias = null, string? namespaceAlias
 }
 
 /// <summary>
+/// Attribute to mark a type for exposure in the generated package.
+/// </summary>
+/// <param name="alias">optional alias for the generated type name</param>
+/// <param name="namespaceAlias">optional alias for the namespace of the type within the generated package</param>
+[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false)]
+public class DotWrapExposeAssemblyAttribute() : Attribute
+{
+}
+
+/// <summary>
 /// Attribute to mark a method for exclusion from the generated package even though the type will be included
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]

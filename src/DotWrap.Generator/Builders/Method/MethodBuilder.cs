@@ -169,7 +169,7 @@ public class MethodBuilder(
         {
             if (isIndexer)
             {
-                methodCall = $"{obj}[index] = value";
+                methodCall = $"{obj}[index] = {internalMethodCallArgs.TrimStart("index, ").ToString()}";
             }
             else
             {
