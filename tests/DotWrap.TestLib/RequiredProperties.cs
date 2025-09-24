@@ -37,3 +37,14 @@ public class RequiredPropertiesWithPropSettingCtor
     public required string Name { get; set; }
     public required int Age { get; set; }
 }
+
+[DotWrapExpose]
+public class RequiredPropertiesOnBase : RequiredPropertiesBase
+{
+
+}
+
+public class RequiredPropertiesBase
+{
+    public required string Name { get; init; }
+}

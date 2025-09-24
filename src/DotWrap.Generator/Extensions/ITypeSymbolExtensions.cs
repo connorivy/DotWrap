@@ -309,13 +309,16 @@ public static class ITypedSymbolExtensions
                 yield break;
             }
 
-            // Get required properties
-            foreach (var property in namedType.GetMembers().OfType<IPropertySymbol>())
+            while (namedType is not null)
             {
-                if (property.IsRequired)
+                foreach (var property in namedType.GetMembers().OfType<IPropertySymbol>())
                 {
-                    yield return property;
+                    if (property.IsRequired)
+                    {
+                        yield return property;
+                    }
                 }
+                namedType = namedType.BaseType;
             }
         }
 
