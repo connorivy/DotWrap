@@ -109,7 +109,7 @@ namespace {Context.WrapperNamespace}
         {{
             var handle = GCHandle.FromIntPtr({SelfPointerName});
             if (!handle.IsAllocated) throw new System.ArgumentException($""Invalid handle: {{{SelfPointerName}}}"");
-            var {Obj} = ({className})(handle.Target ?? throw new System.InvalidOperationException(""Handle target is null""));
+            var {Obj} = ({className})handle.Target;
             return {Obj};
         }}"
         );

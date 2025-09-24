@@ -227,7 +227,7 @@ namespace DotWrap.BuiltIn
                 string sourceText = new ExplicitWrapperBuilder(context).GenerateClassFile();
 
                 spc.AddSource(
-                    $"{context.WrapperName.Replace("<", "_").Replace(">", "_")}.g.cs",
+                    $"{context.WrapperName}.g.cs",
                     SourceText.From(sourceText, Encoding.UTF8)
                 );
             }
