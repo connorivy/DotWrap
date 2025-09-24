@@ -109,7 +109,9 @@ namespace {Context.WrapperNamespace}
         {{
             var handle = GCHandle.FromIntPtr({SelfPointerName});
             if (!handle.IsAllocated) throw new System.ArgumentException($""Invalid handle: {{{SelfPointerName}}}"");
-            var {Obj} = ({className})(handle.Target ?? throw new System.InvalidOperationException(""Handle target is null""));
+#pragma warning disable CS8605 // Unboxing a possibly null value.
+            var {Obj} = ({className})handle.Target;
+#pragma warning restore CS8605 // Unboxing a possibly null value.
             return {Obj};
         }}"
         );
@@ -165,7 +167,7 @@ namespace {Context.WrapperNamespace}
         {
             return;
         }
-        context.GlobalContext.AddInferedType(typeArg);
+        context.GlobalContext.AddDiscoveredType(typeArg);
 
         ExportedMethodInfo getCount = new()
         {

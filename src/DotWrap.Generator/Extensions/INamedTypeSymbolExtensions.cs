@@ -13,18 +13,6 @@ public static class INamedTypeSymbolExtensions
                 .Any(a => a.AttributeClass?.Name == nameof(DotWrapExposeAttribute));
         }
 
-        public AttributeData? GetDotWrapExposeAttribute()
-        {
-            return classSymbol
-                .GetAttributes()
-                .FirstOrDefault(a => {
-                    var comparison = a.AttributeClass?.Name.EndsWith("Attribute") == true
-                        ? a.AttributeClass?.Name
-                        : a.AttributeClass?.Name + "Attribute";
-                    return comparison == nameof(DotWrapExposeAttribute);
-                });
-        }
-
         /// <summary>
         /// https://learn.microsoft.com/en-us/dotnet/framework/interop/blittable-and-non-blittable-types
         /// </summary>

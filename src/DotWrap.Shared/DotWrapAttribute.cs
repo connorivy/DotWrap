@@ -8,7 +8,7 @@ namespace DotWrap;
 /// </summary>
 /// <param name="alias">optional alias for the generated type name</param>
 /// <param name="namespaceAlias">optional alias for the namespace of the type within the generated package</param>
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false)]
 public class DotWrapExposeAttribute(string? alias = null, string? namespaceAlias = null) : Attribute
 {
     internal string? alias { get; } = alias;
@@ -20,9 +20,10 @@ public class DotWrapExposeAttribute(string? alias = null, string? namespaceAlias
 /// </summary>
 /// <param name="alias">optional alias for the generated type name</param>
 /// <param name="namespaceAlias">optional alias for the namespace of the type within the generated package</param>
-[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false)]
-public class DotWrapExposeAssemblyAttribute() : Attribute
+[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+public class DotWrapExposeAssemblyAttribute(Type? assemblyType = null) : Attribute
 {
+    public Type? assemblyType { get; } = assemblyType;
 }
 
 /// <summary>

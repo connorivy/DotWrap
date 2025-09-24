@@ -81,7 +81,7 @@ public record MethodBuilderContext(
 
     public List<ParameterDetails> GetParameterDetails()
     {
-        return MethodSymbol
+        var paramDetails = MethodSymbol
             .Parameters.Select(p =>
             {
                 var isOutParam = p.RefKind is RefKind.Out;
@@ -99,8 +99,30 @@ public record MethodBuilderContext(
                         ),
                     isOutParam
                 );
-            })
-            .ToList();
+            });
+
+        if (MethodSymbol.MethodKind is MethodKind.Constructor && !MethodSymbol.HasSetsRequiredMembersAttribute())
+        {
+            paramDetails = paramDetails.Concat(ClassContext.ClassSymbol.GetRequiredMembers().Select(p =>
+                {
+                    var exposedCType = p.Type.GetExposedType(out var isOriginalType);
+                    return new ParameterDetails(
+                        p.Name,
+                        exposedCType,
+                        isOriginalType
+                            ? null
+                            : (
+                                p.Type as INamedTypeSymbol
+                                ?? throw new NotSupportedException(
+                                    $"Unsupported parameter type: {p.Type} on required property {p.Name} in class {ClassContext.ClassSymbol.Name}"
+                                )
+                            ),
+                        false,
+                        true
+                    );
+                }));
+        }
+        return paramDetails.ToList();
     }
 
     public string GetExposedMethodSignatureString()
@@ -179,6 +201,7 @@ public record MethodBuilderContext(
         return string.Join(
             ", ",
             GetParameterDetails()
+                .Where(p => !p.IsRequiredProperty)
                 .Select(p =>
                 {
                     string? paramPrefix = p switch
@@ -244,5 +267,20 @@ public record MethodBuilderContext(
         }
 
         return flags;
+    }
+
+    internal string GetRequiredPropertySettersString()
+    {
+        var requiredProperties = GetParameterDetails().Where(p => p.IsRequiredProperty);
+        if (!requiredProperties.Any())
+        {
+            return string.Empty;
+        }
+        StringBuilder sb = new();
+        sb.AppendLine("            {");
+
+        sb.AppendLine(string.Join(",\n", requiredProperties.Select(p => $"                {p.Name} = {p.Name}{(p.OriginalTypeIfDifferent is not null ? Typed : string.Empty)}")));
+        sb.Append("            }");
+        return sb.ToString();
     }
 };

@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text;
 using DotWrap.Configuration;
 using DotWrap.Generator.Builders.Class;
@@ -30,11 +31,68 @@ public class MethodBuilder(
                     )
                     && !m.GetAttributes()
                         .Any(a => a.AttributeClass?.Name == nameof(DotWrapIgnoreAttribute))
+                    && !IsCompilerGeneratedMethod(m)
+                    && !m.IsInitOnly
                 )
         )
         {
             GenerateSingleMethod(classContext, method);
         }
+    }
+
+    private IEnumerable<IMethodSymbol> GetMethodsToGenerate(ClassBuilderContext classContext)
+    {
+        var generatedMethods = new HashSet<string>();
+        foreach (var method in classContext
+            .ClassSymbol
+            .GetMembers()
+            .OfType<IMethodSymbol>()
+            .Where(m =>
+                m.DeclaredAccessibility == Accessibility.Public
+                && (
+                    m.MethodKind
+                    is MethodKind.Ordinary
+                        or MethodKind.Constructor
+                        or MethodKind.PropertyGet
+                        or MethodKind.PropertySet
+                )
+                && !m.GetAttributes()
+                    .Any(a => a.AttributeClass?.Name == nameof(DotWrapIgnoreAttribute))
+                && !IsCompilerGeneratedMethod(m)
+                && !m.IsInitOnly
+            ))
+        {
+            if (method.MethodKind is not MethodKind.Constructor)
+            {
+                yield return method;
+            }
+
+            var ctorKey = string.Join(",", method.Parameters
+                .Select(p => p.Type.ToDisplayString())
+                .Concat(classContext.ClassSymbol.GetRequiredMembers().Select(p => p.Type.ToDisplayString())));
+
+            if (generatedMethods.Add(ctorKey))
+            {
+                // we are promoting required parameters to constructor parameters in the generated wrapper.
+                // therefore if a class has a ctor () with required properties (a, b) and a ctor (a, b)
+                // we need to only generate one of them because they will both become ctor(a, b) in the wrapper.
+                yield return method;
+            }
+        }
+    }
+
+    private static bool IsCompilerGeneratedMethod(IMethodSymbol method)
+    {
+        // Check for methods with angle brackets in the name, which indicates compiler-generated methods
+        // Examples: <Clone>$, <Main>$, etc.
+        if (method.Name.Contains('<') && method.Name.Contains('>'))
+        {
+            return true;
+        }
+
+        // Check if the method has the CompilerGenerated attribute
+        return method.GetAttributes().Any(a =>
+            a.AttributeClass?.ToDisplayString() == "System.Runtime.CompilerServices.CompilerGeneratedAttribute");
     }
 
     public void GenerateSingleMethod(ClassBuilderContext classContext, IMethodSymbol method)
@@ -100,10 +158,10 @@ public class MethodBuilder(
 
     private void AddInferedTypes(MethodBuilderContext context)
     {
-        classContext.GlobalContext.AddInferedType(context.OriginalReturnType);
+        classContext.GlobalContext.AddDiscoveredType(context.OriginalReturnType);
         foreach (var param in context.MethodSymbol.Parameters)
         {
-            classContext.GlobalContext.AddInferedType(param.Type);
+            classContext.GlobalContext.AddDiscoveredType(param.Type);
         }
     }
 
@@ -160,7 +218,8 @@ public class MethodBuilder(
             && propertySymbol.IsIndexer;
         if (methodContext.MethodSymbol.MethodKind is MethodKind.Constructor)
         {
-            methodCall = $"new {obj}({internalMethodCallArgs})";
+            var requiredPropertySetters = methodContext.GetRequiredPropertySettersString();
+            methodCall = $"new {obj}({internalMethodCallArgs})\n{requiredPropertySetters}";
         }
         else if (methodContext.MethodSymbol.MethodKind is MethodKind.PropertyGet)
         {

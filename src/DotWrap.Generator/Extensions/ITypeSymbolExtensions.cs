@@ -245,9 +245,9 @@ public static class ITypedSymbolExtensions
 #pragma warning disable CS0618 // Type or member is obsolete
             return new ExportedTypeId(
                 AssemblyNameUtils.GetSimplifiedAssemblyName(Utils.AssemblyNameUtils.GetAssemblyQualifiedName(symbol))
-                // symbol.ContainingNamespace?.ToDisplayString() ?? "global",
-                // symbol.Name,
-                // symbol.GetTypeArguments()?.Select(arg => DotWrapUtils.NormalizeCsTypeName(arg.ToDisplayString())) ?? []
+            // symbol.ContainingNamespace?.ToDisplayString() ?? "global",
+            // symbol.Name,
+            // symbol.GetTypeArguments()?.Select(arg => DotWrapUtils.NormalizeCsTypeName(arg.ToDisplayString())) ?? []
             );
 #pragma warning restore CS0618 // Type or member is obsolete
         }
@@ -283,6 +283,61 @@ public static class ITypedSymbolExtensions
             {
                 return true;
             }
+            return false;
+        }
+
+        public AttributeData? GetDotWrapExposeAttribute()
+        {
+            return symbol
+                .GetAttributes()
+                .FirstOrDefault(a =>
+                {
+                    var comparison = a.AttributeClass?.Name.EndsWith("Attribute") == true
+                        ? a.AttributeClass?.Name
+                        : a.AttributeClass?.Name + "Attribute";
+                    return comparison == nameof(DotWrapExposeAttribute);
+                });
+        }
+
+        /// <summary>
+        /// Gets all required members (properties and fields) from the type symbol.
+        /// </summary>
+        public IEnumerable<IPropertySymbol> GetRequiredMembers()
+        {
+            if (symbol is not INamedTypeSymbol namedType)
+            {
+                yield break;
+            }
+
+            while (namedType is not null)
+            {
+                foreach (var property in namedType.GetMembers().OfType<IPropertySymbol>())
+                {
+                    if (property.IsRequired)
+                    {
+                        yield return property;
+                    }
+                }
+                namedType = namedType.BaseType;
+            }
+        }
+
+        public bool HasRequiredFields()
+        {
+            if (symbol is not INamedTypeSymbol namedType)
+            {
+                return false;
+            }
+
+            // Check for required fields
+            foreach (var field in namedType.GetMembers().OfType<IFieldSymbol>())
+            {
+                if (field.IsRequired)
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
     }
