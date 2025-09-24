@@ -173,12 +173,6 @@ namespace DotWrap.BuiltIn
                 continue;
             }
             globalContext.AddDiscoveredType(namedTypeSymbol);
-            // allExplicitTypes.Add(namedTypeSymbol);
-        }
-
-        if (inferedTypesToWrap.Count == 0)
-        {
-            return false;
         }
 
         var externallyExposedTypeMeta = assemblyAttrs
@@ -216,7 +210,7 @@ namespace DotWrap.BuiltIn
 
         while (inferedTypesToWrap.Count > 0 || explicitTypesToWrap.Count > 0)
         {
-            while (explicitTypesToWrap.Dequeue() is INamedTypeSymbol namedTypeSymbol)
+            while (explicitTypesToWrap.Count > 0 && explicitTypesToWrap.Dequeue() is INamedTypeSymbol namedTypeSymbol)
             {
                 DotWrapExposeAttribute exposeAttribute;
                 if (namedTypeSymbol.GetDotWrapExposeAttribute() is not AttributeData exposeAttr)
@@ -238,7 +232,7 @@ namespace DotWrap.BuiltIn
                 );
             }
 
-            while (inferedTypesToWrap.Dequeue() is ITypeSymbol classSymbol)
+            while (inferedTypesToWrap.Count > 0 && inferedTypesToWrap.Dequeue() is ITypeSymbol classSymbol)
             {
                 // todo: better selection than just taking the first matching type that we find
                 var typeMetadata = externallyExposedTypeMeta.FirstOrDefault(meta =>

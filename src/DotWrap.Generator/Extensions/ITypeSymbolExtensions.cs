@@ -285,5 +285,19 @@ public static class ITypedSymbolExtensions
             }
             return false;
         }
+
+        public AttributeData? GetDotWrapExposeAttribute()
+        {
+            return symbol
+                .GetAttributes()
+                .FirstOrDefault(a =>
+                {
+                    var comparison = a.AttributeClass?.Name.EndsWith("Attribute") == true
+                        ? a.AttributeClass?.Name
+                        : a.AttributeClass?.Name + "Attribute";
+                    return comparison == nameof(DotWrapExposeAttribute);
+                });
+        }
+
     }
 }

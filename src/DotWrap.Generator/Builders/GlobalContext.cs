@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using DotWrap.Configuration;
 using Microsoft.CodeAnalysis;
+using DotWrap.Generator.Extensions;
 
 namespace DotWrap.Generator.Builders;
 
@@ -49,10 +50,13 @@ public class GlobalContext(
             return;
         }
 
-        var shouldBeExplicit = assembliesToExpose.Contains(
+        var exposeEntireAssembly = assembliesToExpose.Contains(
             typeSymbol.ContainingAssembly,
             SymbolEqualityComparer.Default
         );
+        var isPublic = typeSymbol.DeclaredAccessibility == Accessibility.Public;
+        var shouldBeExplicit = (isPublic && exposeEntireAssembly) || typeSymbol.GetDotWrapExposeAttribute() is not null;
+
         if (shouldBeExplicit)
         {
             if (typeSymbol is not INamedTypeSymbol typeSymbolNamed)
