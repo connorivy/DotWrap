@@ -165,7 +165,7 @@ namespace {Context.WrapperNamespace}
         {
             return;
         }
-        context.GlobalContext.AddInferedType(typeArg);
+        context.GlobalContext.AddDiscoveredType(typeArg);
 
         ExportedMethodInfo getCount = new()
         {

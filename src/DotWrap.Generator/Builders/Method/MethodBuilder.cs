@@ -100,10 +100,10 @@ public class MethodBuilder(
 
     private void AddInferedTypes(MethodBuilderContext context)
     {
-        classContext.GlobalContext.AddInferedType(context.OriginalReturnType);
+        classContext.GlobalContext.AddDiscoveredType(context.OriginalReturnType);
         foreach (var param in context.MethodSymbol.Parameters)
         {
-            classContext.GlobalContext.AddInferedType(param.Type);
+            classContext.GlobalContext.AddDiscoveredType(param.Type);
         }
     }
 

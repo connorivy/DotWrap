@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using DotWrap.Configuration;
 using Microsoft.CodeAnalysis;
 
@@ -6,10 +7,12 @@ namespace DotWrap.Generator.Builders;
 public class GlobalContext(
     HashSet<INamedTypeSymbol> allExplicitTypes,
     HashSet<ITypeSymbol> allInferedTypes,
-    List<ITypeSymbol> inferedTypesToWrap
+    Queue<ITypeSymbol> inferedTypesToWrap,
+    Queue<INamedTypeSymbol> explicitTypesToWrap,
+    ImmutableHashSet<IAssemblySymbol> assembliesToExpose
 )
 {
-    public void AddInferedType(ITypeSymbol typeSymbol)
+    public void AddDiscoveredType(ITypeSymbol typeSymbol)
     {
         if (
             typeSymbol.IsReferenceType
@@ -34,31 +37,38 @@ public class GlobalContext(
             ? SymbolEqualityComparer.Default
             : SymbolEqualityComparer.IncludeNullability;
 
-        if (
-            !allInferedTypes.Add(typeSymbol)
-            || allExplicitTypes.Contains(typeSymbol, symbolComparer)
-        )
+        if (allExplicitTypes.Contains(typeSymbol, symbolComparer) || allInferedTypes.Contains(typeSymbol))
         {
             return;
         }
-
-        if (
-            typeSymbol.TypeKind
-            is TypeKind.Class
-                or TypeKind.Struct
-                or TypeKind.Structure
-                or TypeKind.Interface
-                or TypeKind.Array
-                or TypeKind.Enum
-        )
+        if (typeSymbol.TypeKind is not TypeKind.Class and not TypeKind.Struct and not TypeKind.Structure and not TypeKind.Interface and not TypeKind.Array and not TypeKind.Enum)
         {
-            inferedTypesToWrap.Add(typeSymbol);
+            Logger.LogWarning(
+                $"Skipping inferred type '{typeSymbol.ToDisplayString()}' because it is a {typeSymbol.TypeKind}, but we were expecting a class, struct, interface, array, or enum."
+            );
+            return;
+        }
+
+        var shouldBeExplicit = assembliesToExpose.Contains(
+            typeSymbol.ContainingAssembly,
+            SymbolEqualityComparer.Default
+        );
+        if (shouldBeExplicit)
+        {
+            if (typeSymbol is not INamedTypeSymbol typeSymbolNamed)
+            {
+                Logger.LogWarning(
+                    $"Skipping exposed type '{typeSymbol.ToDisplayString()}' because it is not a named type."
+                );
+                return;
+            }
+            allExplicitTypes.Add(typeSymbolNamed);
+            explicitTypesToWrap.Enqueue(typeSymbolNamed);
         }
         else
         {
-            Logger.LogWarning(
-                $"Skipping inferred type '{typeSymbol.ToDisplayString()}' because it is not a class, struct, interface, array, or enum."
-            );
+            allInferedTypes.Add(typeSymbol);
+            inferedTypesToWrap.Enqueue(typeSymbol);
         }
     }
 }

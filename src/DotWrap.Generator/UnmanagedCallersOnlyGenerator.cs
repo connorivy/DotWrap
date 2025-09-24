@@ -132,18 +132,33 @@ namespace DotWrap.BuiltIn
 
         // collect all assembly attributes that are marked for external exposure
         var assemblyAttrs = compilation.Assembly.GetAttributes();
+        var currentAssembly = compilation.Assembly;
 
         HashSet<INamedTypeSymbol> allExplicitTypes = [];
         HashSet<ITypeSymbol> allInferedTypes = [];
-        List<ITypeSymbol> inferedTypes = [];
-        GlobalContext globalContext = new(allExplicitTypes, allInferedTypes, inferedTypes);
+        Queue<ITypeSymbol> inferedTypesToWrap = [];
+        Queue<INamedTypeSymbol> explicitTypesToWrap = [];
         var exposeEntireAssembly = assemblyAttrs.Any(a =>
             a.AttributeClass?.Name == nameof(DotWrap.DotWrapExposeAssemblyAttribute)
         );
 
+        var assembliesToExpose = assemblyAttrs
+            .Where(a =>
+                a.AttributeClass?.Name == nameof(DotWrap.DotWrapExposeAssemblyAttribute)
+            )
+            .Select(a => a.GetCtorArg<ITypeSymbol>(
+                0,
+                nameof(DotWrap.DotWrapExposeAssemblyAttribute.assemblyType)
+            ))
+            .Select(t => t?.ContainingAssembly ?? currentAssembly)
+            .ToImmutableHashSet<IAssemblySymbol>(SymbolEqualityComparer.Default);
+
+        GlobalContext globalContext = new(allExplicitTypes, allInferedTypes, inferedTypesToWrap, explicitTypesToWrap, assembliesToExpose);
+
         // System.Diagnostics.Debugger.Launch();
         foreach (var classDecl in classes)
         {
+            Logger.LogInfo($"Processing class declaration: {classDecl.Identifier.Text}");
             var semanticModel = compilation.GetSemanticModel(classDecl.SyntaxTree);
             var namedTypeSymbol = semanticModel.GetDeclaredSymbol(classDecl);
             if (namedTypeSymbol == null)
@@ -157,32 +172,11 @@ namespace DotWrap.BuiltIn
                 // if the class is not marked for wrapper generation, skip it
                 continue;
             }
-            allExplicitTypes.Add(namedTypeSymbol);
+            globalContext.AddDiscoveredType(namedTypeSymbol);
+            // allExplicitTypes.Add(namedTypeSymbol);
         }
 
-        foreach (var namedTypeSymbol in allExplicitTypes)
-        {
-            DotWrapExposeAttribute exposeAttribute;
-            if (namedTypeSymbol.GetDotWrapExposeAttribute() is not AttributeData exposeAttr)
-            {
-                exposeAttribute = new DotWrapExposeAttribute();
-            }
-            else
-            {
-                exposeAttribute = DotWrapExposeData.FromAttributeData(exposeAttr);
-            }
-
-            allExplicitTypes.Add(namedTypeSymbol);
-            var context = new ClassBuilderContext(globalContext, namedTypeSymbol, exposeAttribute);
-            string sourceText = new ExplicitWrapperBuilder(context).GenerateClassFile();
-
-            spc.AddSource(
-                $"{context.WrapperName.Replace("<", "_").Replace(">", "_")}.g.cs",
-                SourceText.From(sourceText, Encoding.UTF8)
-            );
-        }
-
-        if (inferedTypes.Count == 0)
+        if (inferedTypesToWrap.Count == 0)
         {
             return false;
         }
@@ -220,13 +214,32 @@ namespace DotWrap.BuiltIn
             )
             .ToList();
 
-        while (inferedTypes.Count > 0)
+        while (inferedTypesToWrap.Count > 0 || explicitTypesToWrap.Count > 0)
         {
-            for (int i = inferedTypes.Count - 1; i >= 0; i--)
+            while (explicitTypesToWrap.Dequeue() is INamedTypeSymbol namedTypeSymbol)
             {
-                var classSymbol = inferedTypes[i];
-                inferedTypes.RemoveAt(i);
+                DotWrapExposeAttribute exposeAttribute;
+                if (namedTypeSymbol.GetDotWrapExposeAttribute() is not AttributeData exposeAttr)
+                {
+                    exposeAttribute = new DotWrapExposeAttribute();
+                }
+                else
+                {
+                    exposeAttribute = DotWrapExposeData.FromAttributeData(exposeAttr);
+                }
 
+                allExplicitTypes.Add(namedTypeSymbol);
+                var context = new ClassBuilderContext(globalContext, namedTypeSymbol, exposeAttribute);
+                string sourceText = new ExplicitWrapperBuilder(context).GenerateClassFile();
+
+                spc.AddSource(
+                    $"{context.WrapperName.Replace("<", "_").Replace(">", "_")}.g.cs",
+                    SourceText.From(sourceText, Encoding.UTF8)
+                );
+            }
+
+            while (inferedTypesToWrap.Dequeue() is ITypeSymbol classSymbol)
+            {
                 // todo: better selection than just taking the first matching type that we find
                 var typeMetadata = externallyExposedTypeMeta.FirstOrDefault(meta =>
                     classSymbol.HasInheritanceOrImplementationRelationship(meta.TypeWithMetadata)
