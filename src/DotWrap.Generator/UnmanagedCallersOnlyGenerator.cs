@@ -21,8 +21,8 @@ public class UnmanagedCallersOnlyGenerator : IIncrementalGenerator
     {
         var classDeclarations = context
             .SyntaxProvider.CreateSyntaxProvider(
-                predicate: static (node, _) => node is ClassDeclarationSyntax,
-                transform: static (ctx, _) => (ClassDeclarationSyntax)ctx.Node
+                predicate: static (node, _) => node is ClassDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax or InterfaceDeclarationSyntax,
+                transform: static (ctx, _) => ctx.Node
             )
             .Where(static c => c is not null);
 
@@ -125,10 +125,10 @@ namespace DotWrap.BuiltIn
 
     private static bool GenerateUnmanagedOnlyEntryPoints(
         SourceProductionContext spc,
-        (Compilation Left, ImmutableArray<ClassDeclarationSyntax> Right) source
+        (Compilation Left, ImmutableArray<SyntaxNode> Right) source
     )
     {
-        var (compilation, classes) = source;
+        var (compilation, nodes) = source;
 
         // collect all assembly attributes that are marked for external exposure
         var assemblyAttrs = compilation.Assembly.GetAttributes();
@@ -156,11 +156,10 @@ namespace DotWrap.BuiltIn
         GlobalContext globalContext = new(allExplicitTypes, allInferedTypes, inferedTypesToWrap, explicitTypesToWrap, assembliesToExpose);
 
         // System.Diagnostics.Debugger.Launch();
-        foreach (var classDecl in classes)
+        foreach (var node in nodes)
         {
-            Logger.LogInfo($"Processing class declaration: {classDecl.Identifier.Text}");
-            var semanticModel = compilation.GetSemanticModel(classDecl.SyntaxTree);
-            var namedTypeSymbol = semanticModel.GetDeclaredSymbol(classDecl);
+            var semanticModel = compilation.GetSemanticModel(node.SyntaxTree);
+            var namedTypeSymbol = semanticModel.GetDeclaredSymbol(node) as INamedTypeSymbol;
             if (namedTypeSymbol == null)
             {
                 continue;

@@ -30,11 +30,27 @@ public class MethodBuilder(
                     )
                     && !m.GetAttributes()
                         .Any(a => a.AttributeClass?.Name == nameof(DotWrapIgnoreAttribute))
+                    && !IsCompilerGeneratedMethod(m)
+                    && !m.IsInitOnly
                 )
         )
         {
             GenerateSingleMethod(classContext, method);
         }
+    }
+
+    private static bool IsCompilerGeneratedMethod(IMethodSymbol method)
+    {
+        // Check for methods with angle brackets in the name, which indicates compiler-generated methods
+        // Examples: <Clone>$, <Main>$, etc.
+        if (method.Name.Contains('<') && method.Name.Contains('>'))
+        {
+            return true;
+        }
+
+        // Check if the method has the CompilerGenerated attribute
+        return method.GetAttributes().Any(a =>
+            a.AttributeClass?.ToDisplayString() == "System.Runtime.CompilerServices.CompilerGeneratedAttribute");
     }
 
     public void GenerateSingleMethod(ClassBuilderContext classContext, IMethodSymbol method)

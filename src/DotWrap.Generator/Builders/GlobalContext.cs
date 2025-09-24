@@ -24,6 +24,17 @@ public class GlobalContext(
             typeSymbol = typeSymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
         }
 
+        // if (typeSymbol.SpecialType.IsBlittable())
+        // {
+        //     // no need to wrap blittable types
+        //     return;
+        // }
+        // if (typeSymbol.GetBlittableExternalTypeAssignment() is not null)
+        // {
+        //     // no need to wrap types that have been explicitly assigned a blittable external type
+        //     return;
+        // }
+
         if (typeSymbol.IsRefLikeType)
         {
             Logger.LogWarning(
