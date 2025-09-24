@@ -6,5 +6,6 @@ public record ParameterDetails(
     string Name,
     string ExposedType,
     INamedTypeSymbol? OriginalTypeIfDifferent,
-    bool IsOutParam
+    bool IsOutParam,
+    bool IsRequiredProperty = false
 );

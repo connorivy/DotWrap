@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text;
 using DotWrap.Configuration;
 using DotWrap.Generator.Builders.Class;
@@ -36,6 +37,47 @@ public class MethodBuilder(
         )
         {
             GenerateSingleMethod(classContext, method);
+        }
+    }
+
+    private IEnumerable<IMethodSymbol> GetMethodsToGenerate(ClassBuilderContext classContext)
+    {
+        var generatedMethods = new HashSet<string>();
+        foreach (var method in classContext
+            .ClassSymbol
+            .GetMembers()
+            .OfType<IMethodSymbol>()
+            .Where(m =>
+                m.DeclaredAccessibility == Accessibility.Public
+                && (
+                    m.MethodKind
+                    is MethodKind.Ordinary
+                        or MethodKind.Constructor
+                        or MethodKind.PropertyGet
+                        or MethodKind.PropertySet
+                )
+                && !m.GetAttributes()
+                    .Any(a => a.AttributeClass?.Name == nameof(DotWrapIgnoreAttribute))
+                && !IsCompilerGeneratedMethod(m)
+                && !m.IsInitOnly
+            ))
+        {
+            if (method.MethodKind is not MethodKind.Constructor)
+            {
+                yield return method;
+            }
+
+            var ctorKey = string.Join(",", method.Parameters
+                .Select(p => p.Type.ToDisplayString())
+                .Concat(classContext.ClassSymbol.GetRequiredMembers().Select(p => p.Type.ToDisplayString())));
+
+            if (generatedMethods.Add(ctorKey))
+            {
+                // we are promoting required parameters to constructor parameters in the generated wrapper.
+                // therefore if a class has a ctor () with required properties (a, b) and a ctor (a, b)
+                // we need to only generate one of them because they will both become ctor(a, b) in the wrapper.
+                yield return method;
+            }
         }
     }
 
@@ -176,7 +218,8 @@ public class MethodBuilder(
             && propertySymbol.IsIndexer;
         if (methodContext.MethodSymbol.MethodKind is MethodKind.Constructor)
         {
-            methodCall = $"new {obj}({internalMethodCallArgs})";
+            var requiredPropertySetters = methodContext.GetRequiredPropertySettersString();
+            methodCall = $"new {obj}({internalMethodCallArgs})\n{requiredPropertySetters}";
         }
         else if (methodContext.MethodSymbol.MethodKind is MethodKind.PropertyGet)
         {

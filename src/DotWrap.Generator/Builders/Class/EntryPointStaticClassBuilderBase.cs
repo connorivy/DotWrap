@@ -102,12 +102,6 @@ namespace {Context.WrapperNamespace}
 "
         );
 
-        string? structNullCheck = null;
-        if (Context.ClassSymbol.IsValueType)
-        {
-            structNullCheck = " ?? throw new System.InvalidOperationException(\"Cannot wrap a null struct.\")";
-        }
-
         // internal get method
         methodsSource.AppendLine(
             @$"
@@ -115,8 +109,9 @@ namespace {Context.WrapperNamespace}
         {{
             var handle = GCHandle.FromIntPtr({SelfPointerName});
             if (!handle.IsAllocated) throw new System.ArgumentException($""Invalid handle: {{{SelfPointerName}}}"");
-            var target = handle.Target;
-            var {Obj} = ({className})(handle.Target{structNullCheck});
+#pragma warning disable CS8605 // Unboxing a possibly null value.
+            var {Obj} = ({className})handle.Target;
+#pragma warning restore CS8605 // Unboxing a possibly null value.
             return {Obj};
         }}"
         );
