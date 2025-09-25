@@ -82,14 +82,8 @@ public class MethodBuilder(
 
                 var methodKey = $"{method.Name}({string.Join(", ", methodKeyComponents)})";
 
-                Logger.LogWarning(
-                    $"Class {currentClassSymbol.Name} Method key: {methodKey}"
-                );
                 if (generatedMethods.Add(methodKey))
                 {
-                    Logger.LogWarning(
-                        $"Generating method '{method.Name}' with key '{methodKey}'."
-                    );
                     // there are a couple reasons why we need to do this:
                     // 1. we will encounter overriden methods in derived classes, and then again in base classes.
                     //    we only want to generate one method in the wrapper, so we skip the duplicates
