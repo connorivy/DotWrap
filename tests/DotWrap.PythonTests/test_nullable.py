@@ -24,3 +24,5 @@ def test_nullable_string_without_value():
 def test_nullable_custom_class_with_value():
     value = testlib.NullableTypes.nullable_custom_class(None)
     assert value is None, f"Expected None, but got {value}"
+
+test_nullable_string_without_value()

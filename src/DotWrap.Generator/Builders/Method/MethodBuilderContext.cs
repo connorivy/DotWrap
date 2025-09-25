@@ -54,6 +54,14 @@ public record MethodBuilderContext(
             this.MethodSymbol.OriginalDefinition.ReturnType as ITypeParameterSymbol
         )?.Name;
 
+        // special case for Nullable<T> where T is a value type
+        // most of the time when a method returns a Nullable<T> it will be converted to T | None in Python
+        // however, if the type itself is a Nullable<T> (i.e. the "method" is a ctor of System.Nullable<T>) 
+        // then we need to actually return an object that represents Nullable<T> and not just T | None
+        var forceNullableFalse =
+            ClassContext.ClassSymbol.OriginalDefinition.SpecialType
+            == SpecialType.System_Nullable_T;
+
         return new ExportedMethodInfo
         {
             OriginalName = MethodName,
@@ -66,7 +74,8 @@ public record MethodBuilderContext(
                 this.MethodSymbol.OriginalDefinition.ReturnType as ITypeParameterSymbol
             )?.Name,
             ReturnType = this.OriginalReturnType.GetExportedTypeInstance(
-                genericName
+                genericName,
+                forceNullableFalse
             ),
             SpecialCaseFlags = this.GetSpecialCaseFlags(),
             SummaryComment = XmlParser.ParseSummary(xmlDoc),

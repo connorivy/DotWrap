@@ -25,7 +25,7 @@ public static class PythonNamingUtils
             fullTypeName = "System.Nullable<" + fullTypeName[..^1] + ">";
         }
 
-        var topLevelSplit = SplitOnPeriodTopLevel(fullTypeName).ToList();
+        var topLevelSplit = DotWrapUtils.SplitOnPeriodTopLevel(fullTypeName).ToList();
 
         var innerGenerics = topLevelSplit
             .SelectMany(GetTopLevelGenerics)
@@ -35,7 +35,7 @@ public static class PythonNamingUtils
             .ToList();
 
         var typeName = topLevelSplit.Last();
-        var nonGenericTypeName = GetGenericBaseNameOrNull(typeName) ?? typeName;
+        var nonGenericTypeName = DotWrapUtils.GetGenericBaseNameOrNull(typeName) ?? typeName;
 
         return nonGenericTypeName
             + (innerGenerics.Count > 0 ? $"Of{string.Join("And", innerGenerics)}" : "");
@@ -57,8 +57,12 @@ public static class PythonNamingUtils
     )
     {
         fullTypeName = DotWrapUtils.ReplaceArraySymbols(fullTypeName);
+        if (fullTypeName.EndsWith("?"))
+        {
+            fullTypeName = "System.Nullable<" + fullTypeName[..^1] + ">";
+        }
 
-        var topLevelSplit = SplitOnPeriodTopLevel(fullTypeName).ToList();
+        var topLevelSplit = DotWrapUtils.SplitOnPeriodTopLevel(fullTypeName).ToList();
 
         var innerGenerics = topLevelSplit
             .SelectMany(GetTopLevelGenerics)
@@ -68,45 +72,10 @@ public static class PythonNamingUtils
             .ToList();
 
         var typeName = topLevelSplit.Last();
-        var nonGenericTypeName = GetGenericBaseNameOrNull(typeName) ?? typeName;
+        var nonGenericTypeName = DotWrapUtils.GetGenericBaseNameOrNull(typeName) ?? typeName;
 
         return nonGenericTypeName
             + (innerGenerics.Count > 0 ? $"[{string.Join(", ", innerGenerics)}]" : "");
-    }
-
-    /// <summary>
-    /// Splits a string on periods, but only at the top level meaning that periods within generic type arguments are ignored.
-    /// For example:
-    ///   "System.Collections.Generic.List<System.Int32>" -> ["System", "Collections", "Generic", "List<System.Int32>"]
-    /// </summary>
-    /// <param name="input"></param>
-    /// <returns></returns>
-    private static IEnumerable<string> SplitOnPeriodTopLevel(string input)
-    {
-        int splitStartIndex = 0;
-        int numOpenBrackets = 0;
-        var doubleOpenBracketIndex = input.IndexOf("[[");
-        for (int i = 0; i < input.Length; i++)
-        {
-            if (doubleOpenBracketIndex > -1 && i >= doubleOpenBracketIndex)
-            {
-                break;
-            }
-            if (input[i] == '<')
-            {
-                numOpenBrackets++;
-            }
-            else if (input[i] == '>')
-            {
-                numOpenBrackets--;
-            }
-            else if (numOpenBrackets == 0 && input[i] == '.')
-            {
-                yield return input.Substring(splitStartIndex, i - splitStartIndex);
-                splitStartIndex = i + 1;
-            }
-        }
-        yield return input.Substring(splitStartIndex);
     }
 
     private static IEnumerable<string> GetTopLevelGenerics(string input)
@@ -217,24 +186,6 @@ public static class PythonNamingUtils
         {
             yield return input.Substring(lastPos).Trim();
         }
-    }
-
-    public static string? GetGenericBaseNameOrNull(string className)
-    {
-        className = SplitOnPeriodTopLevel(className).LastOrDefault() ?? className;
-        // split on first < and last >
-        var startIndex = className.IndexOf('<');
-        var endIndex = className.LastIndexOf('>');
-        if (startIndex < 0 || endIndex < 0 || startIndex >= endIndex)
-        {
-            startIndex = className.IndexOf("[[");
-            endIndex = className.LastIndexOf("]]");
-        }
-        if (startIndex < 0 || endIndex < 0 || startIndex >= endIndex)
-        {
-            return null; // no valid generic type found
-        }
-        return className.Substring(0, startIndex);
     }
 
     public static string MapTypeToPython(

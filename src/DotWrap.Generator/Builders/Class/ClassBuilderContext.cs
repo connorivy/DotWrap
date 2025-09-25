@@ -25,7 +25,9 @@ public class ClassBuilderContext(
             }
             else if (ClassSymbol is IArrayTypeSymbol arraySymbol)
             {
-                csharpName = DotWrapUtils.ReplaceArraySymbols(arraySymbol.ToDisplayString());
+                var elementTypeName = DotWrapUtils.SplitOnPeriodTopLevel(arraySymbol.ToDisplayString()).Last();
+                csharpName = DotWrapUtils.ReplaceArraySymbols(elementTypeName);
+                // csharpName = DotWrapUtils.ReplaceArraySymbols(arraySymbol.ToDisplayString());
             }
             else
             {
