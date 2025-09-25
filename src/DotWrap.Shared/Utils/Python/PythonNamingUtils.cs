@@ -36,6 +36,10 @@ public static class PythonNamingUtils
 
         var typeName = topLevelSplit.Last();
         var nonGenericTypeName = GetGenericBaseNameOrNull(typeName) ?? typeName;
+        if (char.IsLower(nonGenericTypeName[0]))
+        {
+            nonGenericTypeName = char.ToUpper(nonGenericTypeName[0]) + nonGenericTypeName[1..];
+        }
 
         return nonGenericTypeName
             + (innerGenerics.Count > 0 ? $"Of{string.Join("And", innerGenerics)}" : "");
