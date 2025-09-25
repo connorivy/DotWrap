@@ -49,4 +49,9 @@ public static class Ops
         );
         span.CopyTo(numpySpan);
     }
+
+    public static unsafe Guid PointerToGuid(IntPtr ptr)
+    {
+        return Unsafe.ReadUnaligned<Guid>(ptr.ToPointer());
+    }
 }

@@ -46,6 +46,7 @@ public static class ITypedSymbolExtensions
             return symbol switch
             {
                 ITypeSymbol when symbol.Name == "Half" && symbol.ContainingNamespace?.ToString() == "System" => "float",
+                ITypeSymbol when symbol.Name == "Guid" && symbol.ContainingNamespace?.ToString() == "System" => "IntPtr",
                 { SpecialType: SpecialType.System_Char } => "int",
                 { SpecialType: SpecialType.System_Boolean } => "int",
                 { SpecialType: SpecialType.System_String } => "IntPtr",
@@ -178,6 +179,13 @@ public static class ITypedSymbolExtensions
             {
                 return @$"
             var {ExportedResult} = (float){InternalResult};";
+            }
+            else if (symbol.Name == "Guid" && symbol.ContainingNamespace?.ToString() == "System")
+            {
+                return @$"
+            var {ExportedResult} = System.Runtime.InteropServices.Marshal.AllocHGlobal(16);
+            var guidBytes = {InternalResult}.ToByteArray();
+            System.Runtime.InteropServices.Marshal.Copy(guidBytes, 0, {ExportedResult}, 16);";
             }
             else if (symbol.SpecialType == SpecialType.System_String)
             {

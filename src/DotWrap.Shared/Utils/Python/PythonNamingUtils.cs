@@ -275,6 +275,7 @@ public static class PythonNamingUtils
             or "uint64"
             or "ulong" => "int",
             "half" or "float" or "double" => "float",
+            "guid" => "uuid.UUID",
             "boolean" or "bool" => "bool",
             "void" => "None",
             "string" or "char" => "str",

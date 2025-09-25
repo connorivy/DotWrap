@@ -32,23 +32,8 @@ public static class DotWrapObjectExtensions
                 "void" => "None",
                 "string" => "str",
                 "intptr" => "Any",
+                "guid" => "uuid.UUID",
                 _ => $"\"{PythonNamingUtils.PythonizeTypeName(typeInfo.OriginalTypeName, genericParamsToArgsDict)}\"",
-            };
-        }
-
-        public string MapExposedTypeToPython()
-        {
-            var t = (typeInfo.ExposedTypeIfDifferent ?? typeInfo.OriginalTypeName)
-                .ToLowerInvariant()
-                .Replace("system.", "");
-            return t switch
-            {
-                "int32" or "int" => "int",
-                "float" or "double" => "float",
-                "boolean" or "bool" => "bool",
-                "void" => "None",
-                "string" => "CString", // use CString wrapper for strings
-                _ => $"\"{PythonNamingUtils.PythonizeTypeName(typeInfo.OriginalTypeName.Split('.').Last())}\"",
             };
         }
 
@@ -74,6 +59,7 @@ public static class DotWrapObjectExtensions
                 "float" => "float",
                 "double" => "double",
                 "intptr" => "void*",
+                "guid" => "void*",  // Guid marshaled as pointer to 16-byte buffer
                 "arrayinfo" => "ArrayInfo",
                 _ => throw new NotSupportedException($"Unsupported type: {t}"),
             };

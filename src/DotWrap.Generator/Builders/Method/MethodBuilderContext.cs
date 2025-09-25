@@ -176,6 +176,13 @@ public record MethodBuilderContext(
             {
                 sb.AppendLine($"            var {param.Name}{Typed} = (Half){param.Name};");
             }
+            else if (
+                param.OriginalTypeIfDifferent.Name == "Guid"
+                && param.OriginalTypeIfDifferent.ContainingNamespace?.ToString() == "System"
+            )
+            {
+                sb.AppendLine($"            var {param.Name}{Typed} = DotWrap.Operations.Ops.PointerToGuid({param.Name});");
+            }
             else
             {
                 var paramTypeClassContext = new ClassBuilderContext(

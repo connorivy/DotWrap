@@ -48,6 +48,8 @@ public class ReturnTypesSimple
 
     public static double MinDouble() => double.MinValue;
 
+    public static Guid Guid_0123456789abcdef0123456789abcdef() => Guid.Parse("01234567-89ab-cdef-0123-456789abcdef");
+
     // todo:
     // public static decimal MaxDecimal() => decimal.MaxValue;
 

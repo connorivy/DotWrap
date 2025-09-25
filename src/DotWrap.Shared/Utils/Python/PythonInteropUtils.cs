@@ -17,6 +17,12 @@ public class PythonInteropUtils
                     "string",
                     StringComparison.OrdinalIgnoreCase
                 ) => $"{ExportedPyResult} = str(CString({InternalPyResult}))",
+            _ when typeDefinition.FullyQualifiedName.Equals(
+                    "system.guid",
+                    StringComparison.OrdinalIgnoreCase
+                ) => @$"
+{InternalPythonPrefix}guid_bytes = bytes({Ffi}.buffer({InternalPyResult}, 16))
+{ExportedPyResult} = uuid.UUID(bytes={InternalPythonPrefix}guid_bytes)",
 
             _ when typeDefinition.FullyQualifiedName.Equals(
                     "bool",

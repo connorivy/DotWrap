@@ -187,6 +187,16 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
             {
                 typedVarAssignment = $"{param.Name}{Typed} = {param.Name}"; // half is already represented by a float and does not need conversion
             }
+            else if (
+                definition.FullyQualifiedName.Equals(
+                    "system.guid",
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+            {
+                typedVarAssignment = @$"
+{param.Name}{Typed} = {Ffi}.new(""unsigned char[16]"", {param.Name}.bytes)";
+            }
             else if (definition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.DirectlyBlittable))
             {
                 typedVarAssignment = $"{param.Name}{Typed} = {param.Name}";

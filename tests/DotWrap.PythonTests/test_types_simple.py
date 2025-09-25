@@ -106,3 +106,9 @@ def test_char():
 def test_string():
     result = testlib.TypesSimple.string("hello")
     assert result == "hello", f"Expected 'hello', got {result}"
+
+def test_guid():
+    import uuid
+    original_uuid = uuid.uuid4()
+    returned_uuid = testlib.TypesSimple.guid(original_uuid)
+    assert returned_uuid == original_uuid, f"Expected {original_uuid}, got {returned_uuid}"
