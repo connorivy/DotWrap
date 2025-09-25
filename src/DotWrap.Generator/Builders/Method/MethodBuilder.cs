@@ -48,6 +48,7 @@ public class MethodBuilder(
 
     private IEnumerable<IMethodSymbol> GetMethodsToGenerate(ClassBuilderContext classContext)
     {
+        var isOriginalType = true;
         var generatedMethods = new HashSet<string>();
         var currentClassSymbol = classContext.ClassSymbol;
         while (currentClassSymbol is not null &&
@@ -76,6 +77,11 @@ public class MethodBuilder(
 
                 if (method.MethodKind is MethodKind.Constructor)
                 {
+                    if (!isOriginalType)
+                    {
+                        // only generate constructors for the original type, not base types
+                        continue;
+                    }
                     methodKeyComponents = methodKeyComponents
                         .Concat(classContext.ClassSymbol.GetRequiredMembers().Select(p => p.Type.ToDisplayString()));
                 }
@@ -95,6 +101,7 @@ public class MethodBuilder(
                 }
             }
             currentClassSymbol = currentClassSymbol.BaseType;
+            isOriginalType = false;
         }
     }
 
