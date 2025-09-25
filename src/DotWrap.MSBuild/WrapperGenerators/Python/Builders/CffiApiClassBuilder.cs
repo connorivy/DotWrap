@@ -141,7 +141,7 @@ def __del__(self) -> None:
         var genericDef = string.Join(
             ", ",
             classInfo.GenericTypeArgumentsToParameters.Select(kvp =>
-                PythonNamingUtils.MapTypeToPython(kvp.Key)
+                $"\"{PythonNamingUtils.MapTypeToPython(kvp.Key)}\""
             )
         );
         if (!string.IsNullOrEmpty(genericDef))

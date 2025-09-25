@@ -33,7 +33,7 @@ public static class DotWrapObjectExtensions
                 "string" => "str",
                 "intptr" => "Any",
                 "guid" => "uuid.UUID",
-                _ => $"\"{PythonNamingUtils.PythonizeTypeName(typeInfo.OriginalTypeName, genericParamsToArgsDict)}\"",
+                _ => $"{PythonNamingUtils.PythonizeTypeName(typeInfo.OriginalTypeName, genericParamsToArgsDict)}",
             };
         }
 

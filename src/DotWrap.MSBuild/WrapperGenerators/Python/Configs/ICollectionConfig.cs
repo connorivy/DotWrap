@@ -32,7 +32,7 @@ public class ICollectionConfig : DotWrapPythonTypeConfig
         );
         genericClassBodyBuilder?.AppendLine(
             $@"
-def to_list(self) -> list[{genericArg}]:
+def to_list(self) -> list[""{genericArg}""]
     pass
         "
         );
@@ -67,7 +67,7 @@ def to_list(self) -> list[{genericArg}]:
             genericArg,
             out bool isOriginalType
         );
-        classBody.AppendLine($"def to_list(self) -> list[{genericArg}]:");
+        classBody.AppendLine($"def to_list(self) -> list[\"{genericArg}\"]:");
         using var indent1 = classBody.IndentUntilDispose();
 
         var numpyType = PythonNamingUtils.MapTypeToNumpy(genericArg);
