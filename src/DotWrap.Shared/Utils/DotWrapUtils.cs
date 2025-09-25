@@ -69,6 +69,7 @@ public static class DotWrapUtils
             "single" or "float" => "float",
             "double" => "double",
             "string" => "string",
+            "object" => "CObject", // object is a reserved word in python
             _ => null,
         };
         return normalized ?? typeName;
