@@ -41,7 +41,7 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStri
         var cLibMethodArgs = context.GetCMethodCallArgumentsString();
 
         var pyReturnType = PythonNamingUtils.MapTypeToPython(
-            context.ReturnTypeDefinition.SimplifiedAssemblyQualifiedName,
+            context.ReturnTypeDefinition.FullyQualifiedName,
             context.ClassContext.ClassInfo.GenericTypeArgumentsToParameters,
             false
         );

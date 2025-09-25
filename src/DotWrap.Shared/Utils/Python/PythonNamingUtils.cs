@@ -20,6 +20,10 @@ public static class PythonNamingUtils
     public static string PythonizeClassName(string fullTypeName)
     {
         fullTypeName = DotWrapUtils.ReplaceArraySymbols(fullTypeName);
+        if (fullTypeName.EndsWith("?"))
+        {
+            fullTypeName = "System.Nullable<" + fullTypeName[..^1] + ">";
+        }
 
         var topLevelSplit = SplitOnPeriodTopLevel(fullTypeName).ToList();
 

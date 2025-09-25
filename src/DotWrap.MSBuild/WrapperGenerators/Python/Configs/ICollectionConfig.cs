@@ -32,7 +32,7 @@ public class ICollectionConfig : DotWrapPythonTypeConfig
         );
         genericClassBodyBuilder?.AppendLine(
             $@"
-def to_list(self) -> list[""{genericArg}""]
+def to_list(self) -> list[""{genericArg}""]:
     pass
         "
         );

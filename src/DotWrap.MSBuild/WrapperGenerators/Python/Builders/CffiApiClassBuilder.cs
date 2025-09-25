@@ -127,10 +127,10 @@ def __del__(self) -> None:
     {
         var baseClassName = PythonNamingUtils.PythonizeClassName(classInfo.TypeNameNoGenerics);
         var className = PythonNamingUtils.PythonizeClassName(
-            classInfo.SimplifiedAssemblyQualifiedName
+            classInfo.FullyQualifiedName
         );
         Logger.LogDebug(
-            $"Adding class {className} with baseClass {baseClassName} to main.py with number of methods: {classInfo.Methods.Count}"
+            $"Adding class {className} with fullyqualifiedName {classInfo.FullyQualifiedName} with baseClass {baseClassName} to main.py with number of methods: {classInfo.Methods.Count}"
         );
         var isGeneric = classInfo.GenericTypeArgumentsToParameters.Count > 0;
         if (!isGeneric || genericClassBodyBuilder is not null)

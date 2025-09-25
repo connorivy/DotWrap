@@ -38,7 +38,7 @@ public class PythonInteropUtils
             //     when typeDefinition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.ValueType) =>
             //     $"{ExportedPyResult} = {PythonNamingUtils.PythonizeClassName("Nullable[[" + typeDefinition.SimplifiedAssemblyQualifiedName + "]]")}.{FromPtr}({InternalPyResult})",
             ({ IsSameAsExposedType: false }, _) => (
-                $"{ExportedPyResult} = {PythonNamingUtils.PythonizeClassName(typeDefinition.SimplifiedAssemblyQualifiedName)}.{FromPtr}({InternalPyResult})"
+                $"{ExportedPyResult} = {PythonNamingUtils.PythonizeClassName(typeDefinition.FullyQualifiedName)}.{FromPtr}({InternalPyResult})"
             ),
             _ => null,
         };

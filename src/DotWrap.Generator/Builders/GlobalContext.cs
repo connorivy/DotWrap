@@ -15,6 +15,15 @@ public class GlobalContext(
 {
     public void AddDiscoveredType(ITypeSymbol typeSymbol)
     {
+        AddSingleDiscoveredType(typeSymbol);
+        foreach (var nested in typeSymbol.GetTypeArguments() ?? [])
+        {
+            AddDiscoveredType(nested);
+        }
+    }
+
+    private void AddSingleDiscoveredType(ITypeSymbol typeSymbol)
+    {
         if (
             typeSymbol.IsReferenceType
             && typeSymbol.NullableAnnotation is NullableAnnotation.Annotated
@@ -77,11 +86,13 @@ public class GlobalContext(
                 );
                 return;
             }
+            Logger.LogWarning($"Exposing type as explicit: '{typeSymbolNamed.ToDisplayString()}'");
             allExplicitTypes.Add(typeSymbolNamed);
             explicitTypesToWrap.Enqueue(typeSymbolNamed);
         }
         else
         {
+            Logger.LogWarning($"Exposing type as inferred: '{typeSymbol.ToDisplayString()}'");
             allInferedTypes.Add(typeSymbol);
             inferedTypesToWrap.Enqueue(typeSymbol);
         }

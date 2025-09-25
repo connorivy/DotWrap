@@ -260,10 +260,10 @@ public static class ITypedSymbolExtensions
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        public ExportedTypeInstanceInfo GetExportedTypeInstance(string? genericName, bool replaceNullable = true)
+        public ExportedTypeInstanceInfo GetExportedTypeInstance(string? genericName)
         {
             ITypeSymbol nonNullableSymbol;
-            if (replaceNullable && symbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            if (symbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
             {
                 nonNullableSymbol = ((INamedTypeSymbol)symbol).TypeArguments[0];
             }
@@ -277,7 +277,7 @@ public static class ITypedSymbolExtensions
                 DefinitionId = nonNullableSymbol.GetExportedTypeId(),
                 DefinitionGenericArgs = nonNullableSymbol.GetTypeArguments()?.Select(arg => arg.ToDisplayString())?.ToArray() ?? [],
                 GenericName = genericName,
-                IsNullable = symbol.NullableAnnotation == NullableAnnotation.Annotated && replaceNullable
+                IsNullable = symbol.NullableAnnotation == NullableAnnotation.Annotated
             };
         }
 
