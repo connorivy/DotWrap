@@ -48,6 +48,7 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStri
         pyReturnType = context.MethodInfo.ReturnType.IsNullable
             ? $"Optional[{pyReturnType}]"
             : pyReturnType;
+        pyReturnType = "\"" + pyReturnType + "\"";
 
         var genericReturnType = PythonNamingUtils.MapTypeToPython(
             context.ReturnTypeDefinition.TypeNameNoGenerics,

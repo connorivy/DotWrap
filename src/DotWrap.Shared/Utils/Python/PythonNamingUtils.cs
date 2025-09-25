@@ -279,7 +279,7 @@ public static class PythonNamingUtils
             "boolean" or "bool" => "bool",
             "void" => "None",
             "string" or "char" => "str",
-            _ => $"\"{PythonizeTypeName(t, genericArgsToParamsDict, useGenericParams)}\"",
+            _ => $"{PythonizeTypeName(t, genericArgsToParamsDict, useGenericParams)}",
         };
     }
 

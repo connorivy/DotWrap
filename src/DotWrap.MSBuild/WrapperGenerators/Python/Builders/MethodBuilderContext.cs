@@ -87,7 +87,11 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
                 genericParamsToArgsDict,
                 this.ClassContext.PythonContext.GlobalContext.TypeDefinitions
             );
-            return $"{p.Name}: {(IsNullable ? "Optional[" + returnTypeAnnotation + "]" : returnTypeAnnotation)}";
+            returnTypeAnnotation = p.Type.IsNullable
+                ? $"Optional[{returnTypeAnnotation}]"
+                : returnTypeAnnotation;
+            returnTypeAnnotation = "\"" + returnTypeAnnotation + "\"";
+            return $"{p.Name}: {returnTypeAnnotation}";
         });
 
         if (!this.MethodInfo.IsStatic)
