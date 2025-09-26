@@ -99,7 +99,7 @@ public class ClassBuilderContext(
                 t.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)
                     .Replace('<', '_')
                     .Replace('>', '_')
-                    .Replace("?", "")
+                    .Replace("?", "Nullable")
                     .Replace("[]", "Array")
                     .Replace("[,]", "2dArray")
                     .Replace("[,,]", "3dArray")

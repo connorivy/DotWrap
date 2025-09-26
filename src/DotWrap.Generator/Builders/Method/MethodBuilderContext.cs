@@ -96,12 +96,7 @@ public record MethodBuilderContext(
                     exposedCType,
                     isOriginalType
                         ? null
-                        : (
-                            p.Type as INamedTypeSymbol
-                            ?? throw new NotSupportedException(
-                                $"Unsupported parameter type: {p.Type} on method {MethodSymbol.Name} in class {ClassContext.ClassSymbol.Name}"
-                            )
-                        ),
+                        : p.Type,
                     isOutParam
                 );
             });
@@ -116,12 +111,7 @@ public record MethodBuilderContext(
                         exposedCType,
                         isOriginalType
                             ? null
-                            : (
-                                p.Type as INamedTypeSymbol
-                                ?? throw new NotSupportedException(
-                                    $"Unsupported parameter type: {p.Type} on required property {p.Name} in class {ClassContext.ClassSymbol.Name}"
-                                )
-                            ),
+                            : p.Type,
                         false,
                         true
                     );
