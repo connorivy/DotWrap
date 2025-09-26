@@ -15,8 +15,7 @@ public class ICollectionConfig : DotWrapPythonTypeConfig
         var genericClassBodyBuilder = context.ClassBody;
         var typeInfo = context.ExportedType;
 
-        var interfaceImplementation =
-            matchingType.GetInterface(this.TypeToConfigure.Name)
+        var interfaceImplementation = GetICollectionInterface(matchingType)
             ?? throw new InvalidOperationException(
                 $"Type {matchingType.FullName} does not implement ICollection<> interface."
             );
@@ -45,8 +44,7 @@ def to_list(self) -> list[""{genericArg}""]:
         var classBody = context.ClassBody;
         var typeInfo = context.ExportedType;
 
-        var interfaceImplementation =
-            matchingType.GetInterface(this.TypeToConfigure.Name)
+        var interfaceImplementation = GetICollectionInterface(matchingType)
             ?? throw new InvalidOperationException(
                 $"Type {matchingType.FullName} does not implement ICollection<> interface."
             );
@@ -125,6 +123,28 @@ _raise_exception({ExceptionInfoArg}2)
             classBody.AppendLine("return final_list");
         }
     }
+
+    /// <summary>
+    /// Gets the ICollection&lt;&gt; interface from a type, handling cases where the type itself is already ICollection&lt;&gt;
+    /// </summary>
+    private Type? GetICollectionInterface(Type type)
+    {
+        // If the type itself is a generic ICollection<> (open or closed), return it
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == this.TypeToConfigure)
+        {
+            return type;
+        }
+        
+        // If it's the open generic definition of ICollection<>, return it
+        if (type == this.TypeToConfigure)
+        {
+            return type;
+        }
+        
+        // Otherwise, try to find the interface implementation
+        return type.GetInterface(this.TypeToConfigure.Name);
+    }
+
 }
 
 public class IReadOnlyCollectionConfig : ICollectionConfig
