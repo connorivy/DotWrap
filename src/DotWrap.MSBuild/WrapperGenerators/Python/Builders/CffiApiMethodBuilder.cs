@@ -42,7 +42,7 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStri
 
         var pyReturnType = PythonNamingUtils.MapTypeToPython(
             context.ReturnTypeDefinition.FullyQualifiedName,
-            context.ClassContext.ClassInfo.GenericTypeArgumentsToParameters,
+            context.ClassContext.ClassInfo.GenericTypeParametersToArguments,
             false
         );
         pyReturnType = context.MethodInfo.ReturnType.IsNullable
@@ -50,11 +50,15 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStri
             : pyReturnType;
         pyReturnType = "\"" + pyReturnType + "\"";
 
-        var genericReturnType = "\"" + PythonNamingUtils.MapTypeToPython(
-            context.ReturnTypeDefinition.TypeNameNoGenerics,
-            context.ClassContext.ClassInfo.GenericTypeArgumentsToParameters,
-            true
-        ) + "\"";
+        var genericReturnType = PythonNamingUtils.MapTypeToPython(
+                context.ReturnTypeDefinition.FullyQualifiedName,
+                context.MethodInfo.ReturnType.DefinitionGenericParamsToArgs,
+                true
+            );
+        genericReturnType = genericReturnType is not null
+            ? "\"" + genericReturnType + "\""
+            : null;
+
         var methodName = context.GetMethodName(this.methodNames);
         var paramListWithHints = context.PythonMethodParamListWithHints();
         var genericParamListWithHints = context.PythonGenericMethodParamListWithHints();

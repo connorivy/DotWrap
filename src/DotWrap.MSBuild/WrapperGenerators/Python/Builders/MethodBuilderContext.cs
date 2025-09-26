@@ -106,7 +106,7 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
     )
     {
         var paramListWithHints = this.MethodInfo.Parameters.Select(p =>
-            $"{p.Name}: \"{this.ClassContext.ClassInfo.GenericTypeArgumentsToParameters?.GetValueOrDefault(p.OriginalTypeName) ?? p.MapOriginalTypeToPython(genericParamsToArgsDict)}\""
+            $"{p.Name}: \"{this.ClassContext.ClassInfo.GenericTypeParametersToArguments?.GetValueOrDefault(p.OriginalTypeName) ?? p.MapOriginalTypeToPython(genericParamsToArgsDict)}\""
         );
 
         if (!this.MethodInfo.IsStatic)

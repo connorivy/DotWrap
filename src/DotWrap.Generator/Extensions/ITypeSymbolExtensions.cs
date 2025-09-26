@@ -271,10 +271,20 @@ public static class ITypedSymbolExtensions
             {
                 nonNullableSymbol = symbol;
             }
+            var typeArguments = nonNullableSymbol.GetTypeArguments();
+            var typeParameters = nonNullableSymbol.GetTypeParameters();
+            var genericTypeParametersToArguments = typeParameters?
+                .Zip(typeArguments, (param, arg) => (param, arg))
+                .ToDictionary(pair => pair.param.Name, pair => pair.arg.ToDisplayString());
+            // var genericTypeParametersToArguments = classContext.TypeParametersToArguments.ToDictionary(
+            //     kvp => kvp.Key.Name,
+            //     kvp => kvp.Value.ToDisplayString()
+            // );
             return new ExportedTypeInstanceInfo()
             {
                 DefinitionId = nonNullableSymbol.GetExportedTypeId(),
                 DefinitionGenericArgs = nonNullableSymbol.GetTypeArguments()?.Select(arg => arg.ToDisplayString())?.ToArray() ?? [],
+                DefinitionGenericParamsToArgs = genericTypeParametersToArguments,
                 GenericName = genericName,
                 IsNullable = symbol.NullableAnnotation == NullableAnnotation.Annotated && !forceNullableFalse,
             };

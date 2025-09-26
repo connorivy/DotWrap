@@ -18,10 +18,21 @@ public class ClassMetadataBuilder
         //     var typeArg = classContext.ClassSymbol.TypeArguments[i];
         //     genericTypeParametersToArguments[typeParam.Name] = typeArg.ToDisplayString();
         // }
-        var genericTypeArgumentsToParameters = classContext.TypeParametersToArguments.ToDictionary(
-            kvp => kvp.Value.ToDisplayString(),
-            kvp => kvp.Key.Name
+        var genericTypeParametersToArguments = classContext.TypeParametersToArguments.ToDictionary(
+            kvp => kvp.Key.Name,
+            kvp => kvp.Value.ToDisplayString()
         );
+        // var genericTypeArgumentsToParameters = new Dictionary<string, string>();
+        // foreach (var kvp in classContext.TypeParametersToArguments)
+        // {
+        //     var key = kvp.Value.ToDisplayString();
+        //     var value = kvp.Key.Name;
+        //     // Handle duplicate keys by using the first occurrence
+        //     if (!genericTypeArgumentsToParameters.ContainsKey(key))
+        //     {
+        //         genericTypeArgumentsToParameters[key] = value;
+        //     }
+        // }
         // ClassInfo = new ExportedClassInfo
         // {
         //     Namespace = classContext.Namespace,
@@ -59,7 +70,7 @@ public class ClassMetadataBuilder
             TypeNameNoGenerics = classContext.ClassNameWithoutGenerics,
             EntryPrefix = classContext.EntryPrefix,
             ExportedType = classContext.ClassSymbol.GetExportedType(out _),
-            GenericTypeArgumentsToParameters = genericTypeArgumentsToParameters,
+            GenericTypeParametersToArguments = genericTypeParametersToArguments,
             IsSameAsExposedType = isOriginalType,
             OriginalTypeWrapperName = classContext.WrapperName,
             // GenericParameters = classContext.TypeParameters.Select(tp => tp.Name).ToArray(),
@@ -123,7 +134,7 @@ public class ClassMetadataBuilder
             TypeNameNoGenerics = typeDefinition.TypeNameNoGenerics,
             AssemblyQualifiedName = typeDefinition.AssemblyQualifiedName,
             FullyQualifiedName = typeDefinition.FullyQualifiedName,
-            GenericTypeArgumentsToParameters = typeDefinition.GenericTypeArgumentsToParameters,
+            GenericTypeParametersToArguments = typeDefinition.GenericTypeParametersToArguments,
             ExportedType = typeDefinition.ExportedType,
             IsSameAsExposedType = typeDefinition.IsSameAsExposedType,
             SpecialCaseFlags = typeDefinition.SpecialCaseFlags,

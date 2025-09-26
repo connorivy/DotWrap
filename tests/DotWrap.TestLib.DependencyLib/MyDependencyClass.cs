@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace DotWrap.TestLib.DependencyLib;
 
 public class MyDependencyClass

@@ -27,7 +27,7 @@ public class ICollectionConfig : DotWrapPythonTypeConfig
 
         var genericArg = PythonNamingUtils.MapTypeToPython(
             DotWrapUtils.NormalizeCsTypeName(simplifiedAssemblyName),
-            typeInfo.GenericTypeArgumentsToParameters,
+            typeInfo.GenericTypeParametersToArguments,
             true
         );
         genericClassBodyBuilder?.AppendLine(
@@ -60,7 +60,7 @@ def to_list(self) -> list[""{genericArg}""]:
         var simplifiedAssemblyName = AssemblyNameUtils.GetSimplifiedAssemblyName(assemblyName);
         var genericArg = PythonNamingUtils.MapTypeToPython(
             DotWrapUtils.NormalizeCsTypeName(simplifiedAssemblyName),
-            typeInfo.GenericTypeArgumentsToParameters,
+            typeInfo.GenericTypeParametersToArguments,
             false
         );
         var exposedType = DotWrapUtils.GetExposedTypeFromCsType(

@@ -36,7 +36,7 @@ internal class CffiApiClassBuilder(
 
             IndentedPythonStringBuilder? genericClassBodyBuilder = null;
             var baseClassName = PythonNamingUtils.PythonizeClassName(cls.TypeNameNoGenerics);
-            if (cls.GenericTypeArgumentsToParameters.Count > 0 && classNames.Add(baseClassName))
+            if (cls.GenericTypeParametersToArguments.Count > 0 && classNames.Add(baseClassName))
             {
                 genericClassBodyBuilder = this.CreateGenericClassBodyBuilder(cls);
             }
@@ -88,7 +88,7 @@ internal class CffiApiClassBuilder(
     {
         IndentedPythonStringBuilder genericClassBuilder = new();
         string genericClassName = cls.TypeNameNoGenerics;
-        var genericParams = cls.GenericTypeArgumentsToParameters.Select(kvp => kvp.Value).ToList();
+        var genericParams = cls.GenericTypeParametersToArguments.Select(kvp => kvp.Key).ToList();
 
         foreach (var param in genericParams)
         {
@@ -132,7 +132,7 @@ def __del__(self) -> None:
         Logger.LogDebug(
             $"Adding class {className} with fullyqualifiedName {classInfo.FullyQualifiedName} with baseClass {baseClassName} to main.py with number of methods: {classInfo.Methods.Count}"
         );
-        var isGeneric = classInfo.GenericTypeArgumentsToParameters.Count > 0;
+        var isGeneric = classInfo.GenericTypeParametersToArguments.Count > 0;
         if (!isGeneric || genericClassBodyBuilder is not null)
         {
             initFileBuilder.AddTypeImport(baseClassName);
@@ -140,8 +140,8 @@ def __del__(self) -> None:
 
         var genericDef = string.Join(
             ", ",
-            classInfo.GenericTypeArgumentsToParameters.Select(kvp =>
-                $"\"{PythonNamingUtils.MapTypeToPython(kvp.Key)}\""
+            classInfo.GenericTypeParametersToArguments.Select(kvp =>
+                $"\"{PythonNamingUtils.MapTypeToPython(kvp.Value)}\""
             )
         );
         if (!string.IsNullOrEmpty(genericDef))

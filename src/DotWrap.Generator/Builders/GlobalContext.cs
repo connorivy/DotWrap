@@ -94,13 +94,11 @@ public class GlobalContext(
                 );
                 return;
             }
-            Logger.LogWarning($"Exposing type as explicit: '{typeSymbolNamed.ToDisplayString()}'");
             allExplicitTypes.Add(typeSymbolNamed);
             explicitTypesToWrap.Enqueue(typeSymbolNamed);
         }
         else
         {
-            Logger.LogWarning($"Exposing type as inferred: '{typeSymbol.ToDisplayString()}'");
             allInferedTypes.Add(typeSymbol);
             inferedTypesToWrap.Enqueue(typeSymbol);
         }

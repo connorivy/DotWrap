@@ -63,7 +63,7 @@ public class ExportedTypeDefinition
     public required string Namespace { get; set; }
     public required string SimplifiedAssemblyQualifiedName { get; set; }
     public required string EntryPrefix { get; set; }
-    public required Dictionary<string, string> GenericTypeArgumentsToParameters { get; set; }
+    public required Dictionary<string, string> GenericTypeParametersToArguments { get; set; }
     public required string TypeNameNoGenerics { get; set; }
     public required ExportedType ExportedType { get; set; }
     public required TypeSpecialCaseFlags SpecialCaseFlags { get; set; }
@@ -77,6 +77,7 @@ public class ExportedTypeInstanceInfo
 {
     public required ExportedTypeId DefinitionId { get; set; }
     public required string[]? DefinitionGenericArgs { get; set; }
+    public required Dictionary<string, string>? DefinitionGenericParamsToArgs  { get; set; }
     public required string? GenericName { get; set; }
     public bool IsNullable { get; set; }
 }
