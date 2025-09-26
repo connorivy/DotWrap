@@ -46,6 +46,7 @@ public static class ITypedSymbolExtensions
             return symbol switch
             {
                 ITypeSymbol when symbol.Name == "Half" && symbol.ContainingNamespace?.ToString() == "System" => "float",
+                ITypeSymbol when symbol.Name == "Guid" && symbol.ContainingNamespace?.ToString() == "System" => "IntPtr",
                 { SpecialType: SpecialType.System_Char } => "int",
                 { SpecialType: SpecialType.System_Boolean } => "int",
                 { SpecialType: SpecialType.System_String } => "IntPtr",
@@ -179,6 +180,13 @@ public static class ITypedSymbolExtensions
                 return @$"
             var {ExportedResult} = (float){InternalResult};";
             }
+            else if (symbol.Name == "Guid" && symbol.ContainingNamespace?.ToString() == "System")
+            {
+                return @$"
+            var {ExportedResult} = System.Runtime.InteropServices.Marshal.AllocHGlobal(16);
+            var guidBytes = {InternalResult}.ToByteArray();
+            System.Runtime.InteropServices.Marshal.Copy(guidBytes, 0, {ExportedResult}, 16);";
+            }
             else if (symbol.SpecialType == SpecialType.System_String)
             {
                 return @$"
@@ -252,24 +260,33 @@ public static class ITypedSymbolExtensions
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        public ExportedTypeInstanceInfo GetExportedTypeInstance(string? genericName, bool replaceNullable = true)
+        public ExportedTypeInstanceInfo GetExportedTypeInstance(string? genericName, bool forceNullableFalse = false)
         {
             ITypeSymbol nonNullableSymbol;
-            if (replaceNullable && symbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            if (symbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T && !forceNullableFalse)
             {
                 nonNullableSymbol = ((INamedTypeSymbol)symbol).TypeArguments[0];
             }
-
             else
             {
                 nonNullableSymbol = symbol;
             }
+            var typeArguments = nonNullableSymbol.GetTypeArguments();
+            var typeParameters = nonNullableSymbol.GetTypeParameters();
+            var genericTypeParametersToArguments = typeParameters?
+                .Zip(typeArguments, (param, arg) => (param, arg))
+                .ToDictionary(pair => pair.param.Name, pair => pair.arg.ToDisplayString());
+            // var genericTypeParametersToArguments = classContext.TypeParametersToArguments.ToDictionary(
+            //     kvp => kvp.Key.Name,
+            //     kvp => kvp.Value.ToDisplayString()
+            // );
             return new ExportedTypeInstanceInfo()
             {
                 DefinitionId = nonNullableSymbol.GetExportedTypeId(),
                 DefinitionGenericArgs = nonNullableSymbol.GetTypeArguments()?.Select(arg => arg.ToDisplayString())?.ToArray() ?? [],
+                DefinitionGenericParamsToArgs = genericTypeParametersToArguments,
                 GenericName = genericName,
-                IsNullable = symbol.NullableAnnotation == NullableAnnotation.Annotated && replaceNullable
+                IsNullable = symbol.NullableAnnotation == NullableAnnotation.Annotated && !forceNullableFalse,
             };
         }
 

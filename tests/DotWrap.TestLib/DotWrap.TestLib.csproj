@@ -11,4 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../DotWrap.TestLib.DependencyLib/DotWrap.TestLib.DependencyLib.csproj" />
+  </ItemGroup>
 </Project>

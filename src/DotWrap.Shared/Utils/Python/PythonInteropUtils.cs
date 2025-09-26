@@ -17,6 +17,12 @@ public class PythonInteropUtils
                     "string",
                     StringComparison.OrdinalIgnoreCase
                 ) => $"{ExportedPyResult} = str(CString({InternalPyResult}))",
+            _ when typeDefinition.FullyQualifiedName.Equals(
+                    "system.guid",
+                    StringComparison.OrdinalIgnoreCase
+                ) => @$"
+{InternalPythonPrefix}guid_bytes = bytes({Ffi}.buffer({InternalPyResult}, 16))
+{ExportedPyResult} = uuid.UUID(bytes={InternalPythonPrefix}guid_bytes)",
 
             _ when typeDefinition.FullyQualifiedName.Equals(
                     "bool",
@@ -32,7 +38,7 @@ public class PythonInteropUtils
             //     when typeDefinition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.ValueType) =>
             //     $"{ExportedPyResult} = {PythonNamingUtils.PythonizeClassName("Nullable[[" + typeDefinition.SimplifiedAssemblyQualifiedName + "]]")}.{FromPtr}({InternalPyResult})",
             ({ IsSameAsExposedType: false }, _) => (
-                $"{ExportedPyResult} = {PythonNamingUtils.PythonizeClassName(typeDefinition.SimplifiedAssemblyQualifiedName)}.{FromPtr}({InternalPyResult})"
+                $"{ExportedPyResult} = {PythonNamingUtils.PythonizeClassName(typeDefinition.FullyQualifiedName)}.{FromPtr}({InternalPyResult})"
             ),
             _ => null,
         };
@@ -42,10 +48,9 @@ public class PythonInteropUtils
             if (typeDefinition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.ValueType))
             {
                 return $"""
-{resultAssignment ?? $"{ExportedPyResult} = {InternalPyResult}"}
 {InternalPythonPrefix}nullable = {PythonNamingUtils.PythonizeClassName(
-                        "Nullable[[" + typeDefinition.SimplifiedAssemblyQualifiedName + "]]"
-                    )}.{FromPtr}({ExportedPyResult})
+                        "Nullable<" + typeDefinition.FullyQualifiedName + ">"
+                    )}.{FromPtr}({InternalPyResult})
 if {InternalPythonPrefix}nullable.has_value:
     {ExportedPyResult} = {InternalPythonPrefix}nullable.value
 else:

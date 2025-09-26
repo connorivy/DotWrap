@@ -8,6 +8,7 @@
   <Folder Name="/tests/">
     <File Path="tests/Directory.Build.props" />
     <File Path="tests/Directory.Build.targets" />
+    <Project Path="tests/DotWrap.TestLib.DependencyLib/DotWrap.TestLib.DependencyLib.csproj" />
     <Project Path="tests/DotWrap.TestLib/DotWrap.TestLib.csproj" />
     <Project Path="tests/DotWrap.Tests/DotWrap.Tests.csproj" />
   </Folder>

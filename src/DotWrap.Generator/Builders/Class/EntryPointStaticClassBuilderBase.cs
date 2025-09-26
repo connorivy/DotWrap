@@ -110,9 +110,13 @@ namespace {Context.WrapperNamespace}
             var handle = GCHandle.FromIntPtr({SelfPointerName});
             if (!handle.IsAllocated) throw new System.ArgumentException($""Invalid handle: {{{SelfPointerName}}}"");
 #pragma warning disable CS8605 // Unboxing a possibly null value.
+#pragma warning disable CS8600 // 
             var {Obj} = ({className})handle.Target;
 #pragma warning restore CS8605 // Unboxing a possibly null value.
+#pragma warning restore CS8600 // 
+#pragma warning disable CS8603 // Possible null reference return.
             return {Obj};
+#pragma warning restore CS8603 // Possible null reference return.
         }}"
         );
 
@@ -123,7 +127,9 @@ namespace {Context.WrapperNamespace}
         {{
             if ({SelfPointerName} == IntPtr.Zero)
             {{
+#pragma warning disable CS8603 // Possible null reference return.
                 return default;
+#pragma warning restore CS8603 // Possible null reference return.
             }}
             return {Get}({SelfPointerName});
         }}"
@@ -182,6 +188,7 @@ namespace {Context.WrapperNamespace}
             {
                 DefinitionId = new ExportedTypeId("System", "Int32"),
                 DefinitionGenericArgs = null,
+                DefinitionGenericParamsToArgs = null,
                 GenericName = null,
                 IsNullable = false,
             },
@@ -205,6 +212,7 @@ namespace {Context.WrapperNamespace}
                     {
                         DefinitionId = new ExportedTypeId("System", "IntPtr"),
                         DefinitionGenericArgs = null,
+                        DefinitionGenericParamsToArgs = null,
                         GenericName = null,
                         IsNullable = false,
                     },
@@ -220,6 +228,7 @@ namespace {Context.WrapperNamespace}
                     {
                         DefinitionId = new ExportedTypeId("System", "Int32"),
                         DefinitionGenericArgs = null,
+                        DefinitionGenericParamsToArgs = null,
                         GenericName = null,
                         IsNullable = false,
                     },
@@ -233,6 +242,7 @@ namespace {Context.WrapperNamespace}
             {
                 DefinitionId = new ExportedTypeId("System", "Void"),
                 DefinitionGenericArgs = null,
+                DefinitionGenericParamsToArgs = null,
                 GenericName = null,
                 IsNullable = false,
             },

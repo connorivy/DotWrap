@@ -87,7 +87,11 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
                 genericParamsToArgsDict,
                 this.ClassContext.PythonContext.GlobalContext.TypeDefinitions
             );
-            return $"{p.Name}: {(IsNullable ? "Optional[" + returnTypeAnnotation + "]" : returnTypeAnnotation)}";
+            returnTypeAnnotation = p.Type.IsNullable
+                ? $"Optional[{returnTypeAnnotation}]"
+                : returnTypeAnnotation;
+            returnTypeAnnotation = "\"" + returnTypeAnnotation + "\"";
+            return $"{p.Name}: {returnTypeAnnotation}";
         });
 
         if (!this.MethodInfo.IsStatic)
@@ -102,7 +106,7 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
     )
     {
         var paramListWithHints = this.MethodInfo.Parameters.Select(p =>
-            $"{p.Name}: {this.ClassContext.ClassInfo.GenericTypeArgumentsToParameters?.GetValueOrDefault(p.OriginalTypeName) ?? p.MapOriginalTypeToPython(genericParamsToArgsDict)}"
+            $"{p.Name}: \"{this.ClassContext.ClassInfo.GenericTypeParametersToArguments?.GetValueOrDefault(p.OriginalTypeName) ?? p.MapOriginalTypeToPython(genericParamsToArgsDict)}\""
         );
 
         if (!this.MethodInfo.IsStatic)
@@ -187,6 +191,16 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
             {
                 typedVarAssignment = $"{param.Name}{Typed} = {param.Name}"; // half is already represented by a float and does not need conversion
             }
+            else if (
+                definition.FullyQualifiedName.Equals(
+                    "system.guid",
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+            {
+                typedVarAssignment = @$"
+{param.Name}{Typed} = {Ffi}.new(""unsigned char[16]"", {param.Name}.bytes)";
+            }
             else if (definition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.DirectlyBlittable))
             {
                 typedVarAssignment = $"{param.Name}{Typed} = {param.Name}";
@@ -201,12 +215,10 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
                 if (definition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.ValueType))
                 {
                     yield return $"""
-{typedVarAssignment}
 {param.Name}_dotwrap_nullable = {PythonNamingUtils.PythonizeClassName(
-                            "Nullable[[" + definition.SimplifiedAssemblyQualifiedName + "]]"
-                        )}._create({param.Name}{Typed})
+                            "Nullable<" + definition.FullyQualifiedName + ">"
+                        )}._create({param.Name})
 {param.Name}{Typed} = {param.Name}_dotwrap_nullable.{Ptr}
-
 """;
                 }
                 else

@@ -17,8 +17,45 @@ public class MethodBuilder(
     public void GenerateAllMethods(ClassBuilderContext classContext)
     {
         foreach (
-            var method in classContext
-                .ClassSymbol.GetMembers()
+            var method in GetMethodsToGenerate(classContext)
+        )
+        {
+            GenerateSingleMethod(classContext, method);
+        }
+        //     foreach (
+        //         var method in classContext
+        //             .ClassSymbol.GetMembers()
+        //             .OfType<IMethodSymbol>()
+        //             .Where(m =>
+        //                 m.DeclaredAccessibility == Accessibility.Public
+        //                 && (
+        //                     m.MethodKind
+        //                     is MethodKind.Ordinary
+        //                         or MethodKind.Constructor
+        //                         or MethodKind.PropertyGet
+        //                         or MethodKind.PropertySet
+        //                 )
+        //                 && !m.GetAttributes()
+        //                     .Any(a => a.AttributeClass?.Name == nameof(DotWrapIgnoreAttribute))
+        //                 && !IsCompilerGeneratedMethod(m)
+        //                 && !m.IsInitOnly
+        //             )
+        //     )
+        //     {
+        //         GenerateSingleMethod(classContext, method);
+        //     }
+    }
+
+    private IEnumerable<IMethodSymbol> GetMethodsToGenerate(ClassBuilderContext classContext)
+    {
+        var isOriginalType = true;
+        var generatedMethods = new HashSet<string>();
+        var currentClassSymbol = classContext.ClassSymbol;
+        while (currentClassSymbol is not null &&
+               currentClassSymbol.SpecialType != SpecialType.System_Object)
+        {
+            foreach (var method in currentClassSymbol
+                .GetMembers()
                 .OfType<IMethodSymbol>()
                 .Where(m =>
                     m.DeclaredAccessibility == Accessibility.Public
@@ -33,51 +70,38 @@ public class MethodBuilder(
                         .Any(a => a.AttributeClass?.Name == nameof(DotWrapIgnoreAttribute))
                     && !IsCompilerGeneratedMethod(m)
                     && !m.IsInitOnly
-                )
-        )
-        {
-            GenerateSingleMethod(classContext, method);
-        }
-    }
-
-    private IEnumerable<IMethodSymbol> GetMethodsToGenerate(ClassBuilderContext classContext)
-    {
-        var generatedMethods = new HashSet<string>();
-        foreach (var method in classContext
-            .ClassSymbol
-            .GetMembers()
-            .OfType<IMethodSymbol>()
-            .Where(m =>
-                m.DeclaredAccessibility == Accessibility.Public
-                && (
-                    m.MethodKind
-                    is MethodKind.Ordinary
-                        or MethodKind.Constructor
-                        or MethodKind.PropertyGet
-                        or MethodKind.PropertySet
-                )
-                && !m.GetAttributes()
-                    .Any(a => a.AttributeClass?.Name == nameof(DotWrapIgnoreAttribute))
-                && !IsCompilerGeneratedMethod(m)
-                && !m.IsInitOnly
-            ))
-        {
-            if (method.MethodKind is not MethodKind.Constructor)
+                ))
             {
-                yield return method;
-            }
+                var methodKeyComponents = method.Parameters
+                    .Select(p => p.Type.ToDisplayString());
 
-            var ctorKey = string.Join(",", method.Parameters
-                .Select(p => p.Type.ToDisplayString())
-                .Concat(classContext.ClassSymbol.GetRequiredMembers().Select(p => p.Type.ToDisplayString())));
+                if (method.MethodKind is MethodKind.Constructor)
+                {
+                    if (!isOriginalType)
+                    {
+                        // only generate constructors for the original type, not base types
+                        continue;
+                    }
+                    methodKeyComponents = methodKeyComponents
+                        .Concat(classContext.ClassSymbol.GetRequiredMembers().Select(p => p.Type.ToDisplayString()));
+                }
 
-            if (generatedMethods.Add(ctorKey))
-            {
-                // we are promoting required parameters to constructor parameters in the generated wrapper.
-                // therefore if a class has a ctor () with required properties (a, b) and a ctor (a, b)
-                // we need to only generate one of them because they will both become ctor(a, b) in the wrapper.
-                yield return method;
+                var methodKey = $"{method.Name}({string.Join(", ", methodKeyComponents)})";
+
+                if (generatedMethods.Add(methodKey))
+                {
+                    // there are a couple reasons why we need to do this:
+                    // 1. we will encounter overriden methods in derived classes, and then again in base classes.
+                    //    we only want to generate one method in the wrapper, so we skip the duplicates
+                    // 2. for constructors we are promoting required parameters to constructor parameters in the 
+                    //    generated wrapper. Therefore if a class has a ctor () with required properties (a, b) and 
+                    //    a ctor (a, b) we need to only generate one of them because they will both become ctor(a, b) 
+                    //    in the wrapper.
+                    yield return method;
+                }
             }
+            currentClassSymbol = currentClassSymbol.BaseType;
+            isOriginalType = false;
         }
     }
 
@@ -100,7 +124,7 @@ public class MethodBuilder(
         if (method.Parameters.Select(p => p.Type).Concat<ITypeSymbol>([method.ReturnType]).Any(p => p.IsRefLikeType))
         {
             Logger.LogWarning(
-                $"Skipping method '{method.Name}' because it has a 'ref like' parameters or return type, which is not supported."
+                $"Skipping method '{method.Name}' on type {method.ContainingType.ToDisplayString()} because it has a 'ref like' parameters or return type, which is not supported."
             );
             return;
         }

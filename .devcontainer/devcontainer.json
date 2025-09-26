@@ -15,6 +15,9 @@
             ]
         }
     },
+    "mounts": [
+        "source=/etc/localtime,target=/etc/localtime,type=bind,readonly"
+    ],
     "postCreateCommand": "chmod +x ./scripts/init_devcontainer.sh && ./scripts/init_devcontainer.sh",
     "remoteUser": "root"
 }

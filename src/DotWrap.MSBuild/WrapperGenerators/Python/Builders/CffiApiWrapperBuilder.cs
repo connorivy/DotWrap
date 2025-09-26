@@ -122,6 +122,7 @@ public class CffiApiWrapperBuilder(GlobalContext globalContext, CSharpProjectInf
         mainPy.AppendLine($"from typing import Any, Generic, Iterator, Optional, TypeVar");
         mainPy.AppendLine($"import asyncio");
         mainPy.AppendLine("import numpy as np");
+        mainPy.AppendLine("import uuid");
         mainPy.AppendLine($"from ._{projectName} import lib as {Lib}");
         mainPy.AppendLine($"from ._{projectName} import ffi as {Ffi}");
 

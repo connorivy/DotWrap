@@ -13,6 +13,39 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStri
 
     public IEnumerable<string> MethodNames => this.methodNames;
 
+    private static readonly Dictionary<string, string> methodNameReplacements = new()
+    {
+        { "from", "from_" },
+        { "global", "global_" },
+        { "nonlocal", "nonlocal_" },
+        { "pass", "pass_" },
+        { "raise", "raise_" },
+        { "with", "with_" },
+        { "as", "as_" },
+        { "assert", "assert_" },
+        { "break", "break_" },
+        { "class", "class_" },
+        { "continue", "continue_" },
+        { "def", "def_" },
+        { "del", "del_" },
+        { "elif", "elif_" },
+        { "else", "else_" },
+        { "except", "except_" },
+        { "finally", "finally_" },
+        { "for", "for_" },
+        { "if", "if_" },
+        { "import", "import_" },
+        { "in", "in_" },
+        { "is", "is_" },
+        { "lambda", "lambda_" },
+        { "not", "not_" },
+        { "or", "or_" },
+        { "return", "return_" },
+        { "try", "try_" },
+        { "while", "while_" },
+        { "yield", "yield_" },
+    };
+
     public void AddClassToMainAndInitPy(
         ExportedMethodInfo method,
         IndentedStringBuilder? genericClassBodyBuilder
@@ -41,19 +74,24 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStri
         var cLibMethodArgs = context.GetCMethodCallArgumentsString();
 
         var pyReturnType = PythonNamingUtils.MapTypeToPython(
-            context.ReturnTypeDefinition.SimplifiedAssemblyQualifiedName,
-            context.ClassContext.ClassInfo.GenericTypeArgumentsToParameters,
+            context.ReturnTypeDefinition.FullyQualifiedName,
+            context.ClassContext.ClassInfo.GenericTypeParametersToArguments,
             false
         );
         pyReturnType = context.MethodInfo.ReturnType.IsNullable
             ? $"Optional[{pyReturnType}]"
             : pyReturnType;
+        pyReturnType = "\"" + pyReturnType + "\"";
 
         var genericReturnType = PythonNamingUtils.MapTypeToPython(
-            context.ReturnTypeDefinition.TypeNameNoGenerics,
-            context.ClassContext.ClassInfo.GenericTypeArgumentsToParameters,
-            true
-        );
+                context.ReturnTypeDefinition.FullyQualifiedName,
+                context.MethodInfo.ReturnType.DefinitionGenericParamsToArgs,
+                true
+            );
+        genericReturnType = genericReturnType is not null
+            ? "\"" + genericReturnType + "\""
+            : null;
+
         var methodName = context.GetMethodName(this.methodNames);
         var paramListWithHints = context.PythonMethodParamListWithHints();
         var genericParamListWithHints = context.PythonGenericMethodParamListWithHints();
@@ -66,8 +104,6 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStri
             paramListWithHints = paramListWithHints.Prepend("self");
             genericParamListWithHints = genericParamListWithHints.Prepend("self");
             pyReturnType = "None";
-            // resultToExportTypePrefix = $"self.{Ptr} = ";
-            // resultToExportTypeSuffix = string.Empty;
             internalResultAssignment = $"self.{Ptr} = ";
             returnCall = string.Empty;
         }
@@ -95,6 +131,8 @@ public class CffiApiMethodBuilder(ClassBuilderContext classContext, IndentedStri
             mainPy.AppendLine($"@{methodName}.setter");
             genericClassBodyBuilder?.AppendLine($"@{methodName}.setter");
         }
+
+        methodName = methodNameReplacements.GetValueOrDefault(methodName, methodName);
 
         mainPy.AppendLine(
             $"def {methodName}({string.Join(", ", paramListWithHints)}){$" -> {pyReturnType}"}:"

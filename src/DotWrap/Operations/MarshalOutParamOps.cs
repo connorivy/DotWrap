@@ -94,4 +94,10 @@ public static class MarshalOutParamOps
         var ptr = StringOperations.Alloc(value);
         Marshal(ptr, result);
     }
+
+    public static void Marshal(Guid value, IntPtr result)
+    {
+        var bytes = value.ToByteArray();
+        System.Runtime.InteropServices.Marshal.Copy(bytes, 0, result, 16);
+    }
 }

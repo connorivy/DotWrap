@@ -69,6 +69,7 @@ public static class DotWrapUtils
             "single" or "float" => "float",
             "double" => "double",
             "string" => "string",
+            "object" => "CObject", // object is a reserved word in python
             _ => null,
         };
         return normalized ?? typeName;
@@ -142,4 +143,58 @@ public static class DotWrapUtils
 
         return result;
     }
+
+    /// <summary>
+    /// Splits a string on periods, but only at the top level meaning that periods within generic type arguments are ignored.
+    /// For example:
+    ///   "System.Collections.Generic.List<System.Int32>" -> ["System", "Collections", "Generic", "List<System.Int32>"]
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    public static IEnumerable<string> SplitOnPeriodTopLevel(string input)
+    {
+        int splitStartIndex = 0;
+        int numOpenBrackets = 0;
+        var doubleOpenBracketIndex = input.IndexOf("[[");
+        for (int i = 0; i < input.Length; i++)
+        {
+            if (doubleOpenBracketIndex > -1 && i >= doubleOpenBracketIndex)
+            {
+                break;
+            }
+            if (input[i] == '<')
+            {
+                numOpenBrackets++;
+            }
+            else if (input[i] == '>')
+            {
+                numOpenBrackets--;
+            }
+            else if (numOpenBrackets == 0 && input[i] == '.')
+            {
+                yield return input.Substring(splitStartIndex, i - splitStartIndex);
+                splitStartIndex = i + 1;
+            }
+        }
+        yield return input.Substring(splitStartIndex);
+    }
+
+    public static string? GetGenericBaseNameOrNull(string className)
+    {
+        className = DotWrapUtils.SplitOnPeriodTopLevel(className).LastOrDefault() ?? className;
+        // split on first < and last >
+        var startIndex = className.IndexOf('<');
+        var endIndex = className.LastIndexOf('>');
+        if (startIndex < 0 || endIndex < 0 || startIndex >= endIndex)
+        {
+            startIndex = className.IndexOf("[[");
+            endIndex = className.LastIndexOf("]]");
+        }
+        if (startIndex < 0 || endIndex < 0 || startIndex >= endIndex)
+        {
+            return null; // no valid generic type found
+        }
+        return className.Substring(0, startIndex);
+    }
+
 }

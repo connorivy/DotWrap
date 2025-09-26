@@ -15,6 +15,15 @@ public class GlobalContext(
 {
     public void AddDiscoveredType(ITypeSymbol typeSymbol)
     {
+        AddSingleDiscoveredType(typeSymbol);
+        foreach (var nested in typeSymbol.GetTypeArguments() ?? [])
+        {
+            AddDiscoveredType(nested);
+        }
+    }
+
+    private void AddSingleDiscoveredType(ITypeSymbol typeSymbol)
+    {
         if (
             typeSymbol.IsReferenceType
             && typeSymbol.NullableAnnotation is NullableAnnotation.Annotated
@@ -38,7 +47,15 @@ public class GlobalContext(
         if (typeSymbol.IsRefLikeType)
         {
             Logger.LogWarning(
-                $"Skipping inferred type '{typeSymbol.ToDisplayString()}' because it is a ref-like type."
+                $"Skipping wrapper gen for type '{typeSymbol.ToDisplayString()}' because it is a ref-like type."
+            );
+            return;
+        }
+
+        if (typeSymbol.GetTypeArguments()?.Any(t => t.TypeKind == TypeKind.TypeParameter) ?? false)
+        {
+            Logger.LogWarning(
+                $"Skipping wrapper gen for type '{typeSymbol.ToDisplayString()}' because it is an open generic type."
             );
             return;
         }

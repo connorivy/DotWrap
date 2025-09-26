@@ -93,6 +93,16 @@ def test_bool():
     result = testlib.TypesSimple.bool(False)
     assert result is False, f"Expected False, got {result}"
 
+def test_nullable_bool():
+    result = testlib.TypesSimple.nullable_bool(True)
+    assert result is True, f"Expected True, got {result}"
+
+    result = testlib.TypesSimple.nullable_bool(False)
+    assert result is False, f"Expected False, got {result}"
+
+    result = testlib.TypesSimple.nullable_bool(None)
+    assert result is None, f"Expected None, got {result}"
+
 
 def test_char():
     result = testlib.TypesSimple.char("a")
@@ -106,3 +116,9 @@ def test_char():
 def test_string():
     result = testlib.TypesSimple.string("hello")
     assert result == "hello", f"Expected 'hello', got {result}"
+
+def test_guid():
+    import uuid
+    original_uuid = uuid.uuid4()
+    returned_uuid = testlib.TypesSimple.guid(original_uuid)
+    assert returned_uuid == original_uuid, f"Expected {original_uuid}, got {returned_uuid}"

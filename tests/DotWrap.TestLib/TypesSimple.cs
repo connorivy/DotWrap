@@ -25,11 +25,13 @@ public class TypesSimple
     public static float Single(float value) => value;
 
     public static double Double(double value) => value;
+    public static Guid Guid(Guid value) => value;
 
     // todo:
     // public static decimal Decimal() => decimal.Value;
 
     public static bool Bool(bool value) => value;
+    public static bool? NullableBool(bool? value) => value;
 
     // String type
     public static string String(string value) => value;
