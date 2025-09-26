@@ -48,10 +48,9 @@ public class PythonInteropUtils
             if (typeDefinition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.ValueType))
             {
                 return $"""
-{resultAssignment ?? $"{ExportedPyResult} = {InternalPyResult}"}
 {InternalPythonPrefix}nullable = {PythonNamingUtils.PythonizeClassName(
-                        "Nullable[[" + typeDefinition.SimplifiedAssemblyQualifiedName + "]]"
-                    )}.{FromPtr}({ExportedPyResult})
+                        "Nullable<" + typeDefinition.FullyQualifiedName + ">"
+                    )}.{FromPtr}({InternalPyResult})
 if {InternalPythonPrefix}nullable.has_value:
     {ExportedPyResult} = {InternalPythonPrefix}nullable.value
 else:

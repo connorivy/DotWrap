@@ -31,6 +31,7 @@ public class TypesSimple
     // public static decimal Decimal() => decimal.Value;
 
     public static bool Bool(bool value) => value;
+    public static bool? NullableBool(bool? value) => value;
 
     // String type
     public static string String(string value) => value;

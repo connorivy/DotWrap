@@ -215,12 +215,10 @@ public record MethodBuilderContext(ClassBuilderContext ClassContext, ExportedMet
                 if (definition.SpecialCaseFlags.HasFlag(TypeSpecialCaseFlags.ValueType))
                 {
                     yield return $"""
-{typedVarAssignment}
 {param.Name}_dotwrap_nullable = {PythonNamingUtils.PythonizeClassName(
-                            "Nullable[[" + definition.SimplifiedAssemblyQualifiedName + "]]"
-                        )}._create({param.Name}{Typed})
+                            "Nullable<" + definition.FullyQualifiedName + ">"
+                        )}._create({param.Name})
 {param.Name}{Typed} = {param.Name}_dotwrap_nullable.{Ptr}
-
 """;
                 }
                 else
