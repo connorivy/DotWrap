@@ -174,6 +174,17 @@ namespace DotWrap.BuiltIn
             globalContext.AddDiscoveredType(namedTypeSymbol);
         }
 
+        foreach (var typeSymbol in assembliesToExpose
+                    // .Where(a => !SymbolEqualityComparer.Default.Equals(a, currentAssembly))
+                    .SelectMany(a => GetNamespaceTypesRecursive(a.GlobalNamespace)))
+        {
+            if (typeSymbol.DeclaredAccessibility != Accessibility.Public)
+            {
+                continue;
+            }
+            globalContext.AddDiscoveredType(typeSymbol);
+        }
+
         var externallyExposedTypeMeta = assemblyAttrs
             .Where(a =>
                 a.AttributeClass?.Name == nameof(DotWrap.DotWrapExternalTypeConfigAttribute)
@@ -257,6 +268,19 @@ namespace DotWrap.BuiltIn
 
         return true;
     }
+
+    public static IEnumerable<INamedTypeSymbol> GetNamespaceTypesRecursive(INamespaceSymbol ns)
+    {
+        foreach (var member in ns.GetTypeMembers())
+            yield return member;
+
+        foreach (var subNs in ns.GetNamespaceMembers())
+        {
+            foreach (var type in GetNamespaceTypesRecursive(subNs))
+                yield return type;
+        }
+    }
+
 }
 
 public record DotWrapExposeData
