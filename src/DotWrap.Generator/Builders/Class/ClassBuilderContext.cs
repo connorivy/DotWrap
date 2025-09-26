@@ -93,7 +93,7 @@ public class ClassBuilderContext(
                 .ToDictionary(pair => pair.param, pair => pair.arg)
         );
     public string WrapperName =>
-        ClassNameWithoutGenerics
+        ClassNameWithoutGenerics.Replace("?", "Nullable")
         + "DotWrapWrapper"
         + string.Join("_", TypeArguments.Select(t =>
                 t.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)
