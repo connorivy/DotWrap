@@ -16,7 +16,7 @@ namespace DotWrap.MSBuild.WrapperGenerators.Python.Extensions
                     return $"Out{char.ToUpper(typeDef.TypeNameNoGenerics[0]) + typeDef.TypeNameNoGenerics.Substring(1)}";
                 }
                 return PythonNamingUtils.MapTypeToPython(
-                    typeDef.SimplifiedAssemblyQualifiedName,
+                    typeDef.FullyQualifiedName,
                     genericParamsToArgsDict,
                     useGenericParams
                 );

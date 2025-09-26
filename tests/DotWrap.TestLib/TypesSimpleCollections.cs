@@ -7,4 +7,9 @@ public class TypesSimpleCollections
     {
         return items;
     }
+
+    public static IEnumerable<KeyValuePair<int, double>>? IEnumerableOfKvpOfIntAndDouble(IEnumerable<KeyValuePair<int, double>>? items)
+    {
+        return items;
+    }
 }
