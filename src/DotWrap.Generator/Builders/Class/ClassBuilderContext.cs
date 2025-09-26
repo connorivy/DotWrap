@@ -27,7 +27,7 @@ public class ClassBuilderContext(
             {
                 var elementTypeName = DotWrapUtils.SplitOnPeriodTopLevel(arraySymbol.ToDisplayString()).Last();
                 csharpName = DotWrapUtils.ReplaceArraySymbols(elementTypeName);
-                // csharpName = DotWrapUtils.ReplaceArraySymbols(arraySymbol.ToDisplayString());
+                csharpName = csharpName.Replace("?", "Nullable");
             }
             else
             {
@@ -93,7 +93,7 @@ public class ClassBuilderContext(
                 .ToDictionary(pair => pair.param, pair => pair.arg)
         );
     public string WrapperName =>
-        ClassNameWithoutGenerics.Replace("?", "Nullable")
+        ClassNameWithoutGenerics
         + "DotWrapWrapper"
         + string.Join("_", TypeArguments.Select(t =>
                 t.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)
