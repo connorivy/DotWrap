@@ -124,7 +124,7 @@ public class MethodBuilder(
         if (method.Parameters.Select(p => p.Type).Concat<ITypeSymbol>([method.ReturnType]).Any(p => p.IsRefLikeType))
         {
             Logger.LogWarning(
-                $"Skipping method '{method.Name}' because it has a 'ref like' parameters or return type, which is not supported."
+                $"Skipping method '{method.Name}' on type {method.ContainingType.ToDisplayString()} because it has a 'ref like' parameters or return type, which is not supported."
             );
             return;
         }
