@@ -29,7 +29,17 @@ public static class AssemblyNameUtils
         switch (symbol)
         {
             case IArrayTypeSymbol arrayType:
-                return $"{GetTypeName(arrayType.ElementType)}[]";
+                var elementTypeName = GetTypeName(arrayType.ElementType);
+                // Preserve nullable annotation for array elements
+                if (arrayType.ElementType.NullableAnnotation == NullableAnnotation.Annotated)
+                {
+                    // Add nullable annotation if not already present
+                    if (!elementTypeName.EndsWith("?"))
+                    {
+                        elementTypeName += "?";
+                    }
+                }
+                return $"{elementTypeName}[]";
 
             case INamedTypeSymbol namedType when namedType.IsGenericType:
                 var sb = new StringBuilder();
