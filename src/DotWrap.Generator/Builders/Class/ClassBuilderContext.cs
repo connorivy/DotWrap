@@ -25,6 +25,10 @@ public class ClassBuilderContext(
             }
             else if (ClassSymbol is IArrayTypeSymbol arraySymbol)
             {
+                if (arraySymbol.NullableAnnotation == NullableAnnotation.Annotated)
+                {
+                    arraySymbol = (IArrayTypeSymbol)arraySymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+                }
                 var elementTypeName = DotWrapUtils.SplitOnPeriodTopLevel(arraySymbol.ToDisplayString()).Last();
                 csharpName = DotWrapUtils.ReplaceArraySymbols(elementTypeName);
                 csharpName = csharpName.Replace("?", "Nullable");
