@@ -24,6 +24,11 @@ public static class AssemblyNameUtils
         return $"{typeName}, {assemblyName}";
     }
 
+    private static string GetTypeNameWithAssembly(string typeName, string assemblyName)
+    {
+        return $"{typeName}, {assemblyName}";
+    }
+
     private static string GetTypeName(ITypeSymbol symbol)
     {
         switch (symbol)
@@ -61,7 +66,14 @@ public static class AssemblyNameUtils
                         {
                             sb.Append("],[");
                         }
-                        sb.Append(GetTypeNameWithAssembly(allTypeArguments[i]));
+                        var currentArg = allTypeArguments[i];
+                        var typeName = GetTypeName(currentArg);
+                        if (currentArg.NullableAnnotation == NullableAnnotation.Annotated && !typeName.EndsWith("?"))
+                        {
+                            typeName += "?";
+                        }
+                        var assemblyName = GetAssemblyName(currentArg);
+                        sb.Append(GetTypeNameWithAssembly(typeName, assemblyName));
                     }
 
                     sb.Append("]]");
