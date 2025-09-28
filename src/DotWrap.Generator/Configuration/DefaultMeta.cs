@@ -16,6 +16,10 @@ namespace DotWrap.Generator.Configuration
                 nameof(IList<int>.Remove)
             );
             yield return new DotWrap.DotWrapExternalMethodMeta(
+                typeof(IEnumerable<>),
+                "Contains"
+            );
+            yield return new DotWrap.DotWrapExternalMethodMeta(
                 typeof(System.Array),
                 "Add",
                 ignore: true
@@ -24,6 +28,10 @@ namespace DotWrap.Generator.Configuration
                 typeof(System.Array),
                 "Remove",
                 ignore: true
+            );
+            yield return new DotWrap.DotWrapExternalMethodMeta(
+                typeof(System.Array),
+                "Contains"
             );
         }
 
