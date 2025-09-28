@@ -58,19 +58,29 @@ public static class PythonNamingUtils
     )
     {
         fullTypeName = DotWrapUtils.ReplaceArraySymbols(fullTypeName).TrimEnd(' ');
+        
+        // Handle nullable types at the top level
         if (fullTypeName.EndsWith("?"))
         {
             fullTypeName = "System.Nullable<" + fullTypeName.TrimEnd('?') + ">";
         }
-        fullTypeName = fullTypeName.Replace("?", "Nullable");
-
+        
         var topLevelSplit = DotWrapUtils.SplitOnPeriodTopLevel(fullTypeName).ToList();
 
         var innerGenerics = topLevelSplit
             .SelectMany(GetTopLevelGenerics)
             .Concat(GetTopLevelGenericsWithBrackets(topLevelSplit.Last()))
             .Select(DotWrapUtils.NormalizeCsTypeName)
-            .Select(g => MapTypeToPython(g, genericParamsToArgsDict, useGenericParams))
+            .Select(g => {
+                // Handle nullable types in inner generics before the '?' replacement
+                if (g.EndsWith("?"))
+                {
+                    var baseType = g[..^1].Trim();
+                    var baseTypePython = MapTypeToPython(baseType, genericParamsToArgsDict, useGenericParams);
+                    return $"Optional[{baseTypePython}]";
+                }
+                return MapTypeToPython(g, genericParamsToArgsDict, useGenericParams);
+            })
             .ToList();
 
         var typeName = topLevelSplit.Last();
@@ -211,6 +221,22 @@ public static class PythonNamingUtils
             {
                 return mappedType;
             }
+        }
+
+        // Handle nullable types by extracting the base type and wrapping with Optional[]
+        if (t.EndsWith("?"))
+        {
+            var baseType = t[..^1].Trim();
+            var baseTypePython = MapTypeToPython(baseType, genericTypeParamsToArgsDict, useGenericParams);
+            return $"Optional[{baseTypePython}]";
+        }
+
+        // Handle System.Nullable<T> explicitly
+        if (t.StartsWith("System.Nullable<") && t.EndsWith(">"))
+        {
+            var innerType = t.Substring("System.Nullable<".Length, t.Length - "System.Nullable<".Length - 1);
+            var innerTypePython = MapTypeToPython(innerType, genericTypeParamsToArgsDict, useGenericParams);
+            return $"Optional[{innerTypePython}]";
         }
 
         return t.ToLowerInvariant().Replace("system.", "") switch
