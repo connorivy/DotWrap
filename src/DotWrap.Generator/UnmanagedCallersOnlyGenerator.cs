@@ -59,11 +59,14 @@ using DotWrap;
 using DotWrap.Configuration;
 
 [assembly: DotWrapExternalIndexerMeta(typeof(IList<>))]
+[assembly: DotWrapExternalIndexerMeta(typeof(IReadOnlyList<>), PropertyType.Get)]
 [assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<int>.Add))]
 [assembly: DotWrapExternalMethodMeta(typeof(IList<>), nameof(IList<int>.Remove))]
+[assembly: DotWrapExternalMethodMeta(typeof(IEnumerable<>), "Contains")]
 
 [assembly: DotWrapExternalPropertyMeta(typeof(ICollection<>), nameof(ICollection<int>.Count))]
 [assembly: DotWrapExternalPropertyMeta(typeof(IReadOnlyCollection<>), nameof(IReadOnlyCollection<int>.Count))]
+[assembly: DotWrapExternalPropertyMeta(typeof(IReadOnlyList<>), nameof(IReadOnlyList<int>.Count))]
 
 [assembly: DotWrapExternalPropertyMeta(typeof(IDictionary<,>), nameof(IDictionary<int, int>.Keys))]
 [assembly: DotWrapExternalPropertyMeta(typeof(KeyValuePair<,>), nameof(KeyValuePair<int, int>.Key))]
@@ -72,6 +75,7 @@ using DotWrap.Configuration;
 [assembly: DotWrapExternalPropertyMeta(typeof(System.Array), nameof(System.Array.Length))]
 [assembly: DotWrapExternalMethodMeta(typeof(System.Array), "Add", ignore: true)]
 [assembly: DotWrapExternalMethodMeta(typeof(System.Array), "Remove", ignore: true)]
+[assembly: DotWrapExternalMethodMeta(typeof(System.Array), "Contains")]
 [assembly: DotWrapExternalPropertyMeta(typeof(System.Array), "Count", PropertyType.None)]
 [assembly: DotWrapExternalTypeConfig(typeof(System.Array), namespaceAlias: "System.Collections.Generic")]
 
