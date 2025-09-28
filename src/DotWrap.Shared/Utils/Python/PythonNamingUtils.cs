@@ -20,10 +20,11 @@ public static class PythonNamingUtils
     public static string PythonizeClassName(string fullTypeName)
     {
         fullTypeName = DotWrapUtils.ReplaceArraySymbols(fullTypeName);
-        if (fullTypeName.EndsWith("?"))
+        if (fullTypeName.TrimEnd().EndsWith("?"))
         {
             fullTypeName = "System.Nullable<" + fullTypeName[..^1] + ">";
         }
+        fullTypeName = fullTypeName.Replace("?", "Nullable");
 
         var topLevelSplit = DotWrapUtils.SplitOnPeriodTopLevel(fullTypeName).ToList();
 
@@ -56,11 +57,12 @@ public static class PythonNamingUtils
         bool useGenericParams = false
     )
     {
-        fullTypeName = DotWrapUtils.ReplaceArraySymbols(fullTypeName);
+        fullTypeName = DotWrapUtils.ReplaceArraySymbols(fullTypeName).TrimEnd(' ');
         if (fullTypeName.EndsWith("?"))
         {
-            fullTypeName = "System.Nullable<" + fullTypeName[..^1] + ">";
+            fullTypeName = "System.Nullable<" + fullTypeName.TrimEnd('?') + ">";
         }
+        fullTypeName = fullTypeName.Replace("?", "Nullable");
 
         var topLevelSplit = DotWrapUtils.SplitOnPeriodTopLevel(fullTypeName).ToList();
 
