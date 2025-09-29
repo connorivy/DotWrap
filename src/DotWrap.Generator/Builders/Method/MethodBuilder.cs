@@ -82,6 +82,12 @@ public class MethodBuilder(
                         // only generate constructors for the original type, not base types
                         continue;
                     }
+                    if (currentClassSymbol.IsAbstract)
+                    {
+                        // cannot instantiate abstract classes, so skip constructors
+                        continue;
+                    }
+
                     methodKeyComponents = methodKeyComponents
                         .Concat(classContext.ClassSymbol.GetRequiredMembers().Select(p => p.Type.ToDisplayString()));
                 }

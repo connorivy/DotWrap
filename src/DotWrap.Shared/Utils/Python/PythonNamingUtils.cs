@@ -20,7 +20,7 @@ public static class PythonNamingUtils
     public static string PythonizeClassName(string fullTypeName)
     {
         fullTypeName = DotWrapUtils.ReplaceArraySymbols(fullTypeName);
-        if (fullTypeName.EndsWith("?"))
+        if (fullTypeName.TrimEnd().EndsWith("?"))
         {
             fullTypeName = "System.Nullable<" + fullTypeName[..^1] + ">";
         }
@@ -35,7 +35,10 @@ public static class PythonNamingUtils
             .ToList();
 
         var typeName = topLevelSplit.Last();
-        var nonGenericTypeName = DotWrapUtils.GetGenericBaseNameOrNull(typeName) ?? typeName;
+        var nonGenericTypeName = DotWrapUtils.GetGenericBaseNameOrNull(typeName);
+
+        // If the type is not generic, replace all "?" with "Nullable"
+        nonGenericTypeName ??= typeName.Replace("?", "Nullable");
 
         return nonGenericTypeName
             + (innerGenerics.Count > 0 ? $"Of{string.Join("And", innerGenerics)}" : "");
@@ -56,10 +59,10 @@ public static class PythonNamingUtils
         bool useGenericParams = false
     )
     {
-        fullTypeName = DotWrapUtils.ReplaceArraySymbols(fullTypeName);
+        fullTypeName = DotWrapUtils.ReplaceArraySymbols(fullTypeName).TrimEnd(' ');
         if (fullTypeName.EndsWith("?"))
         {
-            fullTypeName = "System.Nullable<" + fullTypeName[..^1] + ">";
+            fullTypeName = "Optional<" + fullTypeName.TrimEnd('?') + ">";
         }
 
         var topLevelSplit = DotWrapUtils.SplitOnPeriodTopLevel(fullTypeName).ToList();
@@ -72,7 +75,10 @@ public static class PythonNamingUtils
             .ToList();
 
         var typeName = topLevelSplit.Last();
-        var nonGenericTypeName = DotWrapUtils.GetGenericBaseNameOrNull(typeName) ?? typeName;
+        var nonGenericTypeName = DotWrapUtils.GetGenericBaseNameOrNull(typeName);
+
+        // If the type is not generic, replace all "?" with "Nullable"
+        nonGenericTypeName ??= typeName.Replace("?", "Nullable");
 
         return nonGenericTypeName
             + (innerGenerics.Count > 0 ? $"[{string.Join(", ", innerGenerics)}]" : "");

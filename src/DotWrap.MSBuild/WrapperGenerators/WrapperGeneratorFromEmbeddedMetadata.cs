@@ -91,6 +91,54 @@ public class WrapperGeneratorFromEmbeddedMetadata
         );
     }
 
+    private static IEnumerable<Type> GetAssemblyTypes(Assembly assembly, HashSet<Assembly> visited)
+    {
+        if (!visited.Add(assembly))
+        {
+            yield break; // Already visited this assembly
+        }
+
+        Type[] definedTypes;
+        try
+        {
+            definedTypes = assembly
+                .GetTypes()
+                .Where(t => t.Assembly == assembly) // Ensure type is defined in this assembly
+                .ToArray();
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            // throw when dll references other types which cannot be loaded in this context (i.e. types from nuget packages)
+            definedTypes = ex.Types.OfType<Type>().ToArray();
+        }
+
+        Logger.LogInfo($"Processing assembly {assembly.FullName} with {definedTypes.Length} types");
+
+        foreach (var type in definedTypes)
+        {
+            yield return type;
+        }
+
+        foreach (var exposeAssemblyAttr in assembly.GetCustomAttributes<DotWrapExposeAssemblyAttribute>())
+        {
+            Assembly exposedAssembly;
+            try
+            {
+                exposedAssembly = Assembly.Load(exposeAssemblyAttr.assemblyType.Assembly.FullName);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Failed to load assembly for type {exposeAssemblyAttr.assemblyType}: {ex}");
+                continue;
+            }
+
+            foreach (var asm in GetAssemblyTypes(exposedAssembly, visited))
+            {
+                yield return asm;
+            }
+        }
+    }
+
     private static void AddClassWrapperInfo(
         List<ExportedTypeDefinition> exportedClasses,
         Type type,

@@ -24,12 +24,27 @@ public static class AssemblyNameUtils
         return $"{typeName}, {assemblyName}";
     }
 
+    private static string GetTypeNameWithAssembly(string typeName, string assemblyName)
+    {
+        return $"{typeName}, {assemblyName}";
+    }
+
     private static string GetTypeName(ITypeSymbol symbol)
     {
         switch (symbol)
         {
             case IArrayTypeSymbol arrayType:
-                return $"{GetTypeName(arrayType.ElementType)}[]";
+                var elementTypeName = GetTypeName(arrayType.ElementType);
+                // Preserve nullable annotation for array elements
+                if (arrayType.ElementType.NullableAnnotation == NullableAnnotation.Annotated)
+                {
+                    // Add nullable annotation if not already present
+                    if (!elementTypeName.EndsWith("?"))
+                    {
+                        elementTypeName += "?";
+                    }
+                }
+                return $"{elementTypeName}[]";
 
             case INamedTypeSymbol namedType when namedType.IsGenericType:
                 var sb = new StringBuilder();
@@ -51,7 +66,14 @@ public static class AssemblyNameUtils
                         {
                             sb.Append("],[");
                         }
-                        sb.Append(GetTypeNameWithAssembly(allTypeArguments[i]));
+                        var currentArg = allTypeArguments[i];
+                        var typeName = GetTypeName(currentArg);
+                        if (currentArg.NullableAnnotation == NullableAnnotation.Annotated && !typeName.EndsWith("?"))
+                        {
+                            typeName += "?";
+                        }
+                        var assemblyName = GetAssemblyName(currentArg);
+                        sb.Append(GetTypeNameWithAssembly(typeName, assemblyName));
                     }
 
                     sb.Append("]]");

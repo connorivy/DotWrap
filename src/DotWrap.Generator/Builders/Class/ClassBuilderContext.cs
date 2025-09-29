@@ -25,9 +25,13 @@ public class ClassBuilderContext(
             }
             else if (ClassSymbol is IArrayTypeSymbol arraySymbol)
             {
+                if (arraySymbol.NullableAnnotation == NullableAnnotation.Annotated)
+                {
+                    arraySymbol = (IArrayTypeSymbol)arraySymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+                }
                 var elementTypeName = DotWrapUtils.SplitOnPeriodTopLevel(arraySymbol.ToDisplayString()).Last();
                 csharpName = DotWrapUtils.ReplaceArraySymbols(elementTypeName);
-                // csharpName = DotWrapUtils.ReplaceArraySymbols(arraySymbol.ToDisplayString());
+                csharpName = csharpName.Replace("?", "Nullable");
             }
             else
             {
@@ -99,7 +103,7 @@ public class ClassBuilderContext(
                 t.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)
                     .Replace('<', '_')
                     .Replace('>', '_')
-                    .Replace("?", "")
+                    .Replace("?", "Nullable")
                     .Replace("[]", "Array")
                     .Replace("[,]", "2dArray")
                     .Replace("[,,]", "3dArray")

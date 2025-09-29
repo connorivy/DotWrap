@@ -134,8 +134,8 @@ namespace DotWrap.BuiltIn
         var assemblyAttrs = compilation.Assembly.GetAttributes();
         var currentAssembly = compilation.Assembly;
 
-        HashSet<INamedTypeSymbol> allExplicitTypes = [];
-        HashSet<ITypeSymbol> allInferedTypes = [];
+        HashSet<INamedTypeSymbol> allExplicitTypes = new(SymbolEqualityComparer.IncludeNullability);
+        HashSet<ITypeSymbol> allInferedTypes = new(SymbolEqualityComparer.IncludeNullability);
         Queue<ITypeSymbol> inferedTypesToWrap = [];
         Queue<INamedTypeSymbol> explicitTypesToWrap = [];
         var exposeEntireAssembly = assemblyAttrs.Any(a =>
@@ -172,6 +172,17 @@ namespace DotWrap.BuiltIn
                 continue;
             }
             globalContext.AddDiscoveredType(namedTypeSymbol);
+        }
+
+        foreach (var typeSymbol in assembliesToExpose
+                    // .Where(a => !SymbolEqualityComparer.Default.Equals(a, currentAssembly))
+                    .SelectMany(a => GetNamespaceTypesRecursive(a.GlobalNamespace)))
+        {
+            if (typeSymbol.DeclaredAccessibility != Accessibility.Public)
+            {
+                continue;
+            }
+            globalContext.AddDiscoveredType(typeSymbol);
         }
 
         var externallyExposedTypeMeta = assemblyAttrs
@@ -226,7 +237,7 @@ namespace DotWrap.BuiltIn
                 string sourceText = new ExplicitWrapperBuilder(context).GenerateClassFile();
 
                 spc.AddSource(
-                    $"{context.WrapperName}.g.cs",
+                    $"{context.FullyQualifiedWrapperName.Replace('.', '_')}.g.cs",
                     SourceText.From(sourceText, Encoding.UTF8)
                 );
             }
@@ -249,7 +260,7 @@ namespace DotWrap.BuiltIn
                 ).GenerateClassFile();
 
                 spc.AddSource(
-                    $"{context.WrapperName}.g.cs",
+                    $"{context.FullyQualifiedWrapperName.Replace('.', '_')}.g.cs",
                     SourceText.From(sourceText, Encoding.UTF8)
                 );
             }
@@ -257,6 +268,19 @@ namespace DotWrap.BuiltIn
 
         return true;
     }
+
+    public static IEnumerable<INamedTypeSymbol> GetNamespaceTypesRecursive(INamespaceSymbol ns)
+    {
+        foreach (var member in ns.GetTypeMembers())
+            yield return member;
+
+        foreach (var subNs in ns.GetNamespaceMembers())
+        {
+            foreach (var type in GetNamespaceTypesRecursive(subNs))
+                yield return type;
+        }
+    }
+
 }
 
 public record DotWrapExposeData
