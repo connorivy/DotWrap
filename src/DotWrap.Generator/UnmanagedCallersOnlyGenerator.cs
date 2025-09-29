@@ -138,6 +138,7 @@ namespace DotWrap.BuiltIn
         HashSet<ITypeSymbol> allInferedTypes = new(SymbolEqualityComparer.IncludeNullability);
         Queue<ITypeSymbol> inferedTypesToWrap = [];
         Queue<INamedTypeSymbol> explicitTypesToWrap = [];
+        HashSet<string> generatedHintNames = []; // Track generated source file names to prevent duplicates
         var exposeEntireAssembly = assemblyAttrs.Any(a =>
             a.AttributeClass?.Name == nameof(DotWrap.DotWrapExposeAssemblyAttribute)
         );
@@ -232,12 +233,18 @@ namespace DotWrap.BuiltIn
                     exposeAttribute = DotWrapExposeData.FromAttributeData(exposeAttr);
                 }
 
-                allExplicitTypes.Add(namedTypeSymbol);
                 var context = new ClassBuilderContext(globalContext, namedTypeSymbol, exposeAttribute);
                 string sourceText = new ExplicitWrapperBuilder(context).GenerateClassFile();
 
+                var hintName = $"{context.FullyQualifiedWrapperName.Replace('.', '_')}.g.cs";
+                if (!generatedHintNames.Add(hintName))
+                {
+                    Logger.LogWarning($"Skipping duplicate wrapper generation for explicit type '{namedTypeSymbol.ToDisplayString()}' with hint name '{hintName}'");
+                    continue;
+                }
+
                 spc.AddSource(
-                    $"{context.FullyQualifiedWrapperName.Replace('.', '_')}.g.cs",
+                    hintName,
                     SourceText.From(sourceText, Encoding.UTF8)
                 );
             }
@@ -259,8 +266,15 @@ namespace DotWrap.BuiltIn
                     externalMethodExposes
                 ).GenerateClassFile();
 
+                var hintName = $"{context.FullyQualifiedWrapperName.Replace('.', '_')}.g.cs";
+                if (!generatedHintNames.Add(hintName))
+                {
+                    Logger.LogWarning($"Skipping duplicate wrapper generation for inferred type '{classSymbol.ToDisplayString()}' with hint name '{hintName}'");
+                    continue;
+                }
+
                 spc.AddSource(
-                    $"{context.FullyQualifiedWrapperName.Replace('.', '_')}.g.cs",
+                    hintName,
                     SourceText.From(sourceText, Encoding.UTF8)
                 );
             }

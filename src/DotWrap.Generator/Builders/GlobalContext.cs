@@ -49,13 +49,13 @@ public class GlobalContext(
             return;
         }
 
-        // even though I'm removing the nullable annotation, the comparision with includeNullibility is still
-        // returning false for the same symbols and I'm not sure why
-        var symbolComparer = typeSymbol.IsReferenceType
-            ? SymbolEqualityComparer.Default
-            : SymbolEqualityComparer.IncludeNullability;
-
-        if (allExplicitTypes.Contains(typeSymbol, symbolComparer) || allInferedTypes.Contains(typeSymbol))
+        // Use consistent equality comparison for duplicate detection
+        // Check if this type is already discovered as explicit or inferred type
+        var alreadyExplicit = typeSymbol is INamedTypeSymbol namedType && 
+                             allExplicitTypes.Contains(namedType, SymbolEqualityComparer.IncludeNullability);
+        var alreadyInferred = allInferedTypes.Contains(typeSymbol, SymbolEqualityComparer.IncludeNullability);
+        
+        if (alreadyExplicit || alreadyInferred)
         {
             return;
         }
