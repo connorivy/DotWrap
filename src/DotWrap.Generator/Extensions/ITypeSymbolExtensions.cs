@@ -1,4 +1,6 @@
 using DotWrap.Configuration;
+using DotWrap.Generator.Builders;
+using DotWrap.Generator.Builders.Class;
 using DotWrap.Generator.Builders.Method;
 using DotWrap.Utils;
 using Microsoft.CodeAnalysis;
@@ -156,7 +158,7 @@ public static class ITypedSymbolExtensions
             {
                 flags |= TypeSpecialCaseFlags.DirectlyBlittable;
             }
-            if (symbol.GetBlittableExternalTypeAssignment() is not null)
+            if (symbol.GetBlittableExternalTypeAssignment("", "") is not null)
             {
                 flags |= TypeSpecialCaseFlags.IndirectlyBlittable;
             }
@@ -168,7 +170,36 @@ public static class ITypedSymbolExtensions
             return flags;
         }
 
-        public string? GetBlittableExternalTypeAssignment()
+        public string? GetExternalTypeAssignment(GlobalContext globalContext, string internalResult, string exportedResult)
+        {
+            string? exportedResultAssignment;
+            if (symbol.SpecialType.IsBlittable())
+            {
+                exportedResultAssignment = null;
+            }
+            else if (
+                symbol.GetBlittableExternalTypeAssignment(internalResult, exportedResult) is string assignment
+            )
+            {
+                exportedResultAssignment = assignment;
+            }
+            else
+            {
+                exportedResultAssignment =
+                    @$"
+                var {exportedResult} = {GetWrapperName(globalContext, symbol)}.{Create}({internalResult});";
+            }
+
+            return exportedResultAssignment;
+        }
+
+        private static string GetWrapperName(GlobalContext globalContext, ITypeSymbol returnType)
+        {
+            ClassBuilderContext newContext = new(globalContext, returnType, new());
+            return newContext.FullyQualifiedWrapperName;
+        }
+
+        public string? GetBlittableExternalTypeAssignment(string InternalResult, string ExportedResult)
         {
             if (symbol is null)
             {
@@ -290,18 +321,18 @@ public static class ITypedSymbolExtensions
             };
         }
 
-        public bool SkipWrapperMethodGeneration()
-        {
-            if (symbol.SpecialType.IsBlittable())
-            {
-                return true;
-            }
-            if (symbol.GetBlittableExternalTypeAssignment() is not null)
-            {
-                return true;
-            }
-            return false;
-        }
+        // public bool SkipWrapperMethodGeneration()
+        // {
+        //     if (symbol.SpecialType.IsBlittable())
+        //     {
+        //         return true;
+        //     }
+        //     if (symbol.GetBlittableExternalTypeAssignment() is not null)
+        //     {
+        //         return true;
+        //     }
+        //     return false;
+        // }
 
         public AttributeData? GetDotWrapExposeAttribute()
         {

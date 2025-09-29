@@ -138,23 +138,24 @@ public class MethodBuilder(
         var context = new MethodBuilderContext(method, classContext);
         ExportedMethodInfo exportedMethodInfo = GenerateMetadata(method, context);
 
-        string? exportedResultAssignment;
-        if (context.OriginalReturnType.SpecialType.IsBlittable())
-        {
-            exportedResultAssignment = null;
-        }
-        else if (
-            context.OriginalReturnType.GetBlittableExternalTypeAssignment() is string assignment
-        )
-        {
-            exportedResultAssignment = assignment;
-        }
-        else
-        {
-            exportedResultAssignment =
-                @$"
-            var {ExportedResult} = {GetWrapperName(context.OriginalReturnType)}.{Create}({InternalResult});";
-        }
+
+        var exportedResultAssignment = context.OriginalReturnType.GetExternalTypeAssignment(classContext.GlobalContext, InternalResult, ExportedResult);
+        // if (context.OriginalReturnType.SpecialType.IsBlittable())
+        // {
+        //     exportedResultAssignment = null;
+        // }
+        // else if (
+        //     context.OriginalReturnType.GetBlittableExternalTypeAssignment(InternalResult, ExportedResult) is string assignment
+        // )
+        // {
+        //     exportedResultAssignment = assignment;
+        // }
+        // else
+        // {
+        //     exportedResultAssignment =
+        //         @$"
+        //     var {ExportedResult} = {GetWrapperName(classContext.GlobalContext, context.OriginalReturnType)}.{Create}({InternalResult});";
+        // }
         GenerateSingleMethod(context, exportedMethodInfo, exportedResultAssignment);
     }
 
@@ -209,7 +210,7 @@ public class MethodBuilder(
         var internalMethodCallArgs = methodContext.GetInternalMethodCallArgumentsString();
         var convertParamsToInternal =
             methodContext.ConvertExposedParametersToInternalParametersTypes();
-        var assignOutParameters = methodContext.AssignOutParameters();
+        var assignOutParameters = methodContext.AssignOutParameters(classContext.GlobalContext);
 
         sb.AppendLine(
             @$"
@@ -326,9 +327,9 @@ public class MethodBuilder(
         // sb.AppendLine();
     }
 
-    protected string GetWrapperName(ITypeSymbol returnType)
+    protected static string GetWrapperName(GlobalContext globalContext, ITypeSymbol returnType)
     {
-        ClassBuilderContext newContext = new(classContext.GlobalContext, returnType, new());
+        ClassBuilderContext newContext = new(globalContext, returnType, new());
         return newContext.FullyQualifiedWrapperName;
     }
 }
