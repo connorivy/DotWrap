@@ -26,3 +26,10 @@ def test_out_params_two_byte():
     test_lib.OutParams.out_byte_enum_two(two)
     print("Two:", two.value)
     assert two.value == test_lib.MyByteEnum.two, "Expected the output to be MyByteEnum.Two"
+
+def test_out_params_my_class():
+    cust_class = test_lib.outtypes.OutMyClass()
+    test_lib.OutParams.out_custom_class(cust_class)
+    print("ClassVal:", cust_class.value)
+    assert cust_class.value.x == 3, "Expected the output to be 3"
+    assert cust_class.value.y == 4, "Expected the output to be 4"

@@ -184,7 +184,7 @@ def __del__(self) -> None:
 @classmethod
 def {FromPtr}(cls, ptr: int):
     instance = object.__new__(cls)
-    instance.{Ptr} = ptr
+    instance.{Ptr} = _dotwrap_ffi.cast(""void *"", ptr)
     return instance
 
 def __del__(self):
