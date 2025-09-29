@@ -42,6 +42,7 @@ public class OutParams
     }
 }
 
+[DotWrapExpose]
 public class MyClass
 {
     public int X { get; set; }
