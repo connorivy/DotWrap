@@ -222,7 +222,7 @@ public record MethodBuilderContext(
         );
     }
 
-    public string? AssignOutParameters()
+    public string? AssignOutParameters(GlobalContext globalContext)
     {
         StringBuilder sb = new();
         bool hasConverted = false;
@@ -234,8 +234,26 @@ public record MethodBuilderContext(
             }
             hasConverted = true;
 
+            var externalTypeAssignment = param.OriginalTypeIfDifferent?
+                .GetExternalTypeAssignment(
+                    globalContext,
+                    $"{param.Name}{OutParam}",
+                    $"{param.Name}{OutParamTyped}"
+                );
+
+            string externalOutParamName;
+            if (externalTypeAssignment is not null)
+            {
+                externalOutParamName = $"{param.Name}{OutParamTyped}";
+                sb.AppendLine(externalTypeAssignment);
+            }
+            else
+            {
+                externalOutParamName = $"{param.Name}{OutParam}";
+            }
+
             sb.AppendLine(
-                $"            DotWrap.Operations.MarshalOutParamOps.Marshal({param.Name}{OutParam}, {param.Name});"
+                $"            DotWrap.Operations.MarshalOutParamOps.Marshal({externalOutParamName}, {param.Name});"
             );
         }
 

@@ -14,3 +14,15 @@ def test_out_params_string():
     print("Hello:", hello.value)
     assert hello.value == "HelloWorld", "Expected the output to be 'HelloWorld'"
     assert hello.value == "HelloWorld", "Expected the output to be 'HelloWorld'"
+
+def test_out_params_int_enum():
+    one = test_lib.outtypes.OutMyIntEnum()
+    test_lib.OutParams.out_int_enum_one(one)
+    print("One:", one.value)
+    assert one.value == test_lib.MyIntEnum.one, "Expected the output to be MyIntEnum.One"
+
+def test_out_params_two_byte():
+    two = test_lib.outtypes.OutMyByteEnum()
+    test_lib.OutParams.out_byte_enum_two(two)
+    print("Two:", two.value)
+    assert two.value == test_lib.MyByteEnum.two, "Expected the output to be MyByteEnum.Two"
