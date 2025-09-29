@@ -134,8 +134,10 @@ namespace DotWrap.BuiltIn
         var assemblyAttrs = compilation.Assembly.GetAttributes();
         var currentAssembly = compilation.Assembly;
 
-        HashSet<INamedTypeSymbol> allExplicitTypes = new(SymbolEqualityComparer.IncludeNullability);
-        HashSet<ITypeSymbol> allInferedTypes = new(SymbolEqualityComparer.IncludeNullability);
+        // HashSet<INamedTypeSymbol> allExplicitTypes = new(SymbolEqualityComparer.IncludeNullability);
+        // HashSet<ITypeSymbol> allInferedTypes = new(SymbolEqualityComparer.IncludeNullability);
+        HashSet<INamedTypeSymbol> allExplicitTypes = new();
+        HashSet<ITypeSymbol> allInferedTypes = new();
         Queue<ITypeSymbol> inferedTypesToWrap = [];
         Queue<INamedTypeSymbol> explicitTypesToWrap = [];
         var exposeEntireAssembly = assemblyAttrs.Any(a =>
