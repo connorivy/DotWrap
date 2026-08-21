@@ -16,6 +16,10 @@ namespace DotWrap.Generator.Configuration
                 nameof(IList<int>.Remove)
             );
             yield return new DotWrap.DotWrapExternalMethodMeta(
+                typeof(IReadOnlyList<>),
+                nameof(IReadOnlyList<int>.Contains)
+            );
+            yield return new DotWrap.DotWrapExternalMethodMeta(
                 typeof(System.Array),
                 "Add",
                 ignore: true
@@ -55,6 +59,10 @@ namespace DotWrap.Generator.Configuration
                 nameof(IReadOnlyCollection<int>.Count)
             );
             yield return new DotWrap.DotWrapExternalPropertyMeta(
+                typeof(IReadOnlyList<>),
+                nameof(IReadOnlyList<int>.Count)
+            );
+            yield return new DotWrap.DotWrapExternalPropertyMeta(
                 typeof(IDictionary<,>),
                 nameof(IDictionary<int, int>.Keys)
             );
@@ -80,6 +88,7 @@ namespace DotWrap.Generator.Configuration
         public static IEnumerable<DotWrap.DotWrapExternalIndexerMeta> GetDefaultIndexerMeta()
         {
             yield return new DotWrap.DotWrapExternalIndexerMeta(typeof(IList<>));
+            yield return new DotWrap.DotWrapExternalIndexerMeta(typeof(IReadOnlyList<>));
         }
     }
 }
